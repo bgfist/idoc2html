@@ -1,0 +1,3681 @@
+{
+  "basic": {
+    "id": "B91248FE-EE84-4459-8C7B-6FD1AFA559F9",
+    "sourceID": "B91248FE-EE84-4459-8C7B-6FD1AFA559F9",
+    "name": "BD小程序-完善信息",
+    "type": "group",
+    "realType": "Artboard",
+    "opacity": 1,
+    "imageID": ""
+  },
+  "bounds": {
+    "left": 0,
+    "top": 0,
+    "width": 375,
+    "height": 812
+  },
+  "fill": {
+    "colors": [
+      {
+        "type": "normal",
+        "value": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 1
+        }
+      }
+    ]
+  },
+  "text": {},
+  "stroke": {},
+  "effect": {},
+  "slice": {},
+  "sharedStyle": {},
+  "children": [
+    // 大按钮
+    {
+      "basic": {
+        "id": "4DBFC9AC-90D0-4109-B240-ACC82780624D",
+        "sourceID": "4DBFC9AC-90D0-4109-B240-ACC82780624D",
+        "name": "编组 3",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 20,
+        "top": 696,
+        "width": 335,
+        "height": 44
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "6E96681E-91E4-4FDE-9B86-4870F128FCB0",
+            "sourceID": "6E96681E-91E4-4FDE-9B86-4870F128FCB0",
+            "name": "提交信息",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 152,
+            "top": 707,
+            "width": 71,
+            "height": 22
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "提交信息",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "16",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 255,
+                      "g": 255,
+                      "b": 255,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "22",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "center"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "DD923F7A-7158-4114-B423-273E8EF0E7FC",
+            "sourceID": "DD923F7A-7158-4114-B423-273E8EF0E7FC",
+            "name": "Rectangle 5",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 20,
+            "top": 696,
+            "width": 335,
+            "height": 44
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 138,
+                  "b": 255,
+                  "a": 1
+                },
+                "name": "3。#008AFF"
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // radio灰色圆圈
+    {
+      "basic": {
+        "id": "53E9743B-03FB-4A5F-9D66-2C5462E54556",
+        "sourceID": "53E9743B-03FB-4A5F-9D66-2C5462E54556",
+        "name": "ic_mr",
+        "type": "path",
+        "realType": "ShapePath",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 120.00000781250128,
+        "top": 571.0000078124999,
+        "width": 15.999984374999997,
+        "height": 15.999984375000054
+      },
+      "fill": {
+        "colors": []
+      },
+      "text": {},
+      "stroke": {},
+      "effect": {},
+      "slice": {
+        "bitmapURL": "/idoc/2023-08-24/22812fe0-4251-11ee-84bc-f305051afaec.png",
+        "realSliceWidth": 16,
+        "realSliceHeight": 16,
+        "svgURL": "/idoc/2023-08-24/2285ead0-4251-11ee-84bc-f305051afaec.svg"
+      },
+      "sharedStyle": {}
+    },
+    // radio否
+    {
+      "basic": {
+        "id": "5B33AD84-CA18-4DB6-9CA4-F53E70581D22",
+        "sourceID": "5B33AD84-CA18-4DB6-9CA4-F53E70581D22",
+        "name": "否",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 146.00000000000182,
+        "top": 569,
+        "width": 14,
+        "height": 20
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "否",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "14",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "20",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // radio是
+    {
+      "basic": {
+        "id": "2D974B76-D0E8-4275-AD2E-DD81B00646D9",
+        "sourceID": "2D974B76-D0E8-4275-AD2E-DD81B00646D9",
+        "name": "是",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 46,
+        "top": 569,
+        "width": 14,
+        "height": 20
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "是",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "14",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 138,
+                  "b": 255,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "20",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // radio蓝色圆圈
+    {
+      "basic": {
+        "id": "0A86C86B-D1A1-4736-860D-29035B227549",
+        "sourceID": "0A86C86B-D1A1-4736-860D-29035B227549",
+        "name": "ic_qr",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 20.00000781249946,
+        "top": 571.0000078124999,
+        "width": 15.999984374999997,
+        "height": 15.999984375000054
+      },
+      "text": {},
+      "stroke": {},
+      "effect": {},
+      "slice": {
+        "bitmapURL": "/idoc/2023-08-24/22771dc0-4251-11ee-a44a-a9e846e98ad5.png",
+        "realSliceWidth": 16,
+        "realSliceHeight": 16,
+        "svgURL": "/idoc/2023-08-24/227b6380-4251-11ee-a44a-a9e846e98ad5.svg"
+      },
+      "sharedStyle": {},
+      // 无用的children
+      "children": [
+        {
+          "basic": {
+            "id": "59A40A44-131F-4836-B243-4D48D25154E3",
+            "sourceID": "59A40A44-131F-4836-B243-4D48D25154E3",
+            "name": "路径",
+            "type": "path",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 24.099999999998545,
+            "top": 575.8000078125001,
+            "width": 8.20000781250019,
+            "height": 6.2999999999999545
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 255,
+                  "g": 255,
+                  "b": 255,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "radius": false,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "1392240B-F230-4BFE-A30C-E39B26459DFA",
+            "sourceID": "1392240B-F230-4BFE-A30C-E39B26459DFA",
+            "name": "路径",
+            "type": "path",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 20.00000781249946,
+            "top": 571.0000078124999,
+            "width": 15.999984374999258,
+            "height": 15.99998437499994
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 138,
+                  "b": 255,
+                  "a": 1
+                },
+                "name": "3。#008AFF"
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "radius": false,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 招生主任选择框
+    {
+      "basic": {
+        "id": "D9613B51-4702-4B4B-88D5-7DCC929327C1",
+        "sourceID": "D9613B51-4702-4B4B-88D5-7DCC929327C1",
+        "name": "编组备份 2",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 252,
+        "top": 280,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "54F12F2E-6708-4A71-B728-0717EE52461A",
+            "sourceID": "54F12F2E-6708-4A71-B728-0717EE52461A",
+            "name": "招生主任",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 280,
+            "top": 291,
+            "width": 52,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "招生主任",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "2CD84470-A3E8-47BC-A651-E559080722DE",
+            "sourceID": "2CD84470-A3E8-47BC-A651-E559080722DE",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 252,
+            "top": 280,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框
+    {
+      "basic": {
+        "id": "FFCCED08-58F8-4B56-B04A-52059AEE7445",
+        "sourceID": "FFCCED08-58F8-4B56-B04A-52059AEE7445",
+        "name": "编组备份 5",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 252,
+        "top": 330,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "CE0FB639-9C26-438D-A5A1-DDADC9F7D87D",
+            "sourceID": "CE0FB639-9C26-438D-A5A1-DDADC9F7D87D",
+            "name": "其他岗位",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 280,
+            "top": 341,
+            "width": 52,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "其他岗位",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "0CFBD563-CEFE-4F28-8711-45DA9E36DE7F",
+            "sourceID": "0CFBD563-CEFE-4F28-8711-45DA9E36DE7F",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 252,
+            "top": 330,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框
+    {
+      "basic": {
+        "id": "9B023092-2259-4180-A619-715887A528F8",
+        "sourceID": "9B023092-2259-4180-A619-715887A528F8",
+        "name": "编组备份 4",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 135,
+        "top": 330,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "CB30C45F-F114-4EF3-A92D-DAD3EF0B8F1A",
+            "sourceID": "CB30C45F-F114-4EF3-A92D-DAD3EF0B8F1A",
+            "name": "考场工作人员",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 150,
+            "top": 341,
+            "width": 78,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "考场工作人员",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "FF332707-1E0A-47BB-BC82-2FC69F1C39C9",
+            "sourceID": "FF332707-1E0A-47BB-BC82-2FC69F1C39C9",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 135,
+            "top": 330,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框
+    {
+      "basic": {
+        "id": "C68DF155-8429-4006-B0A5-49A91A821BB0",
+        "sourceID": "C68DF155-8429-4006-B0A5-49A91A821BB0",
+        "name": "编组备份 3",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 330,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "A3F977D3-77AB-4840-9705-F6B542BCE50B",
+            "sourceID": "A3F977D3-77AB-4840-9705-F6B542BCE50B",
+            "name": "理论老师",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 43,
+            "top": 341,
+            "width": 52,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "理论老师",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "8F0953E3-042B-43A2-A3B3-5D0CA8CB0538",
+            "sourceID": "8F0953E3-042B-43A2-A3B3-5D0CA8CB0538",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 15,
+            "top": 330,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框
+    {
+      "basic": {
+        "id": "7F956BCF-29F8-4DC6-A610-959CA39C4B4A",
+        "sourceID": "7F956BCF-29F8-4DC6-A610-959CA39C4B4A",
+        "name": "编组备份",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 134,
+        "top": 280,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "50BDF031-4D04-4E7C-9DD1-AA27E7D5011B",
+            "sourceID": "50BDF031-4D04-4E7C-9DD1-AA27E7D5011B",
+            "name": "驾校教练",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 162,
+            "top": 291,
+            "width": 52,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "驾校教练",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "3052FB1F-3F17-46DD-A10C-AA38A5E81ED7",
+            "sourceID": "3052FB1F-3F17-46DD-A10C-AA38A5E81ED7",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 134,
+            "top": 280,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框选中
+    {
+      "basic": {
+        "id": "6BB3954A-2039-40D7-BB56-510143E78F59",
+        "sourceID": "6BB3954A-2039-40D7-BB56-510143E78F59",
+        "name": "编组",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 280,
+        "width": 108,
+        "height": 40
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "30BD70BE-599A-4A5F-83CD-0C64A6AE85FD",
+            "sourceID": "30BD70BE-599A-4A5F-83CD-0C64A6AE85FD",
+            "name": "驾校前台_校长",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 27,
+            "top": 291,
+            "width": 85,
+            "height": 18
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "驾校前台/校长",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "13",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 255,
+                      "g": 255,
+                      "b": 255,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "18",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "69494ADC-2CD6-4526-85C7-2E2DF7A023A0",
+            "sourceID": "69494ADC-2CD6-4526-85C7-2E2DF7A023A0",
+            "name": "矩形备份",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 15,
+            "top": 280,
+            "width": 108,
+            "height": 40
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 138,
+                  "b": 255,
+                  "a": 1
+                },
+                "name": "3。#008AFF"
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // section标题
+    {
+      "basic": {
+        "id": "02E9B349-CFDF-41C2-BD84-B9584A609116",
+        "sourceID": "02E9B349-CFDF-41C2-BD84-B9584A609116",
+        "name": "你的岗位角色",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 248,
+        "width": 96,
+        "height": 22
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "你的岗位角色",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Medium",
+              "size": "16",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "22",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // section标题
+    {
+      "basic": {
+        "id": "9E3063B1-DF81-4B99-A3ED-E82B47F25223",
+        "sourceID": "9E3063B1-DF81-4B99-A3ED-E82B47F25223",
+        "name": "学员扫码绑定后是否允许进入驾校详情",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 532,
+        "width": 272,
+        "height": 22
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "学员扫码绑定后是否允许进入驾校详情",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Medium",
+              "size": "16",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "22",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // section标题
+    {
+      "basic": {
+        "id": "6BAEE5F9-8C04-443A-B6E6-13D08887681C",
+        "sourceID": "6BAEE5F9-8C04-443A-B6E6-13D08887681C",
+        "name": "选择所在驾校",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 395,
+        "width": 96,
+        "height": 22
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "选择所在驾校",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Medium",
+              "size": "16",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "22",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // section标题
+    {
+      "basic": {
+        "id": "DB4AB2D2-3BC1-4A3F-9330-3D3F523EC37E",
+        "sourceID": "DB4AB2D2-3BC1-4A3F-9330-3D3F523EC37E",
+        "name": "你所在的城市",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 139,
+        "width": 96,
+        "height": 22
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "你所在的城市",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Medium",
+              "size": "16",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "22",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // tips
+    {
+      "basic": {
+        "id": "69BCFDF9-6005-4104-B4FE-2BE5D2B3A34C",
+        "sourceID": "69BCFDF9-6005-4104-B4FE-2BE5D2B3A34C",
+        "name": "*所有填写信息仅用做推广人身份认证，请放",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 750,
+        "width": 293,
+        "height": 18
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "*所有填写信息仅用做推广人身份认证，请放心填写",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "13",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 255,
+                  "g": 82,
+                  "b": 0,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "18",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // tips
+    {
+      "basic": {
+        "id": "1012E942-1145-4A2D-AF85-2E49C5C8BEF6",
+        "sourceID": "1012E942-1145-4A2D-AF85-2E49C5C8BEF6",
+        "name": "*为保证学员数据能绑定到您的驾校，请准确",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 489,
+        "width": 280,
+        "height": 18
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "*为保证学员数据能绑定到您的驾校，请准确填写",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "13",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 255,
+                  "g": 82,
+                  "b": 0,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "18",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "left"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // 选择框表单
+    {
+      "basic": {
+        "id": "A4667A05-065C-4B0D-927E-25D22ABBDE91",
+        "sourceID": "A4667A05-065C-4B0D-927E-25D22ABBDE91",
+        "name": "编组 9备份",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 427,
+        "width": 345,
+        "height": 52
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "9B4CB8FC-8C03-40E8-89D0-CAF03A1C9E73",
+            "sourceID": "9B4CB8FC-8C03-40E8-89D0-CAF03A1C9E73",
+            "name": "请选择任职驾校",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 30,
+            "top": 443,
+            "width": 98,
+            "height": 20
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "请选择任职驾校",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "14",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "20",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "9165D120-263E-487E-81DE-9580DDACA30D",
+            "sourceID": "9165D120-263E-487E-81DE-9580DDACA30D",
+            "name": "编组 10",
+            "type": "group",
+            "realType": "Group",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 327,
+            "top": 444,
+            "width": 18,
+            "height": 18
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {},
+          "children": [
+            {
+              "basic": {
+                "id": "3984F2D7-BEF8-4C65-85C9-928431F7E53A",
+                "sourceID": "3984F2D7-BEF8-4C65-85C9-928431F7E53A",
+                "name": "ic-ydy-jt",
+                "type": "shape",
+                "realType": "Slice",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 327,
+                "top": 444,
+                "width": 18,
+                "height": 18
+              },
+              "fill": {},
+              "text": {},
+              "stroke": {},
+              "effect": {},
+              "slice": {
+                "bitmapURL": "/idoc/2023-08-24/2269fe60-4251-11ee-84bc-f305051afaec.png",
+                "realSliceWidth": 18,
+                "realSliceHeight": 18,
+                "svgURL": "/idoc/2023-08-24/22710340-4251-11ee-84bc-f305051afaec.svg"
+              },
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "00CCB9C5-055A-40B1-83FA-07E15EAAB48A",
+                "sourceID": "00CCB9C5-055A-40B1-83FA-07E15EAAB48A",
+                "name": "路径 2",
+                "type": "path",
+                "realType": "ShapePath",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 334,
+                "top": 447,
+                "width": 6,
+                "height": 11.17822612225973
+              },
+              "fill": {
+                "colors": []
+              },
+              "text": {},
+              "stroke": {
+                "borders": [
+                  {
+                    "type": "center",
+                    "strokeWidth": 1.6,
+                    "color": {
+                      "type": "normal",
+                      "value": {
+                        "r": 110,
+                        "g": 110,
+                        "b": 110,
+                        "a": 1
+                      }
+                    }
+                  }
+                ],
+                "radius": false,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            }
+          ]
+        },
+        {
+          "basic": {
+            "id": "42BA9D1C-A178-4E26-A744-898604446358",
+            "sourceID": "42BA9D1C-A178-4E26-A744-898604446358",
+            "name": "矩形",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 15,
+            "top": 427,
+            "width": 345,
+            "height": 52
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 选择框表单 
+    {
+      "basic": {
+        "id": "B3598473-886F-46B6-8B46-41C073557BA9",
+        "sourceID": "B3598473-886F-46B6-8B46-41C073557BA9",
+        "name": "编组 9",
+        "type": "group",
+        "realType": "Group",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 171,
+        "width": 345,
+        "height": 52
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "710B6545-9404-48B6-A89D-97BFFE1F7CCA",
+            "sourceID": "710B6545-9404-48B6-A89D-97BFFE1F7CCA",
+            "name": "去选择",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 280,
+            "top": 187,
+            "width": 42,
+            "height": 20
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "去选择",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "14",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 110,
+                      "g": 110,
+                      "b": 110,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "20",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "right"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "56DE5470-3C1D-4EFE-A17E-9F6B71508FC3",
+            "sourceID": "56DE5470-3C1D-4EFE-A17E-9F6B71508FC3",
+            "name": "定位",
+            "type": "group",
+            "realType": "Group",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 30,
+            "top": 186,
+            "width": 22,
+            "height": 22
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {},
+          "children": [
+            {
+              "basic": {
+                "id": "99D67D1C-93E3-45C9-A3C0-6AD6664BA6C6",
+                "sourceID": "99D67D1C-93E3-45C9-A3C0-6AD6664BA6C6",
+                "name": "ic-ydy-dw",
+                "type": "shape",
+                "realType": "Slice",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 30,
+                "top": 186,
+                "width": 22,
+                "height": 22
+              },
+              "fill": {},
+              "text": {},
+              "stroke": {},
+              "effect": {},
+              "slice": {
+                "bitmapURL": "/idoc/2023-08-24/225712a0-4251-11ee-84bc-f305051afaec.png",
+                "realSliceWidth": 22,
+                "realSliceHeight": 22,
+                "svgURL": "/idoc/2023-08-24/22632090-4251-11ee-a44a-a9e846e98ad5.svg"
+              },
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "EBD0CA3D-4953-4146-B87A-9616F04FB15C",
+                "sourceID": "EBD0CA3D-4953-4146-B87A-9616F04FB15C",
+                "name": "形状",
+                "type": "shape",
+                "realType": "Shape",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 38.195246085011604,
+                "top": 192.01677852348985,
+                "width": 6.526174496644671,
+                "height": 6.526174496644217
+              },
+              "fill": {
+                "colors": [
+                  {
+                    "type": "normal",
+                    "value": {
+                      "r": 110,
+                      "g": 110,
+                      "b": 110,
+                      "a": 1
+                    }
+                  }
+                ]
+              },
+              "text": {},
+              "stroke": {
+                "borders": null,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "F30C2DF5-C74C-40AA-B809-CCE6793F37E2",
+                "sourceID": "F30C2DF5-C74C-40AA-B809-CCE6793F37E2",
+                "name": "形状",
+                "type": "shape",
+                "realType": "Shape",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 33.66666666666606,
+                "top": 187.83333333333326,
+                "width": 15.58333333333394,
+                "height": 17.84239373601781
+              },
+              "fill": {
+                "colors": [
+                  {
+                    "type": "normal",
+                    "value": {
+                      "r": 110,
+                      "g": 110,
+                      "b": 110,
+                      "a": 1
+                    }
+                  }
+                ]
+              },
+              "text": {},
+              "stroke": {
+                "borders": null,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            }
+          ]
+        },
+        {
+          "basic": {
+            "id": "8770CC89-1A39-42C2-9E5A-E104E1084E92",
+            "sourceID": "8770CC89-1A39-42C2-9E5A-E104E1084E92",
+            "name": "请选择城市",
+            "type": "text",
+            "realType": "Text",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 57,
+            "top": 187,
+            "width": 70,
+            "height": 20
+          },
+          "text": {
+            "styles": [
+              {
+                "value": "请选择城市",
+                "font": {
+                  "family": "PingFangSC",
+                  "weight": "Regular",
+                  "size": "14",
+                  "color": {
+                    "type": "normal",
+                    "value": {
+                      "r": 51,
+                      "g": 51,
+                      "b": 51,
+                      "a": 1
+                    }
+                  }
+                },
+                "space": {
+                  "lineHeight": "20",
+                  "letterSpacing": "0",
+                  "paragraph": "0"
+                },
+                "fontStyles": {
+                  "underLine": false,
+                  "lineThrough": false,
+                  "bold": false,
+                  "italic": false
+                },
+                "align": "left"
+              }
+            ]
+          },
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "B9F4E0BA-A627-4899-A081-9251AEEF0E9A",
+            "sourceID": "B9F4E0BA-A627-4899-A081-9251AEEF0E9A",
+            "name": "编组 10",
+            "type": "group",
+            "realType": "Group",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 327,
+            "top": 188,
+            "width": 18,
+            "height": 18
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {},
+          "children": [
+            {
+              "basic": {
+                "id": "AD6BFC29-3150-41BF-AB48-B430ED2BC0BB",
+                "sourceID": "AD6BFC29-3150-41BF-AB48-B430ED2BC0BB",
+                "name": "ic-ydy-jt",
+                "type": "shape",
+                "realType": "Slice",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 327,
+                "top": 188,
+                "width": 18,
+                "height": 18
+              },
+              "fill": {},
+              "text": {},
+              "stroke": {},
+              "effect": {},
+              "slice": {
+                "bitmapURL": "/idoc/2023-08-24/224d4ea0-4251-11ee-84bc-f305051afaec.png",
+                "realSliceWidth": 18,
+                "realSliceHeight": 18,
+                "svgURL": "/idoc/2023-08-24/224e3900-4251-11ee-84bc-f305051afaec.svg"
+              },
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "F0D3D289-EEC3-4183-A13A-671690C39915",
+                "sourceID": "F0D3D289-EEC3-4183-A13A-671690C39915",
+                "name": "路径 2",
+                "type": "path",
+                "realType": "ShapePath",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 334,
+                "top": 191,
+                "width": 6,
+                "height": 11.17822612225973
+              },
+              "fill": {
+                "colors": []
+              },
+              "text": {},
+              "stroke": {
+                "borders": [
+                  {
+                    "type": "center",
+                    "strokeWidth": 1.6,
+                    "color": {
+                      "type": "normal",
+                      "value": {
+                        "r": 110,
+                        "g": 110,
+                        "b": 110,
+                        "a": 1
+                      }
+                    }
+                  }
+                ],
+                "radius": false,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            }
+          ]
+        },
+        {
+          "basic": {
+            "id": "DAB740C5-7AB2-496A-99AF-FB2FCD1AF83D",
+            "sourceID": "DAB740C5-7AB2-496A-99AF-FB2FCD1AF83D",
+            "name": "矩形",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 15,
+            "top": 171,
+            "width": 345,
+            "height": 52
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 244,
+                  "g": 247,
+                  "b": 247,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              6,
+              6,
+              6,
+              6
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 测试7665
+    {
+      "basic": {
+        "id": "B63D6222-1765-4F1F-BF5B-881285F1D5F0",
+        "sourceID": "B63D6222-1765-4F1F-BF5B-881285F1D5F0",
+        "name": "测试7665",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 294,
+        "top": 74,
+        "width": 66,
+        "height": 30
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "测试7665",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "15",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 102,
+                  "g": 102,
+                  "b": 102,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "30",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "center"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // 备注
+    {
+      "basic": {
+        "id": "50C46E29-85D4-4579-8402-8C78CB7FE992",
+        "sourceID": "50C46E29-85D4-4579-8402-8C78CB7FE992",
+        "name": "备注",
+        "type": "text",
+        "realType": "Text",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 74,
+        "width": 30,
+        "height": 30
+      },
+      "text": {
+        "styles": [
+          {
+            "value": "备注",
+            "font": {
+              "family": "PingFangSC",
+              "weight": "Regular",
+              "size": "15",
+              "color": {
+                "type": "normal",
+                "value": {
+                  "r": 51,
+                  "g": 51,
+                  "b": 51,
+                  "a": 1
+                }
+              }
+            },
+            "space": {
+              "lineHeight": "30",
+              "letterSpacing": "0",
+              "paragraph": "0"
+            },
+            "fontStyles": {
+              "underLine": false,
+              "lineThrough": false,
+              "bold": false,
+              "italic": false
+            },
+            "align": "center"
+          }
+        ]
+      },
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // 分隔线
+    {
+      "basic": {
+        "id": "E61EC904-35B7-47E9-9A93-00D74F3CFE77",
+        "sourceID": "E61EC904-35B7-47E9-9A93-00D74F3CFE77",
+        "name": "Line",
+        "type": "path",
+        "realType": "ShapePath",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 15,
+        "top": 112.45833333333348,
+        "width": 345,
+        "height": 1
+      },
+      "fill": {
+        "colors": []
+      },
+      "text": {},
+      "stroke": {
+        "borders": [
+          {
+            "type": "center",
+            "strokeWidth": 0.5,
+            "color": {
+              "type": "normal",
+              "value": {
+                "r": 216,
+                "g": 216,
+                "b": 216,
+                "a": 1
+              }
+            }
+          }
+        ],
+        "radius": false,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // 顶部输入框
+    {
+      "basic": {
+        "id": "440073FC-4793-4A69-ACA2-F18500848788",
+        "sourceID": "440073FC-4793-4A69-ACA2-F18500848788",
+        "name": "矩形",
+        "type": "rect",
+        "realType": "ShapePath",
+        "opacity": 0,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 0,
+        "top": 64,
+        "width": 375,
+        "height": 50
+      },
+      "fill": {
+        "colors": [
+          {
+            "type": "normal",
+            "value": {
+              "r": 216,
+              "g": 216,
+              "b": 216,
+              "a": 1
+            }
+          }
+        ]
+      },
+      "text": {},
+      "stroke": {
+        "borders": [],
+        "radius": false,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {}
+    },
+    // 底部iphonex横杠
+    {
+      "basic": {
+        "id": "13258779-6B53-4147-AA92-E6286A40E9DB",
+        "symbolId": "523ED2DB-9397-498B-B00B-B8AC551B74B1",
+        "sourceID": "13258779-6B53-4147-AA92-E6286A40E9DB",
+        "name": "04-导航_1基础控件_3Home Indicator",
+        "type": "symbol",
+        "realType": "SymbolInstance",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 0,
+        "top": 778,
+        "width": 375,
+        "height": 34
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "CD27F68D-6E71-4393-B776-A8F1A9CAFE6B",
+            "sourceID": "CD27F68D-6E71-4393-B776-A8F1A9CAFE6B",
+            "name": "Rectangle 24",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 121,
+            "top": 798,
+            "width": 134,
+            "height": 5
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 0,
+                  "b": 0,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": [],
+            "radius": [
+              100,
+              100,
+              100,
+              100
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "10BD9912-4202-4098-BC38-60508FA3CA64",
+            "sourceID": "10BD9912-4202-4098-BC38-60508FA3CA64",
+            "name": "Bar",
+            "type": "rect",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 0,
+            "top": 778,
+            "width": 375,
+            "height": 34
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 255,
+                  "g": 255,
+                  "b": 255,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "radius": false,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        }
+      ]
+    },
+    // 顶部导航栏
+    {
+      "basic": {
+        "id": "B8BC2F5D-02F2-45C2-BCFE-79DE00032DE0",
+        "symbolId": "72C0E5D0-AEC9-4BF5-8649-3348E2541899",
+        "sourceID": "B8BC2F5D-02F2-45C2-BCFE-79DE00032DE0",
+        "name": "小程序顶部导航_二级页面（带返回）",
+        "type": "symbol",
+        "realType": "SymbolInstance",
+        "opacity": 1,
+        "imageID": ""
+      },
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "width": 375,
+        "height": 64
+      },
+      "text": {},
+      "stroke": {
+        "borders": null,
+        "dash": []
+      },
+      "effect": {
+        "shadows": []
+      },
+      "slice": {},
+      "sharedStyle": {},
+      "children": [
+        {
+          "basic": {
+            "id": "D8C7D113-E7AC-49C2-89AD-BF2E26D76ACE",
+            "sourceID": "D8C7D113-E7AC-49C2-89AD-BF2E26D76ACE",
+            "name": "Back",
+            "type": "path",
+            "realType": "ShapePath",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 11.5,
+            "top": 33.000000000000455,
+            "width": 17.677669529664854,
+            "height": 17.677669529663717
+          },
+          "fill": {
+            "colors": [
+              {
+                "type": "normal",
+                "value": {
+                  "r": 0,
+                  "g": 0,
+                  "b": 0,
+                  "a": 1
+                }
+              }
+            ]
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "radius": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {}
+        },
+        {
+          "basic": {
+            "id": "31E73CDE-C429-4775-B273-E54F95FE43F9",
+            "sourceID": "31E73CDE-C429-4775-B273-E54F95FE43F9",
+            "name": "顶部导航（无返回）",
+            "type": "group",
+            "realType": "Group",
+            "opacity": 1,
+            "imageID": ""
+          },
+          "bounds": {
+            "left": 0,
+            "top": 0,
+            "width": 375,
+            "height": 64
+          },
+          "text": {},
+          "stroke": {
+            "borders": null,
+            "dash": []
+          },
+          "effect": {
+            "shadows": []
+          },
+          "slice": {},
+          "sharedStyle": {},
+          "children": [
+            {
+              "basic": {
+                "id": "48F531E7-76C6-487F-BB82-F4056C01D364",
+                "sourceID": "48F531E7-76C6-487F-BB82-F4056C01D364",
+                "name": "时间及电量",
+                "type": "group",
+                "realType": "Group",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 0,
+                "top": 0,
+                "width": 375,
+                "height": 20
+              },
+              "text": {},
+              "stroke": {
+                "borders": null,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {},
+              "children": [
+                {
+                  "basic": {
+                    "id": "BB0A960A-A024-45FC-92D8-744CF3B7151E",
+                    "sourceID": "BB0A960A-A024-45FC-92D8-744CF3B7151E",
+                    "name": "时间及电量",
+                    "type": "group",
+                    "realType": "Group",
+                    "opacity": 1,
+                    "imageID": ""
+                  },
+                  "bounds": {
+                    "left": 0,
+                    "top": 0,
+                    "width": 375,
+                    "height": 20
+                  },
+                  "text": {},
+                  "stroke": {
+                    "borders": null,
+                    "dash": []
+                  },
+                  "effect": {
+                    "shadows": []
+                  },
+                  "slice": {},
+                  "sharedStyle": {},
+                  "children": [
+                    {
+                      "basic": {
+                        "id": "E6E02BBC-B417-4B31-89B1-F238C900CED2",
+                        "sourceID": "E6E02BBC-B417-4B31-89B1-F238C900CED2",
+                        "name": "Signal",
+                        "type": "group",
+                        "realType": "Group",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 6,
+                        "top": 4,
+                        "width": 79.67043723534698,
+                        "height": 14
+                      },
+                      "text": {},
+                      "stroke": {
+                        "borders": null,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {},
+                      "children": [
+                        {
+                          "basic": {
+                            "id": "A519572B-C7E2-4C9B-98A4-A8CF61A7A1A8",
+                            "sourceID": "A519572B-C7E2-4C9B-98A4-A8CF61A7A1A8",
+                            "name": "Wifi",
+                            "type": "shape",
+                            "realType": "Shape",
+                            "opacity": 1,
+                            "imageID": ""
+                          },
+                          "bounds": {
+                            "left": 71.32956276465302,
+                            "top": 5,
+                            "width": 14.340874470693961,
+                            "height": 10
+                          },
+                          "fill": {
+                            "colors": [
+                              {
+                                "type": "normal",
+                                "value": {
+                                  "r": 0,
+                                  "g": 0,
+                                  "b": 0,
+                                  "a": 1
+                                }
+                              }
+                            ]
+                          },
+                          "text": {},
+                          "stroke": {
+                            "borders": [],
+                            "dash": []
+                          },
+                          "effect": {
+                            "shadows": []
+                          },
+                          "slice": {},
+                          "sharedStyle": {}
+                        },
+                        {
+                          "basic": {
+                            "id": "873AFDB7-8D10-498C-8CA7-2B63DC1D127D",
+                            "sourceID": "873AFDB7-8D10-498C-8CA7-2B63DC1D127D",
+                            "name": "Mobile Signal",
+                            "type": "shape",
+                            "realType": "Shape",
+                            "opacity": 1,
+                            "imageID": ""
+                          },
+                          "bounds": {
+                            "left": 6,
+                            "top": 5,
+                            "width": 16.5,
+                            "height": 10
+                          },
+                          "fill": {
+                            "colors": [
+                              {
+                                "type": "normal",
+                                "value": {
+                                  "r": 0,
+                                  "g": 0,
+                                  "b": 0,
+                                  "a": 1
+                                }
+                              }
+                            ]
+                          },
+                          "text": {},
+                          "stroke": {
+                            "borders": [],
+                            "dash": []
+                          },
+                          "effect": {
+                            "shadows": []
+                          },
+                          "slice": {},
+                          "sharedStyle": {}
+                        },
+                        {
+                          "basic": {
+                            "id": "89997AC6-4407-4ABD-8DE0-8EC99FAC8DDC",
+                            "sourceID": "89997AC6-4407-4ABD-8DE0-8EC99FAC8DDC",
+                            "name": "Carrier",
+                            "type": "text",
+                            "realType": "Text",
+                            "opacity": 1,
+                            "imageID": ""
+                          },
+                          "bounds": {
+                            "left": 26,
+                            "top": 4,
+                            "width": 40,
+                            "height": 14
+                          },
+                          "text": {
+                            "styles": [
+                              {
+                                "value": "Sketch",
+                                "font": {
+                                  "family": "SFProText",
+                                  "weight": "Regular",
+                                  "size": "12",
+                                  "color": {
+                                    "type": "normal",
+                                    "value": {
+                                      "r": 3,
+                                      "g": 3,
+                                      "b": 3,
+                                      "a": 1
+                                    }
+                                  }
+                                },
+                                "space": {
+                                  "lineHeight": "14",
+                                  "letterSpacing": "0",
+                                  "paragraph": "0"
+                                },
+                                "fontStyles": {
+                                  "underLine": false,
+                                  "lineThrough": false,
+                                  "bold": false,
+                                  "italic": false
+                                },
+                                "align": "left"
+                              }
+                            ]
+                          },
+                          "stroke": {
+                            "borders": null,
+                            "dash": []
+                          },
+                          "effect": {
+                            "shadows": []
+                          },
+                          "slice": {},
+                          "sharedStyle": {}
+                        }
+                      ]
+                    },
+                    {
+                      "basic": {
+                        "id": "17977DF5-3062-4E80-907F-D827BB544D84",
+                        "sourceID": "17977DF5-3062-4E80-907F-D827BB544D84",
+                        "name": "Label",
+                        "type": "text",
+                        "realType": "Text",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 165.5,
+                        "top": 3,
+                        "width": 44,
+                        "height": 15
+                      },
+                      "text": {
+                        "styles": [
+                          {
+                            "value": "1:21 AM",
+                            "font": {
+                              "family": ".AppleSystemUIFont",
+                              "weight": "Regular",
+                              "size": "12",
+                              "color": {
+                                "type": "normal",
+                                "value": {
+                                  "r": 0,
+                                  "g": 0,
+                                  "b": 0,
+                                  "a": 1
+                                }
+                              }
+                            },
+                            "space": {
+                              "lineHeight": "15",
+                              "letterSpacing": "0",
+                              "paragraph": "0"
+                            },
+                            "fontStyles": {
+                              "underLine": false,
+                              "lineThrough": false,
+                              "bold": false,
+                              "italic": false
+                            },
+                            "align": "center"
+                          }
+                        ]
+                      },
+                      "stroke": {
+                        "borders": null,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {}
+                    },
+                    {
+                      "basic": {
+                        "id": "B4315FA3-9629-4C01-8CBE-08C59A3D73D9",
+                        "sourceID": "B4315FA3-9629-4C01-8CBE-08C59A3D73D9",
+                        "name": "Charge",
+                        "type": "group",
+                        "realType": "Group",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 309,
+                        "top": 3,
+                        "width": 60.5,
+                        "height": 17
+                      },
+                      "text": {},
+                      "stroke": {
+                        "borders": null,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {},
+                      "children": [
+                        {
+                          "basic": {
+                            "id": "19F8CA1E-BCF6-47EC-86F3-9C0526508E2F",
+                            "sourceID": "19F8CA1E-BCF6-47EC-86F3-9C0526508E2F",
+                            "name": "100%",
+                            "type": "text",
+                            "realType": "Text",
+                            "opacity": 1,
+                            "imageID": ""
+                          },
+                          "bounds": {
+                            "left": 309,
+                            "top": 3,
+                            "width": 31,
+                            "height": 17
+                          },
+                          "text": {
+                            "styles": [
+                              {
+                                "value": "100%",
+                                "font": {
+                                  "family": "PingFangSC",
+                                  "weight": "Regular",
+                                  "size": "12",
+                                  "color": {
+                                    "type": "normal",
+                                    "value": {
+                                      "r": 0,
+                                      "g": 0,
+                                      "b": 0,
+                                      "a": 1
+                                    }
+                                  }
+                                },
+                                "space": {
+                                  "lineHeight": "17",
+                                  "letterSpacing": "0",
+                                  "paragraph": "0"
+                                },
+                                "fontStyles": {
+                                  "underLine": false,
+                                  "lineThrough": false,
+                                  "bold": false,
+                                  "italic": false
+                                },
+                                "align": "right"
+                              }
+                            ]
+                          },
+                          "stroke": {
+                            "borders": null,
+                            "dash": []
+                          },
+                          "effect": {
+                            "shadows": []
+                          },
+                          "slice": {},
+                          "sharedStyle": {}
+                        },
+                        {
+                          "basic": {
+                            "id": "48C946FD-8480-4747-BA56-6AE97B907236",
+                            "sourceID": "48C946FD-8480-4747-BA56-6AE97B907236",
+                            "name": "Battery Icon",
+                            "type": "group",
+                            "realType": "Group",
+                            "opacity": 1,
+                            "imageID": ""
+                          },
+                          "bounds": {
+                            "left": 343,
+                            "top": 4.5,
+                            "width": 26.5,
+                            "height": 11.5
+                          },
+                          "text": {},
+                          "stroke": {
+                            "borders": null,
+                            "dash": []
+                          },
+                          "effect": {
+                            "shadows": []
+                          },
+                          "slice": {},
+                          "sharedStyle": {},
+                          "children": [
+                            {
+                              "basic": {
+                                "id": "02FFEF8A-62CE-4301-9670-C574C99BE015",
+                                "sourceID": "02FFEF8A-62CE-4301-9670-C574C99BE015",
+                                "name": "+",
+                                "type": "path",
+                                "realType": "ShapePath",
+                                "opacity": 0.4,
+                                "imageID": ""
+                              },
+                              "bounds": {
+                                "left": 368,
+                                "top": 8.508152173912094,
+                                "width": 1.5,
+                                "height": 3.473970128951123
+                              },
+                              "fill": {
+                                "colors": [
+                                  {
+                                    "type": "normal",
+                                    "value": {
+                                      "r": 0,
+                                      "g": 0,
+                                      "b": 0,
+                                      "a": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              "text": {},
+                              "stroke": {
+                                "borders": null,
+                                "radius": false,
+                                "dash": []
+                              },
+                              "effect": {
+                                "shadows": []
+                              },
+                              "slice": {},
+                              "sharedStyle": {}
+                            },
+                            {
+                              "basic": {
+                                "id": "8E331688-AF1F-4AB9-94F8-49DE68B49B55",
+                                "sourceID": "8E331688-AF1F-4AB9-94F8-49DE68B49B55",
+                                "name": "Charge",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                              },
+                              "bounds": {
+                                "left": 345,
+                                "top": 6.5027173913040315,
+                                "width": 20,
+                                "height": 7.5
+                              },
+                              "fill": {
+                                "colors": [
+                                  {
+                                    "type": "normal",
+                                    "value": {
+                                      "r": 0,
+                                      "g": 0,
+                                      "b": 0,
+                                      "a": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              "text": {},
+                              "stroke": {
+                                "borders": null,
+                                "radius": [
+                                  0.5,
+                                  0.5,
+                                  0.5,
+                                  0.5
+                                ],
+                                "dash": []
+                              },
+                              "effect": {
+                                "shadows": []
+                              },
+                              "slice": {},
+                              "sharedStyle": {}
+                            },
+                            {
+                              "basic": {
+                                "id": "C3B966CE-B2F2-4AEA-AEC8-06B378225A7E",
+                                "sourceID": "C3B966CE-B2F2-4AEA-AEC8-06B378225A7E",
+                                "name": "Battery",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 0.4,
+                                "imageID": ""
+                              },
+                              "bounds": {
+                                "left": 343,
+                                "top": 4.5,
+                                "width": 24,
+                                "height": 11.5
+                              },
+                              "fill": {
+                                "colors": []
+                              },
+                              "text": {},
+                              "stroke": {
+                                "borders": [
+                                  {
+                                    "type": "inside",
+                                    "strokeWidth": 1,
+                                    "color": {
+                                      "type": "normal",
+                                      "value": {
+                                        "r": 0,
+                                        "g": 0,
+                                        "b": 0,
+                                        "a": 1
+                                      }
+                                    }
+                                  }
+                                ],
+                                "radius": [
+                                  1.5,
+                                  1.5,
+                                  1.5,
+                                  1.5
+                                ],
+                                "dash": []
+                              },
+                              "effect": {
+                                "shadows": []
+                              },
+                              "slice": {},
+                              "sharedStyle": {}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "basic": {
+                        "id": "2776D58B-AB01-4463-8A93-2A265360DD2C",
+                        "sourceID": "2776D58B-AB01-4463-8A93-2A265360DD2C",
+                        "name": "Background",
+                        "type": "rect",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 0,
+                        "top": 0,
+                        "width": 375,
+                        "height": 20
+                      },
+                      "fill": {
+                        "colors": [
+                          {
+                            "type": "normal",
+                            "value": {
+                              "r": 0,
+                              "g": 0,
+                              "b": 0,
+                              "a": 0
+                            }
+                          }
+                        ]
+                      },
+                      "text": {},
+                      "stroke": {
+                        "borders": [],
+                        "radius": false,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {}
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "basic": {
+                "id": "E33FED42-B746-4031-AC98-DAE40CAFB356",
+                "sourceID": "E33FED42-B746-4031-AC98-DAE40CAFB356",
+                "name": "页面名称",
+                "type": "text",
+                "realType": "Text",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 32,
+                "top": 30.5,
+                "width": 68,
+                "height": 24
+              },
+              "fill": {
+                "colors": []
+              },
+              "text": {
+                "styles": [
+                  {
+                    "value": "我的资料",
+                    "font": {
+                      "family": "PingFangSC",
+                      "weight": "Regular",
+                      "size": "17",
+                      "color": {
+                        "type": "normal",
+                        "value": {
+                          "r": 0,
+                          "g": 0,
+                          "b": 0,
+                          "a": 1
+                        }
+                      }
+                    },
+                    "space": {
+                      "lineHeight": "24",
+                      "letterSpacing": "0",
+                      "paragraph": "0"
+                    },
+                    "fontStyles": {
+                      "underLine": false,
+                      "lineThrough": false,
+                      "bold": false,
+                      "italic": false
+                    },
+                    "align": "left"
+                  }
+                ]
+              },
+              "stroke": {
+                "borders": [],
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "7B841CC5-2350-452F-B4C2-2C67CA799BF3",
+                "sourceID": "7B841CC5-2350-452F-B4C2-2C67CA799BF3",
+                "name": "全局操作",
+                "type": "group",
+                "realType": "Group",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 294.5,
+                "top": 29.5,
+                "width": 60.5,
+                "height": 20
+              },
+              "text": {},
+              "stroke": {
+                "borders": null,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {},
+              "children": [
+                {
+                  "basic": {
+                    "id": "3AC25194-30B1-4853-AE55-9CE4B5105A73",
+                    "sourceID": "3AC25194-30B1-4853-AE55-9CE4B5105A73",
+                    "name": "关闭",
+                    "type": "group",
+                    "realType": "Group",
+                    "opacity": 1,
+                    "imageID": ""
+                  },
+                  "bounds": {
+                    "left": 337.5,
+                    "top": 31,
+                    "width": 17.5,
+                    "height": 17.5
+                  },
+                  "text": {},
+                  "stroke": {
+                    "borders": null,
+                    "dash": []
+                  },
+                  "effect": {
+                    "shadows": []
+                  },
+                  "slice": {},
+                  "sharedStyle": {},
+                  "children": [
+                    {
+                      "basic": {
+                        "id": "6EE0DCC3-C214-4EEB-8BF7-D04D729AF52A",
+                        "sourceID": "6EE0DCC3-C214-4EEB-8BF7-D04D729AF52A",
+                        "name": "Path",
+                        "type": "path",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 343,
+                        "top": 36.5,
+                        "width": 6.5,
+                        "height": 6.5
+                      },
+                      "fill": {
+                        "colors": [
+                          {
+                            "type": "normal",
+                            "value": {
+                              "r": 0,
+                              "g": 0,
+                              "b": 0,
+                              "a": 1
+                            }
+                          }
+                        ]
+                      },
+                      "text": {},
+                      "stroke": {
+                        "borders": null,
+                        "radius": false,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {}
+                    },
+                    {
+                      "basic": {
+                        "id": "A801793F-F421-4448-B70F-7E0EDA1CF7F9",
+                        "sourceID": "A801793F-F421-4448-B70F-7E0EDA1CF7F9",
+                        "name": "Path",
+                        "type": "path",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                      },
+                      "bounds": {
+                        "left": 337.5,
+                        "top": 31,
+                        "width": 17.5,
+                        "height": 17.5
+                      },
+                      "fill": {
+                        "colors": []
+                      },
+                      "text": {},
+                      "stroke": {
+                        "borders": [
+                          {
+                            "type": "inside",
+                            "strokeWidth": 2,
+                            "color": {
+                              "type": "normal",
+                              "value": {
+                                "r": 0,
+                                "g": 0,
+                                "b": 0,
+                                "a": 1
+                              }
+                            }
+                          }
+                        ],
+                        "radius": false,
+                        "dash": []
+                      },
+                      "effect": {
+                        "shadows": []
+                      },
+                      "slice": {},
+                      "sharedStyle": {}
+                    }
+                  ]
+                },
+                {
+                  "basic": {
+                    "id": "7697060A-01B6-4EB9-AB45-1BBC96050B29",
+                    "sourceID": "7697060A-01B6-4EB9-AB45-1BBC96050B29",
+                    "name": "分割线",
+                    "type": "rect",
+                    "realType": "ShapePath",
+                    "opacity": 0.2,
+                    "imageID": ""
+                  },
+                  "bounds": {
+                    "left": 324.5,
+                    "top": 29.5,
+                    "width": 0.5,
+                    "height": 20
+                  },
+                  "fill": {
+                    "colors": [
+                      {
+                        "type": "normal",
+                        "value": {
+                          "r": 0,
+                          "g": 0,
+                          "b": 0,
+                          "a": 1
+                        }
+                      }
+                    ]
+                  },
+                  "text": {},
+                  "stroke": {
+                    "borders": null,
+                    "radius": false,
+                    "dash": []
+                  },
+                  "effect": {
+                    "shadows": []
+                  },
+                  "slice": {},
+                  "sharedStyle": {}
+                },
+                {
+                  "basic": {
+                    "id": "7D04016B-62F6-4B24-9086-E2B8FAD3BA47",
+                    "sourceID": "7D04016B-62F6-4B24-9086-E2B8FAD3BA47",
+                    "name": "更多",
+                    "type": "shape",
+                    "realType": "Shape",
+                    "opacity": 1,
+                    "imageID": ""
+                  },
+                  "bounds": {
+                    "left": 294.5,
+                    "top": 37,
+                    "width": 18.5,
+                    "height": 6.5
+                  },
+                  "fill": {
+                    "colors": [
+                      {
+                        "type": "normal",
+                        "value": {
+                          "r": 0,
+                          "g": 0,
+                          "b": 0,
+                          "a": 1
+                        }
+                      }
+                    ]
+                  },
+                  "text": {},
+                  "stroke": {
+                    "borders": null,
+                    "dash": []
+                  },
+                  "effect": {
+                    "shadows": []
+                  },
+                  "slice": {},
+                  "sharedStyle": {}
+                }
+              ]
+            },
+            {
+              "basic": {
+                "id": "93B1474E-E0D9-4EA0-98BD-6B237F9407BD",
+                "sourceID": "93B1474E-E0D9-4EA0-98BD-6B237F9407BD",
+                "name": "Base",
+                "type": "rect",
+                "realType": "ShapePath",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 281,
+                "top": 24,
+                "width": 87,
+                "height": 32
+              },
+              "fill": {
+                "colors": [
+                  {
+                    "type": "normal",
+                    "value": {
+                      "r": 255,
+                      "g": 255,
+                      "b": 255,
+                      "a": 0.6
+                    }
+                  }
+                ]
+              },
+              "text": {},
+              "stroke": {
+                "borders": [
+                  {
+                    "type": "inside",
+                    "strokeWidth": 0.5,
+                    "color": {
+                      "type": "normal",
+                      "value": {
+                        "r": 0,
+                        "g": 0,
+                        "b": 0,
+                        "a": 0.08
+                      }
+                    }
+                  }
+                ],
+                "radius": [
+                  16,
+                  16,
+                  16,
+                  16
+                ],
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            },
+            {
+              "basic": {
+                "id": "ECF40F69-7584-499B-8B7B-706B8672C992",
+                "sourceID": "ECF40F69-7584-499B-8B7B-706B8672C992",
+                "name": "Background",
+                "type": "rect",
+                "realType": "ShapePath",
+                "opacity": 1,
+                "imageID": ""
+              },
+              "bounds": {
+                "left": 0,
+                "top": 0,
+                "width": 375,
+                "height": 64
+              },
+              "fill": {
+                "colors": [
+                  {
+                    "type": "normal",
+                    "value": {
+                      "r": 255,
+                      "g": 255,
+                      "b": 255,
+                      "a": 1
+                    }
+                  }
+                ]
+              },
+              "text": {},
+              "stroke": {
+                "borders": null,
+                "radius": false,
+                "dash": []
+              },
+              "effect": {
+                "shadows": []
+              },
+              "slice": {},
+              "sharedStyle": {}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

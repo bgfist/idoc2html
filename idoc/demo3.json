@@ -1,0 +1,3833 @@
+{
+    "basic": {
+        "id": "7C4327A4-9617-4880-B8AE-6A6AB33B26C4",
+        "sourceID": "7C4327A4-9617-4880-B8AE-6A6AB33B26C4",
+        "name": "教练端-登录设备",
+        "type": "group",
+        "realType": "Artboard",
+        "opacity": 1,
+        "imageID": ""
+    },
+    "bounds": {
+        "left": 0,
+        "top": 0,
+        "width": 375,
+        "height": 888
+    },
+    "fill": {
+        "colors": [
+            {
+                "type": "normal",
+                "value": {
+                    "r": 235,
+                    "g": 238,
+                    "b": 248,
+                    "a": 1
+                }
+            }
+        ]
+    },
+    "text": {},
+    "stroke": {},
+    "effect": {},
+    "slice": {},
+    "sharedStyle": {},
+    "children": [
+        {
+            "basic": {
+                "id": "CDE7F0AD-D179-4370-B538-47E3DEA10893",
+                "sourceID": "CDE7F0AD-D179-4370-B538-47E3DEA10893",
+                "name": "编组备份",
+                "type": "group",
+                "realType": "Group",
+                "opacity": 1,
+                "imageID": ""
+            },
+            "bounds": {
+                "left": 15,
+                "top": 471,
+                "width": 345,
+                "height": 294
+            },
+            "text": {},
+            "stroke": {
+                "borders": null,
+                "dash": []
+            },
+            "effect": {
+                "shadows": []
+            },
+            "slice": {},
+            "sharedStyle": {},
+            "children": [
+                {
+                    "basic": {
+                        "id": "815686D4-6A45-46A3-B247-BA403B3518BD",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "815686D4-6A45-46A3-B247-BA403B3518BD",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 711,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "778D0D45-F61D-40BB-8B22-95E8C2F92507",
+                                "sourceID": "778D0D45-F61D-40BB-8B22-95E8C2F92507",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 725,
+                                "width": 146,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "2023-06-01 14:01:10",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "88E896F1-AB37-4B31-A36C-766A22952391",
+                                "sourceID": "88E896F1-AB37-4B31-A36C-766A22952391",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 725.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "激活时间",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "CDACDE28-7371-45D1-9B11-24BA45DC3E9D",
+                                "sourceID": "CDACDE28-7371-45D1-9B11-24BA45DC3E9D",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 711,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "3214F97D-AB57-4803-9EBE-F84E204332FD",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "3214F97D-AB57-4803-9EBE-F84E204332FD",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 671,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "6704FCC0-0930-4D0E-97B6-F7CAA006A29E",
+                                "sourceID": "6704FCC0-0930-4D0E-97B6-F7CAA006A29E",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 685,
+                                "width": 85,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "1小时30分钟",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "9A6D705F-2139-46AB-9E6F-5D3C64B2CC87",
+                                "sourceID": "9A6D705F-2139-46AB-9E6F-5D3C64B2CC87",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 685.5,
+                                "width": 84,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "付费总时长：",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "014DAEDA-9C30-46FE-A81E-94A4E1D2611A",
+                                "sourceID": "014DAEDA-9C30-46FE-A81E-94A4E1D2611A",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 671,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "1411264A-5396-49B0-88E2-F1DFB966E1F4",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "1411264A-5396-49B0-88E2-F1DFB966E1F4",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 631,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "884DFEC1-B81B-4BE0-83BA-2C4CD9620996",
+                                "sourceID": "884DFEC1-B81B-4BE0-83BA-2C4CD9620996",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 645,
+                                "width": 141,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "30元/小时，20元/圈",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "18675A67-9632-429B-80BB-6026F6A2D808",
+                                "sourceID": "18675A67-9632-429B-80BB-6026F6A2D808",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 645.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "科二单价",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "A4C8F1E4-3679-4AE5-B360-CBD1C117041B",
+                                "sourceID": "A4C8F1E4-3679-4AE5-B360-CBD1C117041B",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 631,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "AE416E4C-15D7-4C67-A9BB-48B6E5BC6453",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "AE416E4C-15D7-4C67-A9BB-48B6E5BC6453",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 591,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "FC7D4C08-F622-4C4F-BC13-2A2DCF57451D",
+                                "sourceID": "FC7D4C08-F622-4C4F-BC13-2A2DCF57451D",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 605,
+                                "width": 71,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "60元/小时",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "9647D2F6-6325-4707-A6D6-746755C5D5C0",
+                                "sourceID": "9647D2F6-6325-4707-A6D6-746755C5D5C0",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 605.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "科三单价",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "ABBF86AB-B422-4DD6-B5B0-1FBD581AF682",
+                                "sourceID": "ABBF86AB-B422-4DD6-B5B0-1FBD581AF682",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 591,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "364157FE-F21E-4EE3-BFFB-05AD81F84BEB",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "364157FE-F21E-4EE3-BFFB-05AD81F84BEB",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 551,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "89F328E9-4A77-4CBF-B456-7BC06483F612",
+                                "sourceID": "89F328E9-4A77-4CBF-B456-7BC06483F612",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 565,
+                                "width": 60,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "有烟没火",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "C50EB09A-FBA5-407C-8757-608E90A42F56",
+                                "sourceID": "C50EB09A-FBA5-407C-8757-608E90A42F56",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 565.5,
+                                "width": 70,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "设备所有人",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "C4AA9416-1D6E-41AF-AEE5-BC32A3CE522C",
+                                "sourceID": "C4AA9416-1D6E-41AF-AEE5-BC32A3CE522C",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 551,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "62C1554C-4C69-4A02-9825-309A0776B33A",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "62C1554C-4C69-4A02-9825-309A0776B33A",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 511,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "8FCCBABB-0501-46B8-B212-E6D3F6CE7943",
+                                "sourceID": "8FCCBABB-0501-46B8-B212-E6D3F6CE7943",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 525,
+                                "width": 66,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "鄂3345学",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "C6E4D3EA-94E5-482E-A85C-0643C741FD19",
+                                "sourceID": "C6E4D3EA-94E5-482E-A85C-0643C741FD19",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 525.5,
+                                "width": 28,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "车牌",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "AB6EC30C-9C8F-4F1B-A94F-44E9C32EC001",
+                                "sourceID": "AB6EC30C-9C8F-4F1B-A94F-44E9C32EC001",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 511,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "554910AB-4B7E-4908-BDEF-69CF23A84100",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "554910AB-4B7E-4908-BDEF-69CF23A84100",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 471,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "6D0CF020-6888-40AB-B41F-D55CCA8873C5",
+                                "sourceID": "6D0CF020-6888-40AB-B41F-D55CCA8873C5",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 485,
+                                "width": 58,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "鄂12345",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "FD4E21CD-B808-425E-B08F-9A7FC4D3EE31",
+                                "sourceID": "FD4E21CD-B808-425E-B08F-9A7FC4D3EE31",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 485.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "设备编号",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "2DC6B544-682E-4012-BDA8-AEBE458121EC",
+                                "sourceID": "2DC6B544-682E-4012-BDA8-AEBE458121EC",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 471,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "9C2DFC6E-4379-470E-B692-84A84CEC3A5C",
+                        "sourceID": "9C2DFC6E-4379-470E-B692-84A84CEC3A5C",
+                        "name": "矩形",
+                        "type": "rect",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 471,
+                        "width": 345,
+                        "height": 294
+                    },
+                    "fill": {
+                        "colors": [
+                            {
+                                "type": "normal",
+                                "value": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255,
+                                    "a": 1
+                                },
+                                "name": "02-中性色/10-W"
+                            }
+                        ]
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": [],
+                        "radius": [
+                            6,
+                            6,
+                            6,
+                            6
+                        ],
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {}
+                }
+            ]
+        },
+        {
+            "basic": {
+                "id": "C7505E9A-9F57-48F9-A365-3FD91ECBD9EC",
+                "sourceID": "C7505E9A-9F57-48F9-A365-3FD91ECBD9EC",
+                "name": "编组",
+                "type": "group",
+                "realType": "Group",
+                "opacity": 1,
+                "imageID": ""
+            },
+            "bounds": {
+                "left": 15,
+                "top": 103,
+                "width": 345,
+                "height": 353
+            },
+            "text": {},
+            "stroke": {
+                "borders": null,
+                "dash": []
+            },
+            "effect": {
+                "shadows": []
+            },
+            "slice": {},
+            "sharedStyle": {},
+            "children": [
+                {
+                    "basic": {
+                        "id": "BAF000DA-A5AD-43E0-B4AF-34141BF07A55",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "BAF000DA-A5AD-43E0-B4AF-34141BF07A55",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 343,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "D1CB2252-944F-495D-9074-A36B1BBF7D2A",
+                                "sourceID": "D1CB2252-944F-495D-9074-A36B1BBF7D2A",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 357,
+                                "width": 146,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "2023-06-01 14:01:10",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "47FAEEEE-7F41-45E8-B2B0-8AD2114A1FC9",
+                                "sourceID": "47FAEEEE-7F41-45E8-B2B0-8AD2114A1FC9",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 357.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "激活时间",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "F4F13C56-35E8-40E5-9F68-897CA6512878",
+                                "sourceID": "F4F13C56-35E8-40E5-9F68-897CA6512878",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 343,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "730F39FF-3C00-45C2-A93D-6B2887F79C31",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "730F39FF-3C00-45C2-A93D-6B2887F79C31",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 303,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "84DE436B-529D-4A5D-8E5A-557B843560CF",
+                                "sourceID": "84DE436B-529D-4A5D-8E5A-557B843560CF",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 317,
+                                "width": 85,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "1小时30分钟",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "F6B88279-C5BE-4BD5-B632-D7906BA11CCD",
+                                "sourceID": "F6B88279-C5BE-4BD5-B632-D7906BA11CCD",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 317.5,
+                                "width": 84,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "付费总时长：",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "F084641E-BC14-478E-B574-E22A27DE1957",
+                                "sourceID": "F084641E-BC14-478E-B574-E22A27DE1957",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 303,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "45BB014F-AEAE-4080-BE6E-12F740F5076E",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "45BB014F-AEAE-4080-BE6E-12F740F5076E",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 263,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "646AD582-B37C-4A61-A604-505FF44296B1",
+                                "sourceID": "646AD582-B37C-4A61-A604-505FF44296B1",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 277,
+                                "width": 141,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "30元/小时，20元/圈",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "CE13318D-2294-4A16-8AF9-55EB1359775B",
+                                "sourceID": "CE13318D-2294-4A16-8AF9-55EB1359775B",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 277.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "科二单价",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "A6366449-AAAF-4C00-886C-B7E4E44147C9",
+                                "sourceID": "A6366449-AAAF-4C00-886C-B7E4E44147C9",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 263,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "892941C5-F2A2-47E6-B9C3-5525B9D0FBBF",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "892941C5-F2A2-47E6-B9C3-5525B9D0FBBF",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 223,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "81670DFD-496E-41DB-B53D-C2561D89BE1D",
+                                "sourceID": "81670DFD-496E-41DB-B53D-C2561D89BE1D",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 237,
+                                "width": 71,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "60元/小时",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "91EE8E46-1377-4870-B81F-8E8693CBA6E1",
+                                "sourceID": "91EE8E46-1377-4870-B81F-8E8693CBA6E1",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 237.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "科三单价",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "D0FDB87A-7884-4BD7-9128-AAD319C974B2",
+                                "sourceID": "D0FDB87A-7884-4BD7-9128-AAD319C974B2",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 223,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "23576E4A-1F86-412C-8E6B-CFE586D19F23",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "23576E4A-1F86-412C-8E6B-CFE586D19F23",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 183,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "48928B66-EFEC-4217-9B87-59BCAFE9B72C",
+                                "sourceID": "48928B66-EFEC-4217-9B87-59BCAFE9B72C",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 197,
+                                "width": 60,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "有烟没火",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "74E29ABD-9264-4909-9AEA-C5C5EBEA7046",
+                                "sourceID": "74E29ABD-9264-4909-9AEA-C5C5EBEA7046",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 197.5,
+                                "width": 70,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "设备所有人",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "D8846966-D364-4BC9-A675-59E7A2E4F354",
+                                "sourceID": "D8846966-D364-4BC9-A675-59E7A2E4F354",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 183,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "0AC09F1C-9156-47DF-B0B2-41F858303524",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "0AC09F1C-9156-47DF-B0B2-41F858303524",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 143,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "D0F5A154-8207-4F4C-97A2-1D539CC15860",
+                                "sourceID": "D0F5A154-8207-4F4C-97A2-1D539CC15860",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 157,
+                                "width": 66,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "鄂3345学",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "7F997194-D668-4868-97FD-BFD8C3D1DA86",
+                                "sourceID": "7F997194-D668-4868-97FD-BFD8C3D1DA86",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 157.5,
+                                "width": 28,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "车牌",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "0EE54B3E-48C2-4A38-9C62-C6F139EAB565",
+                                "sourceID": "0EE54B3E-48C2-4A38-9C62-C6F139EAB565",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 143,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "570542B1-A7E7-4B62-BC01-A89EA2B8CBD6",
+                        "symbolId": "F673A3B9-96C1-4E42-A5DD-E72632061F3A",
+                        "sourceID": "570542B1-A7E7-4B62-BC01-A89EA2B8CBD6",
+                        "name": "list-小文本",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 103,
+                        "width": 345,
+                        "height": 40
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "AB62996B-AEAF-4D1A-AC5F-27B28AE65600",
+                                "sourceID": "AB62996B-AEAF-4D1A-AC5F-27B28AE65600",
+                                "name": "120分钟_360分钟",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 125,
+                                "top": 117,
+                                "width": 58,
+                                "height": 21
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "鄂12345",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "15",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "21",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "DEC7BFF7-B0AD-4C47-9B3E-0E4C462BE1F9",
+                                "sourceID": "DEC7BFF7-B0AD-4C47-9B3E-0E4C462BE1F9",
+                                "name": "设备序列号",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 30,
+                                "top": 117.5,
+                                "width": 56,
+                                "height": 20
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "设备编号",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Regular",
+                                            "size": "14",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 153,
+                                                    "g": 153,
+                                                    "b": 153,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "20",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "left"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        },
+                        {
+                            "basic": {
+                                "id": "876EFAC4-959D-4D3F-8E0A-074F46AB304E",
+                                "sourceID": "876EFAC4-959D-4D3F-8E0A-074F46AB304E",
+                                "name": "矩形",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 103,
+                                "width": 345,
+                                "height": 40
+                            },
+                            "fill": {
+                                "colors": []
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "73457907-6111-4CA9-83E8-311B6A5D8DB1",
+                        "sourceID": "73457907-6111-4CA9-83E8-311B6A5D8DB1",
+                        "name": "Group 4 Copy",
+                        "type": "group",
+                        "realType": "Group",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 261,
+                        "top": 410,
+                        "width": 88,
+                        "height": 32
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "16A772F1-13B9-47F8-8BD4-98C84EE357AA",
+                                "sourceID": "16A772F1-13B9-47F8-8BD4-98C84EE357AA",
+                                "name": "Group 7",
+                                "type": "group",
+                                "realType": "Group",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 277,
+                                "top": 419,
+                                "width": 56,
+                                "height": 14
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {},
+                            "children": [
+                                {
+                                    "basic": {
+                                        "id": "33EC53AC-A44D-4A29-86C6-0B141CCDC78E",
+                                        "sourceID": "33EC53AC-A44D-4A29-86C6-0B141CCDC78E",
+                                        "name": "修改单价",
+                                        "type": "text",
+                                        "realType": "Text",
+                                        "opacity": 1,
+                                        "imageID": ""
+                                    },
+                                    "bounds": {
+                                        "left": 277,
+                                        "top": 419,
+                                        "width": 56,
+                                        "height": 14
+                                    },
+                                    "text": {
+                                        "styles": [
+                                            {
+                                                "value": "修改单价",
+                                                "font": {
+                                                    "family": "PingFangSC",
+                                                    "weight": "Regular",
+                                                    "size": "14",
+                                                    "color": {
+                                                        "type": "normal",
+                                                        "value": {
+                                                            "r": 255,
+                                                            "g": 255,
+                                                            "b": 255,
+                                                            "a": 1
+                                                        }
+                                                    }
+                                                },
+                                                "space": {
+                                                    "lineHeight": "14",
+                                                    "letterSpacing": "0",
+                                                    "paragraph": "0"
+                                                },
+                                                "fontStyles": {
+                                                    "underLine": false,
+                                                    "lineThrough": false,
+                                                    "bold": false,
+                                                    "italic": false
+                                                },
+                                                "align": "left"
+                                            }
+                                        ]
+                                    },
+                                    "stroke": {
+                                        "borders": null,
+                                        "dash": []
+                                    },
+                                    "effect": {
+                                        "shadows": []
+                                    },
+                                    "slice": {},
+                                    "sharedStyle": {}
+                                }
+                            ]
+                        },
+                        {
+                            "basic": {
+                                "id": "14199531-9D94-4958-9C8F-75558635E1BB",
+                                "sourceID": "14199531-9D94-4958-9C8F-75558635E1BB",
+                                "name": "Rectangle 9",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 261,
+                                "top": 410,
+                                "width": 88,
+                                "height": 32
+                            },
+                            "fill": {
+                                "colors": [
+                                    {
+                                        "type": "normal",
+                                        "value": {
+                                            "r": 19,
+                                            "g": 153,
+                                            "b": 254,
+                                            "a": 1
+                                        },
+                                        "name": "1399FE"
+                                    }
+                                ]
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": [
+                                    16,
+                                    16,
+                                    16,
+                                    16
+                                ],
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {
+                                "id": "7BA3C3EF-E417-4265-A772-239530F482AE",
+                                "name": "jiakao_vip_bg_ljtx 个样式",
+                                "type": "LayerStyle"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "CC49F8BA-C8F5-49B4-8B36-C11845C60BD8",
+                        "sourceID": "CC49F8BA-C8F5-49B4-8B36-C11845C60BD8",
+                        "name": "Rectangle 9",
+                        "type": "rect",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 26,
+                        "top": 397,
+                        "width": 323,
+                        "height": 1
+                    },
+                    "fill": {
+                        "colors": [
+                            {
+                                "type": "normal",
+                                "value": {
+                                    "r": 238,
+                                    "g": 238,
+                                    "b": 238,
+                                    "a": 1
+                                }
+                            }
+                        ]
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": [],
+                        "radius": false,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {}
+                },
+                {
+                    "basic": {
+                        "id": "2481EA9F-764D-4505-8390-495BDB96B647",
+                        "sourceID": "2481EA9F-764D-4505-8390-495BDB96B647",
+                        "name": "矩形",
+                        "type": "rect",
+                        "realType": "ShapePath",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 15,
+                        "top": 103,
+                        "width": 345,
+                        "height": 353
+                    },
+                    "fill": {
+                        "colors": [
+                            {
+                                "type": "normal",
+                                "value": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255,
+                                    "a": 1
+                                },
+                                "name": "02-中性色/10-W"
+                            }
+                        ]
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": [],
+                        "radius": [
+                            6,
+                            6,
+                            6,
+                            6
+                        ],
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {}
+                }
+            ]
+        },
+        {
+            "basic": {
+                "id": "90CDA6A5-5EFE-40EF-94DF-097E2F834BBC",
+                "symbolId": "0CEED7C6-75B2-4667-84BA-B427B355154D",
+                "sourceID": "90CDA6A5-5EFE-40EF-94DF-097E2F834BBC",
+                "name": "头部",
+                "type": "symbol",
+                "realType": "SymbolInstance",
+                "opacity": 1,
+                "imageID": ""
+            },
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "width": 375,
+                "height": 88
+            },
+            "text": {},
+            "stroke": {
+                "borders": null,
+                "dash": []
+            },
+            "effect": {
+                "shadows": []
+            },
+            "slice": {},
+            "sharedStyle": {},
+            "children": [
+                {
+                    "basic": {
+                        "id": "2C978B71-E9B2-4CC2-98C5-A7EF6FB017E1",
+                        "symbolId": "7EB53196-1FFB-4900-BAC0-D3858B31981F",
+                        "sourceID": "2C978B71-E9B2-4CC2-98C5-A7EF6FB017E1",
+                        "name": "全局样式:20_系统控件_状态栏_颜色:#黑色字",
+                        "type": "symbol",
+                        "realType": "SymbolInstance",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 0,
+                        "top": 0,
+                        "width": 375,
+                        "height": 44
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "D87C48D8-582A-436B-A09F-7AEDA63F8CD5",
+                                "sourceID": "D87C48D8-582A-436B-A09F-7AEDA63F8CD5",
+                                "name": "Group 2",
+                                "type": "group",
+                                "realType": "Group",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 0,
+                                "top": 0,
+                                "width": 375,
+                                "height": 44
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {},
+                            "children": [
+                                {
+                                    "basic": {
+                                        "id": "E9E00731-4761-43C9-B75B-EE3459D499B2",
+                                        "sourceID": "E9E00731-4761-43C9-B75B-EE3459D499B2",
+                                        "name": "iPhone X_Status Bars_Status Bar (Black)",
+                                        "type": "group",
+                                        "realType": "Group",
+                                        "opacity": 1,
+                                        "imageID": ""
+                                    },
+                                    "bounds": {
+                                        "left": 0,
+                                        "top": 0,
+                                        "width": 375,
+                                        "height": 44
+                                    },
+                                    "text": {},
+                                    "stroke": {
+                                        "borders": null,
+                                        "dash": []
+                                    },
+                                    "effect": {
+                                        "shadows": []
+                                    },
+                                    "slice": {},
+                                    "sharedStyle": {},
+                                    "children": [
+                                        {
+                                            "basic": {
+                                                "id": "C21AB2B8-57AE-494E-861B-A92E2F7ED110",
+                                                "sourceID": "C21AB2B8-57AE-494E-861B-A92E2F7ED110",
+                                                "name": "iPhone X_Status Bars_Status Bar (Black)",
+                                                "type": "group",
+                                                "realType": "Group",
+                                                "opacity": 1,
+                                                "imageID": ""
+                                            },
+                                            "bounds": {
+                                                "left": 0,
+                                                "top": 0,
+                                                "width": 375,
+                                                "height": 44
+                                            },
+                                            "text": {},
+                                            "stroke": {
+                                                "borders": null,
+                                                "dash": []
+                                            },
+                                            "effect": {
+                                                "shadows": []
+                                            },
+                                            "slice": {},
+                                            "sharedStyle": {},
+                                            "children": [
+                                                {
+                                                    "basic": {
+                                                        "id": "794C9704-B9E8-4CBD-828B-FFEE03003C91",
+                                                        "sourceID": "794C9704-B9E8-4CBD-828B-FFEE03003C91",
+                                                        "name": "Time Style",
+                                                        "type": "group",
+                                                        "realType": "Group",
+                                                        "opacity": 1,
+                                                        "imageID": ""
+                                                    },
+                                                    "bounds": {
+                                                        "left": 21,
+                                                        "top": 15.349999999999909,
+                                                        "width": 54,
+                                                        "height": 16
+                                                    },
+                                                    "text": {},
+                                                    "stroke": {
+                                                        "borders": null,
+                                                        "dash": []
+                                                    },
+                                                    "effect": {
+                                                        "shadows": []
+                                                    },
+                                                    "slice": {},
+                                                    "sharedStyle": {},
+                                                    "children": [
+                                                        {
+                                                            "basic": {
+                                                                "id": "D637000D-A478-46DC-9DC9-394570E6C114",
+                                                                "sourceID": "D637000D-A478-46DC-9DC9-394570E6C114",
+                                                                "name": "↳ Time",
+                                                                "type": "text",
+                                                                "realType": "Text",
+                                                                "opacity": 1,
+                                                                "imageID": ""
+                                                            },
+                                                            "bounds": {
+                                                                "left": 21,
+                                                                "top": 15.349999999999909,
+                                                                "width": 54,
+                                                                "height": 16
+                                                            },
+                                                            "text": {
+                                                                "styles": [
+                                                                    {
+                                                                        "value": "9:4",
+                                                                        "font": {
+                                                                            "family": "SFProText",
+                                                                            "weight": "Semibold",
+                                                                            "size": "14",
+                                                                            "color": {
+                                                                                "type": "normal",
+                                                                                "value": {
+                                                                                    "r": 0,
+                                                                                    "g": 0,
+                                                                                    "b": 0,
+                                                                                    "a": 1
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "space": {
+                                                                            "lineHeight": "16",
+                                                                            "letterSpacing": "-0.28",
+                                                                            "paragraph": "0"
+                                                                        },
+                                                                        "fontStyles": {
+                                                                            "underLine": false,
+                                                                            "lineThrough": false,
+                                                                            "bold": false,
+                                                                            "italic": false
+                                                                        },
+                                                                        "align": "center"
+                                                                    },
+                                                                    {
+                                                                        "value": "1",
+                                                                        "font": {
+                                                                            "family": "SFProText",
+                                                                            "weight": "Semibold",
+                                                                            "size": "14",
+                                                                            "color": {
+                                                                                "type": "normal",
+                                                                                "value": {
+                                                                                    "r": 0,
+                                                                                    "g": 0,
+                                                                                    "b": 0,
+                                                                                    "a": 1
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "space": {
+                                                                            "lineHeight": "16",
+                                                                            "letterSpacing": "0",
+                                                                            "paragraph": "0"
+                                                                        },
+                                                                        "fontStyles": {
+                                                                            "underLine": false,
+                                                                            "lineThrough": false,
+                                                                            "bold": false,
+                                                                            "italic": false
+                                                                        },
+                                                                        "align": "center"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "stroke": {
+                                                                "borders": null,
+                                                                "dash": []
+                                                            },
+                                                            "effect": {
+                                                                "shadows": []
+                                                            },
+                                                            "slice": {},
+                                                            "sharedStyle": {}
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "basic": {
+                                                        "id": "A9D03A93-CF32-42F1-99F2-F8903A642928",
+                                                        "sourceID": "A9D03A93-CF32-42F1-99F2-F8903A642928",
+                                                        "name": "Cellular Connection",
+                                                        "type": "shape",
+                                                        "realType": "Shape",
+                                                        "opacity": 1,
+                                                        "imageID": ""
+                                                    },
+                                                    "bounds": {
+                                                        "left": 293.66666666666606,
+                                                        "top": 17.666666666666515,
+                                                        "width": 17,
+                                                        "height": 10.666666666666515
+                                                    },
+                                                    "fill": {
+                                                        "colors": [
+                                                            {
+                                                                "type": "normal",
+                                                                "value": {
+                                                                    "r": 0,
+                                                                    "g": 0,
+                                                                    "b": 0,
+                                                                    "a": 1
+                                                                },
+                                                                "name": "02-中性色/09-B"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "text": {},
+                                                    "stroke": {
+                                                        "borders": null,
+                                                        "dash": []
+                                                    },
+                                                    "effect": {
+                                                        "shadows": []
+                                                    },
+                                                    "slice": {},
+                                                    "sharedStyle": {}
+                                                },
+                                                {
+                                                    "basic": {
+                                                        "id": "2783F1B7-9CC4-4536-887D-614BA582B362",
+                                                        "sourceID": "2783F1B7-9CC4-4536-887D-614BA582B362",
+                                                        "name": "Wifi",
+                                                        "type": "shape",
+                                                        "realType": "Shape",
+                                                        "opacity": 1,
+                                                        "imageID": ""
+                                                    },
+                                                    "bounds": {
+                                                        "left": 315.6937206970724,
+                                                        "top": 17.330672704032622,
+                                                        "width": 15.272388453645817,
+                                                        "height": 10.965571606298909
+                                                    },
+                                                    "fill": {
+                                                        "colors": [
+                                                            {
+                                                                "type": "normal",
+                                                                "value": {
+                                                                    "r": 0,
+                                                                    "g": 0,
+                                                                    "b": 0,
+                                                                    "a": 1
+                                                                },
+                                                                "name": "02-中性色/09-B"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "text": {},
+                                                    "stroke": {
+                                                        "borders": null,
+                                                        "dash": []
+                                                    },
+                                                    "effect": {
+                                                        "shadows": []
+                                                    },
+                                                    "slice": {},
+                                                    "sharedStyle": {}
+                                                },
+                                                {
+                                                    "basic": {
+                                                        "id": "82CBDBA6-ACB8-4C33-929D-3F5755359C19",
+                                                        "sourceID": "82CBDBA6-ACB8-4C33-929D-3F5755359C19",
+                                                        "name": "Battery",
+                                                        "type": "group",
+                                                        "realType": "Group",
+                                                        "opacity": 1,
+                                                        "imageID": ""
+                                                    },
+                                                    "bounds": {
+                                                        "left": 336,
+                                                        "top": 17.333333333333485,
+                                                        "width": 24.328038005608505,
+                                                        "height": 11.333333333333485
+                                                    },
+                                                    "text": {},
+                                                    "stroke": {
+                                                        "borders": null,
+                                                        "dash": []
+                                                    },
+                                                    "effect": {
+                                                        "shadows": []
+                                                    },
+                                                    "slice": {},
+                                                    "sharedStyle": {},
+                                                    "children": [
+                                                        {
+                                                            "basic": {
+                                                                "id": "6A9BED08-0BEB-4E99-96D6-7FC6AD72A7D5",
+                                                                "sourceID": "6A9BED08-0BEB-4E99-96D6-7FC6AD72A7D5",
+                                                                "name": "Capacity",
+                                                                "type": "rect",
+                                                                "realType": "ShapePath",
+                                                                "opacity": 1,
+                                                                "imageID": ""
+                                                            },
+                                                            "bounds": {
+                                                                "left": 338,
+                                                                "top": 19.333333333333485,
+                                                                "width": 18,
+                                                                "height": 7.333333333333485
+                                                            },
+                                                            "fill": {
+                                                                "colors": [
+                                                                    {
+                                                                        "type": "normal",
+                                                                        "value": {
+                                                                            "r": 0,
+                                                                            "g": 0,
+                                                                            "b": 0,
+                                                                            "a": 1
+                                                                        },
+                                                                        "name": "02-中性色/09-B"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "text": {},
+                                                            "stroke": {
+                                                                "borders": null,
+                                                                "radius": [
+                                                                    1.333333373069763,
+                                                                    1.333333373069763,
+                                                                    1.333333373069763,
+                                                                    1.333333373069763
+                                                                ],
+                                                                "dash": []
+                                                            },
+                                                            "effect": {
+                                                                "shadows": []
+                                                            },
+                                                            "slice": {},
+                                                            "sharedStyle": {}
+                                                        },
+                                                        {
+                                                            "basic": {
+                                                                "id": "295CF09D-D48F-4774-A996-FF08CD4F413D",
+                                                                "sourceID": "295CF09D-D48F-4774-A996-FF08CD4F413D",
+                                                                "name": "Cap",
+                                                                "type": "path",
+                                                                "realType": "ShapePath",
+                                                                "opacity": 0.4,
+                                                                "imageID": ""
+                                                            },
+                                                            "bounds": {
+                                                                "left": 359,
+                                                                "top": 21,
+                                                                "width": 1.328038005608505,
+                                                                "height": 4
+                                                            },
+                                                            "fill": {
+                                                                "colors": [
+                                                                    {
+                                                                        "type": "normal",
+                                                                        "value": {
+                                                                            "r": 0,
+                                                                            "g": 0,
+                                                                            "b": 0,
+                                                                            "a": 1
+                                                                        },
+                                                                        "name": "02-中性色/09-B"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "text": {},
+                                                            "stroke": {
+                                                                "borders": null,
+                                                                "radius": false,
+                                                                "dash": []
+                                                            },
+                                                            "effect": {
+                                                                "shadows": []
+                                                            },
+                                                            "slice": {},
+                                                            "sharedStyle": {}
+                                                        },
+                                                        {
+                                                            "basic": {
+                                                                "id": "95140B22-BF1E-4896-99E1-DE676991C72E",
+                                                                "sourceID": "95140B22-BF1E-4896-99E1-DE676991C72E",
+                                                                "name": "Border",
+                                                                "type": "rect",
+                                                                "realType": "ShapePath",
+                                                                "opacity": 0.35,
+                                                                "imageID": ""
+                                                            },
+                                                            "bounds": {
+                                                                "left": 336,
+                                                                "top": 17.333333333333485,
+                                                                "width": 22,
+                                                                "height": 11.333333333333485
+                                                            },
+                                                            "text": {},
+                                                            "stroke": {
+                                                                "borders": [
+                                                                    {
+                                                                        "type": "inside",
+                                                                        "strokeWidth": 1,
+                                                                        "color": {
+                                                                            "type": "normal",
+                                                                            "value": {
+                                                                                "r": 0,
+                                                                                "g": 0,
+                                                                                "b": 0,
+                                                                                "a": 1
+                                                                            },
+                                                                            "name": "02-中性色/09-B"
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "radius": [
+                                                                    2.666666746139526,
+                                                                    2.666666746139526,
+                                                                    2.666666746139526,
+                                                                    2.666666746139526
+                                                                ],
+                                                                "dash": []
+                                                            },
+                                                            "effect": {
+                                                                "shadows": []
+                                                            },
+                                                            "slice": {},
+                                                            "sharedStyle": {}
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "basic": {
+                                                        "id": "0A2E4ED5-CAA8-4484-895A-B67E322D2764",
+                                                        "sourceID": "0A2E4ED5-CAA8-4484-895A-B67E322D2764",
+                                                        "name": "Rectangle",
+                                                        "type": "rect",
+                                                        "realType": "ShapePath",
+                                                        "opacity": 1,
+                                                        "imageID": ""
+                                                    },
+                                                    "bounds": {
+                                                        "left": 0,
+                                                        "top": 0,
+                                                        "width": 375,
+                                                        "height": 44
+                                                    },
+                                                    "text": {},
+                                                    "stroke": {
+                                                        "borders": null,
+                                                        "radius": false,
+                                                        "dash": []
+                                                    },
+                                                    "effect": {
+                                                        "shadows": []
+                                                    },
+                                                    "slice": {},
+                                                    "sharedStyle": {}
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "basic": {
+                                        "id": "EECD3833-DF4E-4BC2-8109-19B8A45B1423",
+                                        "sourceID": "EECD3833-DF4E-4BC2-8109-19B8A45B1423",
+                                        "name": "Rectangle",
+                                        "type": "rect",
+                                        "realType": "ShapePath",
+                                        "opacity": 1,
+                                        "imageID": ""
+                                    },
+                                    "bounds": {
+                                        "left": 0,
+                                        "top": 0,
+                                        "width": 375,
+                                        "height": 44
+                                    },
+                                    "fill": {
+                                        "colors": [
+                                            {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 255,
+                                                    "g": 255,
+                                                    "b": 255,
+                                                    "a": 1
+                                                },
+                                                "name": "02-中性色/10-W"
+                                            }
+                                        ]
+                                    },
+                                    "text": {},
+                                    "stroke": {
+                                        "borders": [],
+                                        "radius": false,
+                                        "dash": []
+                                    },
+                                    "effect": {
+                                        "shadows": []
+                                    },
+                                    "slice": {},
+                                    "sharedStyle": {}
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "basic": {
+                        "id": "388A32B1-1DE4-4B03-9438-687928BEB4DA",
+                        "sourceID": "388A32B1-1DE4-4B03-9438-687928BEB4DA",
+                        "name": "标题栏",
+                        "type": "group",
+                        "realType": "Group",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 0,
+                        "top": 44,
+                        "width": 375,
+                        "height": 44
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "A3C71FF6-F200-4A3E-A476-696E4DC1AE53",
+                                "symbolId": "F722EBEF-EC36-4124-A7FB-CE4E9E152512",
+                                "sourceID": "A3C71FF6-F200-4A3E-A476-696E4DC1AE53",
+                                "name": "ic-back",
+                                "type": "symbol",
+                                "realType": "SymbolInstance",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 15,
+                                "top": 53.5,
+                                "width": 25,
+                                "height": 25
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {},
+                            "children": [
+                                {
+                                    "basic": {
+                                        "id": "D6C83BFD-EB34-462D-AEFC-5E4812BA915E",
+                                        "sourceID": "D6C83BFD-EB34-462D-AEFC-5E4812BA915E",
+                                        "name": "ic-back",
+                                        "type": "shape",
+                                        "realType": "Slice",
+                                        "opacity": 1,
+                                        "imageID": ""
+                                    },
+                                    "bounds": {
+                                        "left": 15,
+                                        "top": 53.5,
+                                        "width": 25,
+                                        "height": 25
+                                    },
+                                    "fill": {},
+                                    "text": {},
+                                    "stroke": {},
+                                    "effect": {},
+                                    "slice": {
+                                        "bitmapURL": "/idoc/2023-07-10/3c798cd0-1eca-11ee-b88e-5d58220206e6.png",
+                                        "realSliceWidth": 25,
+                                        "realSliceHeight": 26,
+                                        "svgURL": "/idoc/2023-07-10/3cc3b530-1eca-11ee-84bc-f305051afaec.svg"
+                                    },
+                                    "sharedStyle": {}
+                                },
+                                {
+                                    "basic": {
+                                        "id": "49021734-BF58-46FB-A369-430B1F33B837",
+                                        "sourceID": "49021734-BF58-46FB-A369-430B1F33B837",
+                                        "name": "形状结合",
+                                        "type": "shape",
+                                        "realType": "Shape",
+                                        "opacity": 1,
+                                        "imageID": ""
+                                    },
+                                    "bounds": {
+                                        "left": 16.000299999999697,
+                                        "top": 57.6220000000003,
+                                        "width": 18.80699999999979,
+                                        "height": 16.755999999999858
+                                    },
+                                    "fill": {
+                                        "colors": [
+                                            {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 110,
+                                                    "g": 110,
+                                                    "b": 110,
+                                                    "a": 1
+                                                },
+                                                "name": "02-中性色/02-N7"
+                                            }
+                                        ]
+                                    },
+                                    "text": {},
+                                    "stroke": {
+                                        "borders": [],
+                                        "dash": []
+                                    },
+                                    "effect": {
+                                        "shadows": []
+                                    },
+                                    "slice": {},
+                                    "sharedStyle": {
+                                        "id": "7FFC4A3A-D28B-4884-B808-FCE2B045C1D9",
+                                        "name": "颜色/灰度2",
+                                        "type": "LayerStyle"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "basic": {
+                                "id": "D08FACA8-5CD0-40E4-B6A1-06BBA2BF0155",
+                                "sourceID": "D08FACA8-5CD0-40E4-B6A1-06BBA2BF0155",
+                                "name": "能力分析",
+                                "type": "text",
+                                "realType": "Text",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 151.5,
+                                "top": 53.5,
+                                "width": 72,
+                                "height": 25
+                            },
+                            "text": {
+                                "styles": [
+                                    {
+                                        "value": "登录设备",
+                                        "font": {
+                                            "family": "PingFangSC",
+                                            "weight": "Medium",
+                                            "size": "18",
+                                            "color": {
+                                                "type": "normal",
+                                                "value": {
+                                                    "r": 51,
+                                                    "g": 51,
+                                                    "b": 51,
+                                                    "a": 1
+                                                }
+                                            }
+                                        },
+                                        "space": {
+                                            "lineHeight": "25",
+                                            "letterSpacing": "0",
+                                            "paragraph": "0"
+                                        },
+                                        "fontStyles": {
+                                            "underLine": false,
+                                            "lineThrough": false,
+                                            "bold": false,
+                                            "italic": false
+                                        },
+                                        "align": "center"
+                                    }
+                                ]
+                            },
+                            "stroke": {
+                                "borders": null,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {
+                                "id": "824AFC0B-267B-4100-93F7-D5C4E8109B82",
+                                "name": "36px/#ffffff/Medium",
+                                "type": "TextStyle"
+                            }
+                        },
+                        {
+                            "basic": {
+                                "id": "ABB5FBF4-6D78-4A1D-8491-5010677422AB",
+                                "sourceID": "ABB5FBF4-6D78-4A1D-8491-5010677422AB",
+                                "name": "top-bg",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 0,
+                                "top": 44,
+                                "width": 375,
+                                "height": 44
+                            },
+                            "fill": {
+                                "colors": [
+                                    {
+                                        "type": "normal",
+                                        "value": {
+                                            "r": 255,
+                                            "g": 255,
+                                            "b": 255,
+                                            "a": 1
+                                        },
+                                        "name": "02-中性色/10-W"
+                                    }
+                                ]
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": null,
+                                "radius": false,
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {
+                                "id": "E955B6A7-FD4E-4CEB-8433-C9AABDF6986A",
+                                "name": "填充/主色",
+                                "type": "LayerStyle"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "basic": {
+                "id": "04395A2E-C7AE-40F4-A32D-1ECF69AA50FE",
+                "symbolId": "58E1DA7B-6BB4-4E38-BB86-E8AF01E3FACA",
+                "sourceID": "04395A2E-C7AE-40F4-A32D-1ECF69AA50FE",
+                "name": "全局样式:20_系统控件_Home-Indicator_颜色:#黑色",
+                "type": "symbol",
+                "realType": "SymbolInstance",
+                "opacity": 1,
+                "imageID": ""
+            },
+            "bounds": {
+                "left": 0,
+                "top": 854,
+                "width": 375,
+                "height": 34
+            },
+            "text": {},
+            "stroke": {
+                "borders": null,
+                "dash": []
+            },
+            "effect": {
+                "shadows": []
+            },
+            "slice": {},
+            "sharedStyle": {},
+            "children": [
+                {
+                    "basic": {
+                        "id": "7D692861-089D-4FBD-9FE4-EB7C740E4FF2",
+                        "sourceID": "7D692861-089D-4FBD-9FE4-EB7C740E4FF2",
+                        "name": "导航:30_Home-indicator_默认",
+                        "type": "group",
+                        "realType": "Group",
+                        "opacity": 1,
+                        "imageID": ""
+                    },
+                    "bounds": {
+                        "left": 0,
+                        "top": 854,
+                        "width": 375,
+                        "height": 34
+                    },
+                    "text": {},
+                    "stroke": {
+                        "borders": null,
+                        "dash": []
+                    },
+                    "effect": {
+                        "shadows": []
+                    },
+                    "slice": {},
+                    "sharedStyle": {},
+                    "children": [
+                        {
+                            "basic": {
+                                "id": "5E41B380-5DA9-49D7-AA87-CBF619131897",
+                                "sourceID": "5E41B380-5DA9-49D7-AA87-CBF619131897",
+                                "name": "Home Indicator",
+                                "type": "rect",
+                                "realType": "ShapePath",
+                                "opacity": 1,
+                                "imageID": ""
+                            },
+                            "bounds": {
+                                "left": 120.5,
+                                "top": 875,
+                                "width": 134,
+                                "height": 5
+                            },
+                            "fill": {
+                                "colors": [
+                                    {
+                                        "type": "normal",
+                                        "value": {
+                                            "r": 0,
+                                            "g": 0,
+                                            "b": 0,
+                                            "a": 1
+                                        },
+                                        "name": "02-中性色/09-B"
+                                    }
+                                ]
+                            },
+                            "text": {},
+                            "stroke": {
+                                "borders": [],
+                                "radius": [
+                                    50,
+                                    50,
+                                    50,
+                                    50
+                                ],
+                                "dash": []
+                            },
+                            "effect": {
+                                "shadows": []
+                            },
+                            "slice": {},
+                            "sharedStyle": {}
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
