@@ -1,3 +1,7 @@
+import * as _ from 'lodash';
+
+// TODO: 处理图层zIndex，或者后面的会盖住前面的？
+
 interface Page {
     size: {
         width: number;
@@ -17,10 +21,14 @@ interface Node {
     sharedStyle: any;
     children: Node[];
 
-
+    _index: number;
     _isHeader?: true;
     _isSafeArea?: true;
     _isSlice?: true;
+    /** 此节点相交的节点，面积比它更小。可以做绝对定位，也可以做负的margin */
+    _attachNodes?: Node[];
+    _isVirtualGroupX?: true;
+    _isVirtualGroupY?: true;
 }
 
 interface Basic {
@@ -47,6 +55,9 @@ interface Bounds {
     top: number;
     width: number;
     height: number;
+    // 这两个是计算出来的
+    right: number;
+    bottom: number;
 }
 
 interface Fill {
@@ -160,6 +171,31 @@ function assert(condition: boolean, msg: string) {
     }
 }
 
+function getNodeStyle(node: Node, dom: Tree) {
+    if (node.basic.type === "text" && node.basic.realType === "Text") {
+        return getTextStyle(node, dom);
+    }
+    if (node.basic.type === "group" || node.basic.type === "rect" && node.basic.realType === "ShapePath") {
+        return getGroupStyle(node, dom);
+    }
+    if (node.basic.type === 'path' && node.basic.realType === 'ShapePath'
+        || node.basic.type === 'shape' && node.basic.realType === 'Slice') {
+        return getSliceStyle(node, dom);
+    }
+}
+
+function getTextStyle(node: Node, dom: Tree) {
+
+}
+
+function getGroupStyle(node: Node, dom: Tree) {
+    
+}
+
+function getSliceStyle(node: Node, dom: Tree) {
+    
+}
+
 function getFillColor(node: Node, dom: Tree) {
     const colors = node.fill?.colors;
     if (colors?.length) {
@@ -271,20 +307,12 @@ function transformPageToTree(page: Page): Tree {
     const root = page.layers;
     assert(root.basic.type === 'group' && root.basic.realType === 'Artboard', '页面根节点不对');
 
-    const rootTree: Tree = {
-        classList: [],
-        children: []
-    };
-    getFillColor(root, rootTree);
-
-
     let nodes = root.children;
-    // 按top和left升序排序
-    nodes.sort((a, b) => {
-        return a.bounds.top - b.bounds.top || a.bounds.left - b.bounds.left;
-    });
 
-    nodes.forEach(node => {
+    nodes.forEach((node, i) => {
+        node._index = i;
+        node.bounds.right = node.bounds.left + node.bounds.width;
+        node.bounds.bottom = node.bounds.top + node.bounds.height;
         // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
         if (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance') {
             node.children = [];
@@ -304,50 +332,209 @@ function transformPageToTree(page: Page): Tree {
         }
     });
 
-    // 处理元素之间的包含关系
-    function isContainedWithin(parent: Node, child: Node) {
+    function isContainedWithinX(parent: Node, child: Node) {
         return (
             child.bounds.left >= parent.bounds.left &&
-            child.bounds.top >= parent.bounds.top &&
-            child.bounds.left + child.bounds.width <= parent.bounds.left + parent.bounds.width &&
-            child.bounds.top + child.bounds.height <= parent.bounds.top + parent.bounds.height
+            child.bounds.right <= parent.bounds.right
         );
     }
+    function isContainedWithinY(parent: Node, child: Node) {
+        return (
+            child.bounds.top >= parent.bounds.top &&
+            child.bounds.bottom <= parent.bounds.bottom
+        );
+    }
+    // 处理元素之间的包含关系
+    function isContainedWithin(parent: Node, child: Node) {
+        return isContainedWithinX(parent, child) && isContainedWithinY(parent, child);
+    }
+    function isOverlappingX(parent: Node, child: Node) {
+        return (
+            child.bounds.left <= parent.bounds.right &&
+            child.bounds.right >= parent.bounds.left
+        );
+    }
+    function isOverlappingY(parent: Node, child: Node) {
+        return (
+            child.bounds.top <= parent.bounds.bottom &&
+            child.bounds.bottom >= parent.bounds.top
+        );
+    }
+    // 处理元素之间的重叠关系
+    function isOverlapping(parent: Node, child: Node) {
+        return isOverlappingX(parent, child) && isOverlappingY(parent, child);
+    }
+
     function findBestParent(node: Node, nodes: Node[]) {
         let bestParent: Node | null = null;
         let minArea = Infinity;
+        let type: 'contained' | 'overlapping' = 'contained';
+        const nodeArea = node.bounds.width * node.bounds.height;
         for (let potentialParent of nodes) {
-            if (isContainedWithin(potentialParent, node) && potentialParent !== node) {
+            if (potentialParent === node) continue;
+            if (isContainedWithin(potentialParent, node) && type === 'contained') {
                 let area = potentialParent.bounds.width * potentialParent.bounds.height;
                 if (area < minArea) {
                     minArea = area;
                     bestParent = potentialParent;
                 }
+            } else if (isOverlapping(potentialParent, node)) {
+                type = 'overlapping';
+                let area = potentialParent.bounds.width * potentialParent.bounds.height;
+                if (area >= nodeArea && node._index > potentialParent._index && area < minArea) {
+                    minArea = area;
+                    bestParent = potentialParent;
+                }
             }
         }
-        return bestParent;
+        return [bestParent, type] as const;
     }
-    // 为每个节点找到最佳父节点
+    // 为每个节点找到最佳父节点，剩下的元素互不相交
     nodes = nodes.filter(node => {
-        let bestParent = findBestParent(node, nodes);
+        let [bestParent, type] = findBestParent(node, nodes);
         if (bestParent) {
-            bestParent.children.push(node);
+            if (type === 'contained') {
+                bestParent.children.push(node);
+            } else {
+                (bestParent._attachNodes ??= []).push(node);
+            }
+            return false;
+        } else if (type === 'overlapping') {
+            // 绝对定位元素
+            (root._attachNodes ??= []).push(node);
             return false;
         } else {
             return true;
         }
     });
 
-    // 先考虑横坐标互相包含的元素，这些元素可以用一个竖向的盒子包起来
-    // ！：如果这些元素宽高一致(是克隆体)，那我们很可能遇到了那种flex-wrap多行的列表，这时应该考虑flex-wrap布局
-    // 首先，找到最宽的元素，然后往上下相邻的地方找，其横坐标应在最宽元素范围内，竖向可以有交叠。如果没有凑成分组，则无视
-    // 然后是剩下元素中最宽的元素。。。
+    // 按top升序排序
+    // _.sortBy(nodes, node => [node.bounds.top, node.bounds.left]);
+
+    function groupNodes(nodes: Node[]): Node[] {
+        if (!nodes.length) return [];
+
+        // 先考虑横着排，找高度最高的节点，往后面找底线不超过它的节点
+        // 这些元素中，再划分竖着的盒子，只要横坐标重叠的元素，全部用一个竖盒子包裹
+        const highestNode = _.maxBy(nodes, node => node.bounds.height)!;
+        const [intersectingNodes, leftoverNodes] = _.partition(nodes, node => node.bounds.top <= highestNode.bounds.top && node.bounds.bottom <= highestNode.bounds.bottom);
+        function groupNodesByOverlap(nodes: Node[]) {
+            const groups: Node[][] = [];
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                let addedToGroup = false;
+                // 检查节点是否已经属于某个组
+                a: for (let n = 0; n < groups.length; n++) {
+                    const group = groups[n];
+                    for (let j = 0; j < group.length; j++) {
+                        if (isOverlappingX(node, group[j])) {
+                            // 如果有横坐标上的交叉，将节点添加到组中
+                            group.push(node);
+                            addedToGroup = true;
+                            break a;
+                        }
+                    }
+                }
+                // 如果节点不属于任何组，创建一个新组
+                if (!addedToGroup) {
+                    groups.push([node]);
+                }
+            }
+            return groups;
+        }
+        function getBounds(nodes: Node[]) {
+            let minLeft = Infinity;
+            let maxRight = -Infinity;
+            let minTop = Infinity;
+            let maxBottom = -Infinity;
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                minLeft = Math.min(minLeft, node.bounds.left);
+                maxRight = Math.max(maxRight, node.bounds.right);
+                minTop = Math.min(minTop, node.bounds.top);
+                maxBottom = Math.max(maxBottom, node.bounds.bottom);
+            }
+            return {
+                left: minLeft,
+                top: minTop,
+                right: maxRight,
+                bottom: maxBottom,
+                width: maxRight - minLeft,
+                height: maxBottom - minTop,
+            }
+        }
+        if (intersectingNodes.length > 1) {
+            const groups = groupNodesByOverlap(intersectingNodes);
+            const nodesx = groups.map(group => {
+                if (group.length > 1) {
+                    const column = {
+                        _isVirtualGroupY: true,
+                        bounds: getBounds(group),
+                        children: group,
+                    } as Node;
+                    column.children = groupNodes(column.children);
+                    return column;
+                } else {
+                    return group[0];
+                }
+            });
+            const row = {
+                _isVirtualGroupX: true,
+                bounds: getBounds(nodesx),
+                children: nodesx,
+            } as Node;
+            return [row, ...groupNodes(leftoverNodes)];
+        } else {
+            return [intersectingNodes[0], ...groupNodes(leftoverNodes)]
+        }
+    }
+
+    root._isVirtualGroupY = true;
+    root.children = groupNodes(root.children);
+
+    const rootTree: Tree = {
+        classList: [],
+        children: []
+    };
+    getFillColor(root, rootTree);
+
 
     // 再考虑竖坐标互相包含的元素，这些元素可以用一个横向的盒子包起来
-    
+
     // 再考虑剩下的孤儿元素，这些元素如果和其他兄弟节点相交，可以考虑将其设置为绝对定位
-    
+
     // 要考虑有文案的元素，高度会自动撑开，所以高度不能写死，绝对定位也得重新考虑
 
     return rootTree;
+}
+
+/** 生成flexbox布局 */
+function virtualNode2Tree(node: Node): Tree {
+
+}
+
+function isEqualBox(a: Node, b: Node) {
+    return a.bounds.width === b.bounds.width && a.bounds.height === b.bounds.height;
+}
+
+/** 移除不必要的中间节点，比如宽高位置与父节点一样的，再合并样式 */
+function mergeUnnessaryNodes(parent: Node): Node {
+    const { children } = parent;
+    if (children.length === 1) {
+        if (isEqualBox(parent, children[0])) {
+            // 这里要合并样式，将parent合并到child
+            return children[0];
+        }
+    }
+    if (children.length > 1) {
+        parent.children = children.filter((child) => {
+            const equal = isEqualBox(parent, child);
+            if (!equal) {
+                // 这里要合并样式，将child合并到parent
+            }
+            return !equal;
+        });
+    }
+
+    return parent;
 }
