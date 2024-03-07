@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { SizeSpec, VNode, context } from './vnode';
 import { LinearColor, RGBA, Node } from './page';
-import { assert, filterEmpty, maxCountGroup } from './utils';
+import { R, assert, filterEmpty, maxCountGroup } from './utils';
 
 function getNormalColor(rgba: RGBA): string {
     let r = rgba.r / 255;
@@ -92,7 +92,9 @@ function getLinearColor(dom: VNode, color: LinearColor) {
     }
 }
 
-export function preprocess(node: Node, isRoot?: boolean): VNode | null {
+export function preprocess(node: Node, level: number): VNode | null {
+    // 去掉小数
+    node.bounds = _.mapValues(node.bounds, n => Math.round(n));
     const vnode: VNode = {
         classList: [],
         bounds: {
@@ -103,7 +105,8 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
         index: context.index++,
     };
 
-    if (isRoot) {
+    // 根节点决定设计尺寸
+    if (level === 0) {
         if (node.bounds.width === 375 || node.bounds.width === 750) {
             vnode.widthSpec = SizeSpec.Fixed;
             vnode.heightSpec = SizeSpec.Constrained;
@@ -113,29 +116,28 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
         } else {
             throw new Error('暂不支持这种设计尺寸');
         }
-    };
-
+        vnode.classList.push('w-[100vw] h-[100vh]');
+    }
     // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
-    if (isRoot && node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance') {
+    else if (level === 1 && node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance') {
         node.children = [];
-        if (node.bounds.top === 0) {
+        if (node.bounds.top === 0 && node.bounds.left === 0) {
             vnode.tagName = 'com:header';
-            vnode.widthSpec = SizeSpec.Fixed;
+            vnode.widthSpec = SizeSpec.Constrained;
             vnode.heightSpec = SizeSpec.Auto;
         } else {
             vnode.classList.push('safearea-bottom');
-            vnode.widthSpec = SizeSpec.Fixed;
+            vnode.widthSpec = SizeSpec.Constrained;
             vnode.heightSpec = SizeSpec.Auto;
         }
     }
     // 将切图的children清空，切图只保留本身图片
     else if (
-        node.basic.type === 'path' && node.basic.realType === 'ShapePath'
-        || node.basic.type === 'shape' && node.basic.realType === 'Slice'
+        node.slice.bitmapURL
     ) {
         node.children = [];
         // TODO: 处理切图尺寸和实际不一致的问题？
-        vnode.classList.push(`w-${node.bounds.width} h-${node.bounds.height} bg-cover bg-[url(${(node.slice.bitmapURL)})]`);
+        vnode.classList.push(`w-${node.bounds.width} h-${node.bounds.height} bg-cover bg-[url(https://idoc.mucang.cn${(node.slice.bitmapURL)})]`);
         vnode.widthSpec = SizeSpec.Fixed;
         vnode.heightSpec = SizeSpec.Fixed;
     }
@@ -175,7 +177,7 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
             }
             textNode.classList.push(`text-${text.font.size}/${text.space.lineHeight}`);
             if (text.space.letterSpacing) {
-                textNode.classList.push(`tracking-${text.space.letterSpacing}`);
+                textNode.classList.push(R`tracking-${text.space.letterSpacing}`);
             }
             const isBoldFont =
                 text.font.family.indexOf('AlibabaPuHuiTiM') !== -1 ||
@@ -219,7 +221,8 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
     // 容器
     else if (
         node.basic.type === 'group' && node.basic.realType === 'Group' ||
-        node.basic.type === 'rect' && node.basic.realType === 'ShapePath'
+        node.basic.type === 'rect' && node.basic.realType === 'ShapePath' ||
+        node.basic.type === 'path' && node.basic.realType === 'ShapePath'
     ) {
 
     }
@@ -231,7 +234,7 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
 
     // 处理外观样式
     if (!vnode.textContent) {
-        if (node.fill.colors) {
+        if (node.fill && node.fill.colors && node.fill.colors.length) {
             // 只支持一个颜色
             const color = node.fill.colors[0];
             if (color.type === 'normal') {
@@ -240,7 +243,7 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
                 getLinearColor(vnode, color);
             }
         }
-        if (node.stroke.radius) {
+        if (node.stroke && node.stroke.radius) {
             const [tl, tr, br, bl] = node.stroke.radius;
             const r1 = {
                 tl, tr, br, bl
@@ -250,11 +253,11 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
             const b = br === bl && ['br', 'bl'];
             const l = bl === tl && ['bl', 'tl'];
             const addClasses = (key: string, value: number, exclude?: string[]) => {
-                const calcV = (v: number) => v >= Math.min(node.bounds.width, node.bounds.height) ? v : 'full';
-                value && vnode.classList.push(`rounded-${key}${calcV(value)}`);
+                const calcV = (v: number) => v >= Math.min(node.bounds.width, node.bounds.height) ? 'full' : v;
+                vnode.classList.push(R`rounded-${key}${calcV(value)}`);
                 if (exclude) {
                     _.each(_.omit(r1, exclude), (v, k) => {
-                        v && vnode.classList.push(`rounded-${k}-${calcV(v)}`);
+                        vnode.classList.push(R`rounded-${k}-${calcV(v!)}`);
                     });
                 }
             };
@@ -278,13 +281,13 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
                 addClasses('', 0, []);
             }
         }
-        if (node.stroke.borders) {
+        if (node.stroke && node.stroke.borders && node.stroke.borders.length) {
             // TODO: 暂时只支持一个border
             const border = node.stroke.borders[0];
             if (border.strokeWidth === 1) {
                 vnode.classList.push('border');
             } else {
-                vnode.classList.push(`border-${border.strokeWidth}`);
+                vnode.classList.push(R`border-${border.strokeWidth}`);
             }
             if (border.color.type === "normal") {
                 vnode.classList.push(`border-${getNormalColor(border.color.value)}`);
@@ -293,7 +296,7 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
                 vnode.classList.push(`border-${getNormalColor(border.color.value.colorStops[0].color)}`);
             }
         }
-        if (node.effect.shadows) {
+        if (node.effect && node.effect.shadows && node.effect.shadows.length) {
             const styles = _.map(node.effect.shadows, (shadow) => {
                 let color!: RGBA;
                 if (shadow.color.type === "linearGradient") {
@@ -308,7 +311,13 @@ export function preprocess(node: Node, isRoot?: boolean): VNode | null {
         }
     }
 
-    const children = _.map(node.children, n => preprocess(n)).filter(filterEmpty);
+    // 目前先这样处理，有slice节点，则删掉其他兄弟节点
+    const sliceChild = _.find(node.children, (node) => node.basic.type === 'shape' && node.basic.realType === 'Slice');
+    if (sliceChild) {
+        node.children = [sliceChild];
+    }
+
+    const children = _.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty);
     if (children.length) {
         vnode.children = children;
     }

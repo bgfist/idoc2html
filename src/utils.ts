@@ -17,3 +17,24 @@ export function second<T>(x: [unknown, T]) {
 export function maxCountGroup<T>(grouped: _.Dictionary<T[]>) {
     return _.maxBy(_.toPairs(grouped), item => second(item).length)![0];
 }
+
+const TOLERANCE = 1;
+export function numSame(num1: number, num2: number) {
+    return Math.abs(num1 - num2) <= TOLERANCE;
+}
+
+export function R(strings: TemplateStringsArray, ...values: any[]) {
+    // strings 是一个包含模板字符串静态部分的数组
+    // values 是模板字符串中插入的表达式的值
+    // 在这里可以添加自定义的逻辑来处理字符串和值
+    let result = '';
+    // 可以遍历 strings 数组和 values 数组来构建结果字符串
+    for (let i = 0; i < strings.length; i++) {
+        result += strings[i];
+        if (i < values.length) {
+            // 这里可以添加自定义的逻辑来处理每个值
+            result += values[i];
+        }
+    }
+    return result.replace(/\s?(\S)+-0(\s|$)/g, '');
+}

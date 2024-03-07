@@ -2,9 +2,10 @@
   "name": "h5_demo",
   "version": "1.0.0",
   "description": "",
-  "main": "observer.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "npm run build && node idoc/index.js"
   },
   "repository": {
     "type": "git",

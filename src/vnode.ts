@@ -1,14 +1,25 @@
 /** 宽高尺寸类型 */
 export enum SizeSpec {
     /** 未知 */
-    Unknown = 0,
+    Unknown = 'Unknown',
     /** 固定 */
-    Fixed = 1,
+    Fixed = 'Fixed',
     /** 由子节点撑开 */
-    Auto = 2,
+    Auto = 'Auto',
     /** 由父节点分配，如flex1 */
-    Constrained = 3,
+    Constrained = 'Constrained',
 };
+
+export enum Direction {
+    /** 未知 */
+    Unknown = 'Unknown',
+    /** 横向的flex盒子 */
+    Row = 'Row',
+    /** 竖向的flex盒子 */
+    Column = 'Column',
+};
+
+export type Role = 'border' | 'list' | 'scroller' | 'btn' | 'tab' | 'dialog';
 
 export interface VNode {
     tagName?: string;
@@ -17,6 +28,7 @@ export interface VNode {
     children?: VNode[];
     textContent?: string | VNode[];
     style?: Record<string, string>;
+    role?: Role;
 
     bounds: {
         left: number;
@@ -28,16 +40,13 @@ export interface VNode {
     };
     widthSpec?: SizeSpec;
     heightSpec?: SizeSpec;
+    direction?: Direction;
 
     /** 层级 */
     index: number;
 
     /** 此节点相交的节点，面积比它更小。可以做绝对定位，也可以做负的margin */
     attachNodes?: VNode[];
-    /** 横向的flex盒子 */
-    isRow?: true;
-    /** 竖向的flex盒子 */
-    isColumn?: true;
 }
 
 export const context = {
