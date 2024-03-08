@@ -1,4 +1,4 @@
-import { R, assert, numSame } from "./utils";
+import { R, assert, groupByWith, numSame } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 import * as _ from 'lodash';
 
@@ -40,6 +40,7 @@ function isOverlapping(child: VNode, parent: VNode,) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
+/** 判断节点是不是边框/分隔线 */
 function maybeBorder(child: VNode, parent: VNode) {
     if (numSame(child.bounds.width, 1)) {
         return numSame(child.bounds.left, parent.bounds.left) || numSame(child.bounds.right, parent.bounds.right);
@@ -103,6 +104,48 @@ function buildMissingTree(parent: VNode) {
     });
 }
 
+/** 两个盒子是否相似 */
+function isSimilarBox(a: VNode, b: VNode) {
+    if (
+        a.textContent && b.textContent &&
+        _.isEqual(a.classList, b.classList) &&
+        numSame(a.bounds.top, b.bounds.top)
+    ) {
+        return true;
+    }
+    if (
+        !a.textContent && !b.textContent &&
+        numSame(a.bounds.top, b.bounds.top) &&
+        numSame(a.bounds.width, b.bounds.width) &&
+        numSame(a.bounds.height, b.bounds.height)
+    ) {
+        return true;
+    }
+}
+
+/** 获取一堆节点的边界 */
+function getBounds(nodes: VNode[]) {
+    let minLeft = Infinity;
+    let maxRight = -Infinity;
+    let minTop = Infinity;
+    let maxBottom = -Infinity;
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        minLeft = Math.min(minLeft, node.bounds.left);
+        maxRight = Math.max(maxRight, node.bounds.right);
+        minTop = Math.min(minTop, node.bounds.top);
+        maxBottom = Math.max(maxBottom, node.bounds.bottom);
+    }
+    return {
+        left: minLeft,
+        top: minTop,
+        right: maxRight,
+        bottom: maxBottom,
+        width: maxRight - minLeft,
+        height: maxBottom - minTop,
+    }
+}
+
 /** 寻找横向重复元素，重复的元素应该单独生成一个父盒子作为列表容器，重复的元素应该往纵向寻找关联元素，它们有可能也是重复的 */
 function findRepeatsX(nodes: VNode[]) {
     function findStartRepeat(nodes: VNode[]) {
@@ -110,23 +153,7 @@ function findRepeatsX(nodes: VNode[]) {
         let alreadyRepeat = 0;
         for (let j = 1; j < nodes.length; j++) {
             const next = nodes.slice(j, j + compared.length);
-            const isRepeat = _.zip(compared, next).every(([prev, next]) => {
-                if (
-                    prev!.textContent && next!.textContent &&
-                    _.isEqual(prev!.classList, next!.classList) &&
-                    numSame(prev!.bounds.top, next!.bounds.top)
-                ) {
-                    return true;
-                }
-                if (
-                    !prev!.textContent && !next!.textContent &&
-                    numSame(prev!.bounds.top, next!.bounds.top) &&
-                    numSame(prev!.bounds.width, next!.bounds.width) &&
-                    numSame(prev!.bounds.height, next!.bounds.height)
-                ) {
-                    return true;
-                }
-            });
+            const isRepeat = _.zip(compared, next).every(([prev, next]) => isSimilarBox(prev!, next!));
             if (isRepeat) {
                 alreadyRepeat++;
             } else if (alreadyRepeat) {
@@ -158,7 +185,8 @@ function findRepeatsX(nodes: VNode[]) {
                     newNodes.push(newNode);
                 }
                 containerNode = {
-                    classList: ['list'],
+                    classList: [],
+                    role: "list-x",
                     children: newNodes,
                     bounds: getBounds(newNodes),
                     index: context.index++
@@ -166,7 +194,8 @@ function findRepeatsX(nodes: VNode[]) {
             } else {
                 const children = nodes.slice(i, i + alreadyRepeat);
                 containerNode = {
-                    classList: ['list'],
+                    classList: [],
+                    role: 'list-y',
                     children,
                     bounds: getBounds(children),
                     index: context.index++
@@ -183,7 +212,8 @@ function findRepeatsX(nodes: VNode[]) {
     }
 }
 
-function tryRegroupRepeats(nodes: VNode[]) {
+/** 寻找重复节点，将其重新归组 */
+function groupRepeatNodes(nodes: VNode[]) {
     const regionGroup = _.groupBy(nodes, node => `${node.bounds.top}-${node.bounds.height}`);
     const repeats = _.reduce(regionGroup, (arr, group, key) => {
         if (group.length > 1) {
@@ -219,29 +249,8 @@ function tryRegroupRepeats(nodes: VNode[]) {
     }
 }
 
-function getBounds(nodes: VNode[]) {
-    let minLeft = Infinity;
-    let maxRight = -Infinity;
-    let minTop = Infinity;
-    let maxBottom = -Infinity;
-    for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        minLeft = Math.min(minLeft, node.bounds.left);
-        maxRight = Math.max(maxRight, node.bounds.right);
-        minTop = Math.min(minTop, node.bounds.top);
-        maxBottom = Math.max(maxBottom, node.bounds.bottom);
-    }
-    return {
-        left: minLeft,
-        top: minTop,
-        right: maxRight,
-        bottom: maxBottom,
-        width: maxRight - minLeft,
-        height: maxBottom - minTop,
-    }
-}
-
-function groupNodesByOverlap(nodes: VNode[]) {
+/** 将横坐标有重叠的元素归到一组 */
+function groupNodesByOverlapX(nodes: VNode[]) {
     const groups: VNode[][] = [];
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -266,11 +275,11 @@ function groupNodesByOverlap(nodes: VNode[]) {
     return groups;
 }
 
+/** 将子节点按行或列归组 */
 function groupNodes(nodes: VNode[]): VNode[] {
     if (!nodes.length) return [];
 
-    // tryRegroupRepeats(nodes);
-
+    // groupRepeatNodes(nodes);
 
     // 先考虑横着排，找高度最高的节点，往后面找底线不超过它的节点
     // 这些元素中，再划分竖着的盒子，只要横坐标重叠的元素，全部用一个竖盒子包裹
@@ -278,7 +287,7 @@ function groupNodes(nodes: VNode[]): VNode[] {
     const [intersectingNodes, leftoverNodes] = _.partition(nodes, node => node.bounds.top >= highestNode.bounds.top && node.bounds.bottom <= highestNode.bounds.bottom);
 
     if (intersectingNodes.length > 1) {
-        const groups = groupNodesByOverlap(intersectingNodes);
+        const groups = groupNodesByOverlapX(intersectingNodes);
         const nodesx = groups.map(group => {
             if (group.length > 1) {
                 const vnode: VNode = {
@@ -309,15 +318,19 @@ function groupNodes(nodes: VNode[]): VNode[] {
     }
 }
 
+/** 生成flexbox盒子 */
 function buildFlexBox(parent: VNode) {
     if (parent.children) {
         assert(!parent.direction, "这里应该还没生成flex盒子");
         mergeUnnessaryNodes(parent, true);
+        // 到这里确保了所有children都比parent小
         parent.children = groupNodes(parent.children);
         mergeUnnessaryNodes(parent);
+        // 到这里确保父盒子一定比子盒子大
     }
 }
 
+/** 两个盒子是否一样 */
 function isEqualBox(a: VNode, b: VNode) {
     return numSame(a.bounds.width, b.bounds.width) && numSame(a.bounds.height, b.bounds.height);
 }
@@ -337,14 +350,25 @@ function mergeUnnessaryNodes(parent: VNode, isPre?: boolean) {
         if (isEqualBox(parent, child)) {
             // 这里要合并样式，将child合并到parent
             parent.tagName = child.tagName;
-            parent.classList = _.uniq(_.union(parent.classList, child.classList));
-            parent.widthSpec = child.widthSpec;
-            parent.heightSpec = child.heightSpec;
+            parent.classList = _.union(parent.classList, child.classList);
+
+            if (child.widthSpec) {
+                parent.widthSpec = child.widthSpec;
+            }
+            if (child.heightSpec) {
+                parent.heightSpec = child.heightSpec;
+            }
+
             parent.style = _.merge(parent.style, child.style);
             parent.attributes = _.merge(parent.attributes, child.attributes);
             parent.direction = child.direction;
             parent.attachNodes = _.union(parent.attachNodes, child.attachNodes);
             children.splice(0, 1, ...(child.children || []));
+
+            // 继续移除，这里也可以不加，防止有几个相同大小的盒子连续嵌套
+            if (isPre) {
+                mergeUnnessaryNodes(parent, isPre);
+            }
             return;
         }
     }
@@ -360,8 +384,284 @@ function mergeUnnessaryNodes(parent: VNode, isPre?: boolean) {
     }
 }
 
+/** 生成align-items */
+function buildFlexAlign(vnode: VNode) {
+    const children = vnode.children!;
+
+    const sf = vnode.direction === Direction.Row ? 'top' : 'left';
+    const ef = vnode.direction === Direction.Row ? 'bottom' : 'right';
+    const s = sf[0];
+    const e = ef[0];
+
+    // 据children在node中的位置计算flex对齐方式
+    let margins = children.map(n => ({
+        marginStart: n.bounds[sf] - vnode.bounds[sf],
+        marginEnd: vnode.bounds[ef] - n.bounds[ef],
+        marginDiff: n.bounds[sf] - vnode.bounds[sf] - (vnode.bounds[ef] - n.bounds[ef])
+    }));
+    function countGroupsWithMoreThanOne(keyFn: (n: { marginStart: number; marginEnd: number; marginDiff: number; }) => number) {
+        // 使用groupBy对数组进行分组
+        const grouped = groupByWith(margins, keyFn, numSame);
+
+        const maxMagin = _.maxBy(Array.from(grouped.values()), g => g.length)!;
+        return [maxMagin.length, keyFn(maxMagin[0])] as const;
+    }
+    // 归组
+    let [marginStartCount, marginStart] = countGroupsWithMoreThanOne(m => m.marginStart);
+    let [marginEndCount, marginEnd] = countGroupsWithMoreThanOne(m => m.marginEnd);
+    let [marginDiffCount, marginDiff] = countGroupsWithMoreThanOne(m => m.marginDiff);
+    const maxCount = Math.max(marginStartCount, marginEndCount, marginDiffCount);
+    assert(maxCount >= 1, "At least one child must have a margin");
+
+    function defaultAlign() {
+        _.each(children, (child, i) => {
+            const margin = margins[i];
+            const spec = vnode.direction === Direction.Row ? 'heightSpec' : 'widthSpec';
+
+            // child尺寸不确定，默认拉伸
+            if (!child[spec]) {
+                if (numSame(margin.marginStart, margin.marginEnd)) {
+                    const xy = vnode.direction === Direction.Row ? 'y' : 'x';
+                    child.classList.push(R`m${xy}-${margin.marginEnd}`);
+                } else {
+                    child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
+                }
+                child[spec] = vnode[spec];
+            } else {
+                child.classList.push(R`m${s}-${margin.marginStart}`);
+            }
+        });
+    }
+
+    if (marginDiffCount === maxCount) {
+        // 优先处理居中
+        vnode.classList.push('items-center');
+        if (marginDiff) {
+            vnode.classList.push(`p${s}-${marginDiff}`);
+            margins.forEach(margin => {
+                margin.marginStart -= marginDiff;
+                margin.marginDiff -= marginDiff;
+            });
+        } else if (marginDiff < 0) {
+            vnode.classList.push(`p${e}-${-marginDiff}`);
+            margins.forEach(margin => {
+                margin.marginEnd += marginDiff;
+                margin.marginDiff -= marginDiff;
+            });
+        }
+
+        _.each(children, (child, i) => {
+            const margin = margins[i];
+            if (numSame(margin.marginDiff, 0)) {
+                // 直接居中的
+            } else if (margin.marginDiff < 0) {
+                if (vnode.heightSpec === SizeSpec.Fixed || !margin.marginStart || margin.marginStart < -margin.marginDiff) {
+                    child.classList.push(R`self-start m${s}-${margin.marginStart}`);
+                } else {
+                    child.classList.push(`m${e}-${-margin.marginDiff}`);
+                }
+            } else if (margin.marginDiff > 0) {
+                if (vnode.heightSpec === SizeSpec.Fixed || !margin.marginEnd || margin.marginEnd < margin.marginDiff) {
+                    child.classList.push(R`self-end m${e}-${margin.marginEnd}`);
+                } else {
+                    child.classList.push(`m${s}-${margin.marginDiff}`);
+                }
+            }
+        });
+    } else if (marginStartCount === maxCount && marginStart === _.min(margins.map(m => m.marginStart))) {
+        vnode.classList.push('items-start');
+        if (marginStart) {
+            vnode.classList.push(`p${s}-${marginStart}`);
+            margins.forEach(margin => {
+                margin.marginStart -= marginStart;
+                margin.marginDiff -= marginStart;
+            });
+        }
+
+        _.each(children, (child, i) => {
+            const margin = margins[i];
+            if (margin.marginDiff < 0) {
+                child.classList.push(R`m${s}-${margin.marginStart}`);
+            } else if (margin.marginDiff === 0) {
+                // 直接在中间
+                child.classList.push('self-center');
+            } else if (margin.marginDiff > 0) {
+                child.classList.push(R`self-end m${e}-${margin.marginEnd}`);
+            }
+        });
+    } else if (marginEndCount === maxCount && marginEnd === _.min(margins.map(m => m.marginEnd))) {
+        vnode.classList.push('items-end');
+        if (marginEnd) {
+            vnode.classList.push(`p${e}-${marginEnd}`);
+            margins.forEach(margin => {
+                margin.marginEnd -= marginEnd;
+                margin.marginDiff += marginEnd;
+            });
+        }
+
+        _.each(children, (child, i) => {
+            const margin = margins[i];
+            if (margin.marginDiff > 0) {
+                child.classList.push(R`m${e}-${margin.marginEnd}`);
+            } else if (margin.marginDiff === 0) {
+                // 直接在中间
+                child.classList.push('self-center');
+            } else if (margin.marginDiff < 0) {
+                child.classList.push(R`self-start m${s}-${margin.marginStart}`);
+            }
+        });
+    } else {
+        // 我们不希望有负的padding
+        defaultAlign();
+    }
+}
+
+/** 生成justify-content */
+function buildFlexJustify(vnode: VNode) {
+    const children = vnode.children!;
+
+    const ssf = vnode.direction === Direction.Row ? 'left' : 'top';
+    const eef = vnode.direction === Direction.Row ? 'right' : 'bottom';
+    const ss = ssf[0];
+    const ee = eef[0];
+    const xy = vnode.direction === Direction.Row ? 'x' : 'y';
+
+    // 根据children在node中的位置计算flex主轴布局
+    // TODO: flex1怎么加
+    const ranges = _.zip(
+        [...children.map(n => n.bounds[ssf]), vnode.bounds[eef]],
+        [vnode.bounds[ssf], ...children.map(n => n.bounds[eef])]
+    ) as [number, number][];
+    const gaps = ranges.map(([p, n]) => p - n);
+    const startGap = gaps.shift()!;
+    const endGap = gaps.pop()!;
+    const equalGap = _.uniqWith(gaps, numSame).length === 1;
+    const maxGap = _.max(gaps);
+
+    function defaultJustify() {
+        if (equalGap) {
+            vnode.classList.push(R`space-${xy}-${gaps[0]} p-${ss}-${startGap}`);
+            return;
+        }
+
+        gaps.unshift(startGap);
+
+        // 处理flex1
+        if (maxGap && gaps.filter(gap => gap === maxGap).length === 1) {
+            const insertIndex = gaps.indexOf(maxGap);
+            gaps[insertIndex] = 0;
+            gaps.splice(insertIndex, 0, 0);
+
+            const sf = vnode.direction === Direction.Row ? 'top' : 'left';
+            const ef = vnode.direction === Direction.Row ? 'bottom' : 'right';
+            const spec1 = vnode.direction === Direction.Row ? 'width' : 'height';
+            const spec2 = vnode.direction === Direction.Row ? 'height' : 'width';
+            const pos = Math.round(vnode.bounds[sf] + vnode.bounds[ef] / 2);
+            const [eefn, ssfn] = ranges[insertIndex];
+
+            children.splice(insertIndex, 0, {
+                bounds: {
+                    [sf]: pos,
+                    [ef]: pos,
+                    [ssf]: ssfn,
+                    [eef]: eefn,
+                    [spec1]: eefn - ssfn,
+                    [spec2]: 0,
+                } as any,
+                classList: ['flex-1'],
+                [`${spec1}Spec`]: SizeSpec.Constrained,
+                index: context.index++
+            });
+
+            if (numSame(startGap, endGap)) {
+                gaps[0] = 0;
+                vnode.classList.push(R`p${xy}-${startGap}`);
+            }
+        }
+
+        gaps.forEach((g, i) => {
+            children[i].classList.push(R`m${ss}-${g}`);
+        });
+    }
+
+    // 两边间隔相等
+    if (numSame(startGap, endGap)) {
+        // 有间隔
+        if (startGap) {
+            if (equalGap && numSame(startGap * 2, gaps[0])) {
+                vnode.classList.push('justify-around');
+                // TODO: 支持space-evenly?
+            } else if (maxGap! > startGap * 2) {
+                // 中间隔得太大，应该不是居中布局
+                if (children.length === 2) {
+                    // 只有两个元素，直接两边排
+                    vnode.classList.push('justify-between');
+                    vnode.classList.push(R`p${xy}-${startGap}`);
+                } else {
+                    defaultJustify();
+                }
+            } else {
+                vnode.classList.push('justify-center');
+                if (equalGap) {
+                    vnode.classList.push(R`space-${xy}-${gaps[0]}`);
+                } else {
+                    gaps.forEach((g, i) => {
+                        children[i].classList.push(R`m${ee}-${g}`);
+                    });
+                }
+            }
+        }
+
+        // 没间隔
+        else {
+            if (equalGap) {
+                vnode.classList.push('justify-between');
+                vnode.classList.push(R`p${ss}-${startGap} p${ee}-${endGap}`);
+            } else {
+                // 走justify-start, 处理flex1
+                defaultJustify();
+            }
+        }
+    } else if (startGap > endGap) {
+        // 走justify-start
+        defaultJustify();
+    } else if (startGap < endGap) {
+        // 走justify-end
+        vnode.classList.push('justify-end');
+
+        if (equalGap) {
+            vnode.classList.push(R`space-${xy}-${gaps[0]}`);
+        } else {
+            gaps.push(endGap);
+            gaps.forEach((g, i) => {
+                children[i].classList.push(R`m${ee}-${g}`);
+            });
+        }
+    }
+}
+
+/** 确定flexbox子元素的尺寸类型 */
+function buildSizeSpec(parent: VNode) {
+    _.each(parent.children, (child) => {
+        if (!child.widthSpec) {
+            if (parent.direction === Direction.Row) {
+                child.widthSpec = SizeSpec.Fixed;
+            } else {
+                child.widthSpec = parent.widthSpec;
+            }
+        }
+        if (!child.heightSpec) {
+            if (parent.direction === Direction.Column) {
+                child.heightSpec = SizeSpec.Fixed;
+            } else {
+                child.heightSpec = parent.heightSpec;
+            }
+        }
+    });
+}
+
 /** 生成flexbox布局 */
-function virtualNode2Dom(vnode: VNode) {
+function buildFlexLayout(vnode: VNode) {
     if (vnode.widthSpec === SizeSpec.Fixed) {
         vnode.classList.push(`w-${vnode.bounds.width}`);
     }
@@ -374,255 +674,84 @@ function virtualNode2Dom(vnode: VNode) {
         if (vnode.direction === Direction.Column) {
             vnode.classList.push('flex-col');
         }
-        const children = vnode.children;
-
-        const sf = vnode.direction === Direction.Row ? 'top' : 'left';
-        const ef = vnode.direction === Direction.Row ? 'bottom' : 'right';
-        const s = sf[0];
-        const e = ef[0];
-        const ssf = vnode.direction === Direction.Row ? 'left' : 'top';
-        const eef = vnode.direction === Direction.Row ? 'right' : 'bottom';
-        const ss = ssf[0];
-        const ee = eef[0];
-        const ff = vnode.direction === Direction.Row ? 'x' : 'y';
-        const spec = vnode.direction === Direction.Row ? 'heightSpec' : 'widthSpec';
-
-        // 据children在node中的位置计算flex对齐方式
-        let margins = children.map(n => ({
-            marginStart: n.bounds[sf] - vnode.bounds[sf],
-            marginEnd: vnode.bounds[ef] - n.bounds[ef],
-            marginDiff: n.bounds[sf] - vnode.bounds[sf] - (vnode.bounds[ef] - n.bounds[ef])
-        }));
-        function countGroupsWithMoreThanOne(keyFn: (n: any) => number) {
-            // 分组函数，将数字分到与其相差2以内的组
-            function groupKey(num: number) {
-                return Math.floor(num / 2) * 2;
-            }
-            // 使用groupBy对数组进行分组
-            const grouped = _.groupBy(margins, n => groupKey(keyFn(n)));
-
-            const maxMagin = _.maxBy(_.values(grouped), g => g.length)!;
-            return [maxMagin.length, keyFn(maxMagin[0])] as const;
-        }
-        // 归组
-        let [marginStartCount, marginStart] = countGroupsWithMoreThanOne(m => m.marginStart);
-        let [marginEndCount, marginEnd] = countGroupsWithMoreThanOne(m => m.marginEnd);
-        let [marginDiffCount, marginDiff] = countGroupsWithMoreThanOne(m => m.marginDiff);
-        const maxCount = Math.max(marginStartCount, marginEndCount, marginDiffCount);
-        assert(maxCount >= 1, "At least one child must have a margin");
-
-        function defaultAlign() {
-            _.each(children, (child, i) => {
-                const margin = margins[i];
-                child.classList.push(R`m${s}-${margin.marginStart}`);
-                if (!child[spec]) {
-                    child.classList.push(R`m${e}-${margin.marginEnd}`)
-                    child[spec] = vnode[spec];
-                }
-            });
-        }
-
-        if (marginDiffCount === maxCount) {
-            // 优先处理居中
-            vnode.classList.push('items-center');
-            if (marginDiff) {
-                vnode.classList.push(`p${s}-${marginDiff}`);
-                margins.forEach(margin => {
-                    margin.marginStart -= marginDiff;
-                    margin.marginDiff -= marginDiff;
-                });
-            } else if (marginDiff < 0) {
-                vnode.classList.push(`p${e}-${-marginDiff}`);
-                margins.forEach(margin => {
-                    margin.marginEnd += marginDiff;
-                    margin.marginDiff -= marginDiff;
-                });
-            }
-
-            _.each(children, (child, i) => {
-                const margin = margins[i];
-                if (numSame(margin.marginDiff, 0)) {
-                    // 直接居中的
-                } else if (margin.marginDiff < 0) {
-                    if (vnode.heightSpec === SizeSpec.Fixed || !margin.marginStart || margin.marginStart < -margin.marginDiff) {
-                        child.classList.push(R`self-start m${s}-${margin.marginStart}`);
-                    } else {
-                        child.classList.push(`m${e}-${-margin.marginDiff}`);
-                    }
-                } else if (margin.marginDiff > 0) {
-                    if (vnode.heightSpec === SizeSpec.Fixed || !margin.marginEnd || margin.marginEnd < margin.marginDiff) {
-                        child.classList.push(R`self-end m${e}-${margin.marginEnd}`);
-                    } else {
-                        child.classList.push(`m${s}-${margin.marginDiff}`);
-                    }
-                }
-            });
-        } else if (marginStartCount === maxCount && marginStart === _.min(margins.map(m => m.marginStart))) {
-            vnode.classList.push('items-start');
-            if (marginStart) {
-                vnode.classList.push(`p${s}-${marginStart}`);
-                margins.forEach(margin => {
-                    margin.marginStart -= marginStart;
-                    margin.marginDiff -= marginStart;
-                });
-            }
-
-            _.each(children, (child, i) => {
-                const margin = margins[i];
-                if (margin.marginDiff < 0) {
-                    child.classList.push(R`m${s}-${margin.marginStart}`);
-                } else if (margin.marginDiff === 0) {
-                    // 直接在中间
-                    child.classList.push('self-center');
-                } else if (margin.marginDiff > 0) {
-                    child.classList.push(R`self-end m${e}-${margin.marginEnd}`);
-                }
-            });
-        } else if (marginEndCount === maxCount && marginEnd === _.min(margins.map(m => m.marginEnd))) {
-            vnode.classList.push('items-end');
-            if (marginEnd) {
-                vnode.classList.push(`p${e}-${marginEnd}`);
-                margins.forEach(margin => {
-                    margin.marginEnd -= marginEnd;
-                    margin.marginDiff += marginEnd;
-                });
-            }
-
-            _.each(children, (child, i) => {
-                const margin = margins[i];
-                if (margin.marginDiff > 0) {
-                    child.classList.push(R`m${e}-${margin.marginEnd}`);
-                } else if (margin.marginDiff === 0) {
-                    // 直接在中间
-                    child.classList.push('self-center');
-                } else if (margin.marginDiff < 0) {
-                    child.classList.push(R`self-start m${s}-${margin.marginStart}`);
-                }
-            });
-        } else {
-            // 我们不希望有负的padding
-            defaultAlign();
-        }
-
-        // 根据children在node中的位置计算flex主轴布局
-        // TODO: flex1怎么加
-        const ranges = _.zip(
-            [...children.map(n => n.bounds[ssf]), vnode.bounds[eef]],
-            [vnode.bounds[ssf], ...children.map(n => n.bounds[eef])]
-        ) as [number, number][];
-        const gaps = ranges.map(([p, n]) => p - n);
-        const startGap = gaps.shift()!;
-        const endGap = gaps.pop()!;
-        const equalGap = _.uniq(gaps).length === 1;
-        const maxGap = _.max(gaps);
-
-        function defaultJustify() {
-            if (equalGap) {
-                vnode.classList.push(R`space-${ff}-${gaps[0]} p-${ss}-${startGap}`);
-            } else {
-                gaps.unshift(startGap);
-                if (maxGap) {
-                    const maxCount = gaps.filter(gap => gap === maxGap).length;
-                    if (maxCount === 1) {
-                        const insertIndex = gaps.indexOf(maxGap);
-                        gaps[insertIndex] = 0;
-                        gaps.splice(insertIndex, 0, 0);
-
-                        const pos = Math.round(vnode.bounds[sf] + vnode.bounds[ef] / 2);
-                        const [eefn, ssfn] = ranges[insertIndex];
-                        const spec1 = vnode.direction === Direction.Row ? 'width' : 'height';
-                        const spec2 = vnode.direction === Direction.Row ? 'height' : 'width';
-                        children.splice(insertIndex, 0, {
-                            bounds: {
-                                [sf]: pos,
-                                [ef]: pos,
-                                [ssf]: ssfn,
-                                [eef]: eefn,
-                                [spec1]: eefn - ssfn,
-                                [spec2]: 0,
-                            } as any,
-                            classList: ['flex-1'],
-                            index: context.index++
-                        });
-
-                        if (numSame(startGap, endGap)) {
-                            gaps[0] = 0;
-                            vnode.classList.push(R`p${ff}-${startGap}`);
-                        }
-                    }
-                }
-
-                gaps.forEach((g, i) => {
-                    children[i].classList.push(R`m${ss}-${g}`);
-                });
-            }
-        }
-
-        // 两边间隔相等
-        if (numSame(startGap, endGap)) {
-            // 有间隔
-            if (startGap) {
-                if (equalGap && numSame(startGap * 2, gaps[0])) {
-                    vnode.classList.push('justify-around');
-                    // TODO: 支持space-evenly?
-                } else if (maxGap! > startGap * 2) {
-                    // 中间隔得太大，应该不是居中布局
-                    if (vnode.children.length === 2) {
-                        // 只有两个元素，直接两边排
-                        vnode.classList.push('justify-between');
-                        vnode.classList.push(R`p${ff}-${startGap}`);
-                    } else {
-                        defaultJustify();
-                    }
-                } else {
-                    vnode.classList.push('justify-center');
-                    if (equalGap) {
-                        vnode.classList.push(R`space-${ff}-${gaps[0]}`)
-                    } else {
-                        gaps.forEach((g, i) => {
-                            children[i].classList.push(R`m${ee}-${g}`);
-                        });
-                    }
-                }
-            }
-            // 没间隔
-            else {
-                if (equalGap) {
-                    vnode.classList.push('justify-between');
-                    vnode.classList.push(R`p${ss}-${startGap} p${ee}-${endGap}`);
-                } else {
-                    // 走justify-start, 处理flex1
-                    defaultJustify();
-                }
-            }
-        } else if (startGap > endGap) {
-            // 走justify-start
-            defaultJustify();
-        } else if (startGap < endGap) {
-            // 走justify-end
-            vnode.classList.push('justify-end');
-
-            if (equalGap) {
-                vnode.classList.push(R`space-${ff}-${gaps[0]}`)
-            } else {
-                gaps.push(endGap);
-                gaps.forEach((g, i) => {
-                    children[i].classList.push(R`m${ee}-${g}`);
-                });
-            }
-        }
+        buildFlexAlign(vnode);
+        buildFlexJustify(vnode);
+        buildSizeSpec(vnode);
     }
 }
 
-// 再考虑竖坐标互相包含的元素，这些元素可以用一个横向的盒子包起来
-// 再考虑剩下的孤儿元素，这些元素如果和其他兄弟节点相交，可以考虑将其设置为绝对定位
-// 要考虑有文案的元素，高度会自动撑开，所以高度不能写死，绝对定位也得重新考虑
+/** 生成绝对定位 */
+function buildAttachPosition(vnode: VNode) {
+    const attachNodes = vnode.attachNodes;
+    if (!attachNodes) {
+        return;
+    }
+    _.each(attachNodes, (attachNode) => {
+        const [left, right, top, bottom] = [
+            attachNode.bounds.left - vnode.bounds.left,
+            vnode.bounds.right - attachNode.bounds.right,
+            attachNode.bounds.top - vnode.bounds.top,
+            vnode.bounds.bottom - attachNode.bounds.bottom,
+        ];
+        if (_.some(vnode.classList, className => _.includes(['relative', 'absolute', 'fixed'], className))) {
+            // 已经脱离文档流
+        } else {
+            vnode.classList.push('relative');
+        }
+        attachNode.classList.push('absolute');
+
+        const hasNoChildren = !attachNode.children || attachNode.children.length === 0;
+
+        if (attachNode.widthSpec === SizeSpec.Fixed) {
+            if (Math.abs(left) < Math.abs(right)) {
+                attachNode.classList.push(R`left-${left}`);
+            } else {
+                attachNode.classList.push(R`right-${right}`);
+            }
+        } else if (attachNode.bounds.width * 2 > vnode.bounds.width) {
+            attachNode.classList.push(R`left-${left} right-${right}`);
+            attachNode.widthSpec = SizeSpec.Constrained;
+        } else {
+            if (hasNoChildren) {
+                attachNode.widthSpec = SizeSpec.Fixed;
+            }
+            if (Math.abs(left) < Math.abs(right)) {
+                attachNode.classList.push(R`left-${left}`);
+            } else {
+                attachNode.classList.push(R`right-${right}`);
+            }
+        }
+        if (attachNode.heightSpec === SizeSpec.Fixed) {
+            if (Math.abs(top) < Math.abs(bottom)) {
+                attachNode.classList.push(R`top-${top}`);
+            } else {
+                attachNode.classList.push(R`bottom-${bottom}`);
+            }
+        } else if (attachNode.bounds.height * 2 > vnode.bounds.height) {
+            attachNode.classList.push(R`top-${top} bottom-${bottom}`);
+            attachNode.heightSpec = SizeSpec.Constrained;
+        } else {
+            if (hasNoChildren) {
+                attachNode.heightSpec = SizeSpec.Fixed;
+            }
+            if (Math.abs(top) < Math.abs(bottom)) {
+                attachNode.classList.push(R`top-${top}`);
+            } else {
+                attachNode.classList.push(R`bottom-${bottom}`);
+            }
+        }
+    });
+}
+
+/** 对节点树进行重建/重组/布局 */
 export function postprocess(node: VNode) {
     if (!node.direction) {
         buildMissingTree(node);
         buildFlexBox(node);
     }
-    virtualNode2Dom(node);
+    buildFlexLayout(node);
+    buildAttachPosition(node);
 
     _.each(node.children, postprocess);
+    _.each(node.attachNodes, postprocess);
 }

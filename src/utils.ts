@@ -14,6 +14,28 @@ export function second<T>(x: [unknown, T]) {
     return x[1];
 }
 
+export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (a: K, b: K) => boolean) {
+    return arr.reduce((map, item) => {
+        const key = iteratee(item);
+        let found = false;
+        for (const [k] of map) {
+            if (compare(k, key)) {
+                map.get(k)!.push(item);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            map.set(key, [item]);
+        }
+        return map;
+    }, new Map<K, T[]>());
+}
+
+export function groupWith<T>(arr: T[], compare: (a: T, b: T) => boolean) {
+    return groupByWith(arr, _.identity, compare);
+}
+
 export function maxCountGroup<T>(grouped: _.Dictionary<T[]>) {
     return _.maxBy(_.toPairs(grouped), item => second(item).length)![0];
 }
@@ -36,5 +58,13 @@ export function R(strings: TemplateStringsArray, ...values: any[]) {
             result += values[i];
         }
     }
-    return result.replace(/\s?(\S)+-0(\s|$)/g, '');
+    return result.replace(/(\s?\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
+        if ($2[0] === '-') {
+            $2 = $2.substring(1);
+            $1 = '-' + $1;
+        } else if ($2[0] == 0) {
+            return '';
+        }
+        return $1 + $2 + $3;
+    });
 }

@@ -1,3 +1,4 @@
+/** 幕客设计稿json结构 */
 export interface Page {
     size: {
         width: number;

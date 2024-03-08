@@ -10,6 +10,7 @@ export enum SizeSpec {
     Constrained = 'Constrained',
 };
 
+/** flex方向 */
 export enum Direction {
     /** 未知 */
     Unknown = 'Unknown',
@@ -19,8 +20,10 @@ export enum Direction {
     Column = 'Column',
 };
 
-export type Role = 'border' | 'list' | 'scroller' | 'btn' | 'tab' | 'dialog';
+/** 节点用途 */
+export type Role = 'border' | 'list-x' | 'list-y' | 'scroller' | 'btn' | 'tab' | 'dialog';
 
+/** 可渲染的虚拟节点 */
 export interface VNode {
     tagName?: string;
     classList: string[];
@@ -49,6 +52,7 @@ export interface VNode {
     attachNodes?: VNode[];
 }
 
+/** 节点遍历上下文 */
 export const context = {
     index: 0,
 };

@@ -8,25 +8,27 @@ import * as _ from 'lodash';
 const TAB = '  ';
 function VNode2Code(vnode: VNode, level: number): string {
     const tab = TAB.repeat(level);
-    const { tagName = 'div', children } = vnode;
-    let attributes = {
-        ...vnode.attributes
+    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent } = vnode;
+    attributes = {
+        ...attributes
     };
-    vnode.classList.length && Object.assign(attributes, { class: vnode.classList.filter(Boolean).join(' ') });
-    vnode.style && Object.assign(attributes, { style: Object.entries(vnode.style).map(([key, value]) => `${key}: ${value}`).join(';') });
+    classList.length && Object.assign(attributes, { class: classList.filter(Boolean).join(' ') });
+    style && Object.assign(attributes, { style: Object.entries(style).map(([key, value]) => `${_.kebabCase(key)}: ${value}`).join(';') });
     attributes = _.omitBy(attributes, v => _.isNil(v) || v === '');
     const attributesString = Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join(' ');
 
+    children = _.concat(children || [], attachNodes || []);
+
     if (children && children.length) {
-        return `${tab}<${tagName} ${attributesString}>\n${vnode.children?.map(n => VNode2Code(n, level + 1)).join('\n')}\n${tab}</${tagName}>`;
-    } else if (vnode.textContent) {
-        if (!_.isArray(vnode.textContent)) {
-            return `${tab}<${tagName} ${attributesString}>${vnode.textContent}</${tagName}>`;
+        return `${tab}<${tagName} ${attributesString}>\n${children?.map(n => VNode2Code(n, level + 1)).join('\n')}\n${tab}</${tagName}>`;
+    } else if (textContent) {
+        if (!_.isArray(textContent)) {
+            return `${tab}<${tagName} ${attributesString}>${textContent}</${tagName}>`;
         } else {
-            return `${tab}<${tagName} ${attributesString}>${_.map(vnode.textContent, n => (VNode2Code(n, level + 1))).join('\n')}${tab}</${tagName}>`;
+            return `${tab}<${tagName} ${attributesString}>${_.map(textContent, n => (VNode2Code(n, level + 1))).join('\n')}${tab}</${tagName}>`;
         }
     } else {
-        return `${tab}<${tagName} ${attributesString} />`;
+        return `${tab}<${tagName} ${attributesString}></${tagName}>`;
     }
 }
 
@@ -41,6 +43,7 @@ function page2VNode(page: Page) {
     return vnode;
 }
 
+/** 将幕客设计稿json转成html代码 */
 export function transform(page: Page) {
     return VNode2Code(page2VNode(page), 0);
 }
