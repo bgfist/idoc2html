@@ -229,7 +229,7 @@ function stylishText(node: Node, vnode: VNode) {
         vnode.classList.push(`text-${commonAlign}`);
         vnode.textContent = textNodes;
     }
-    _.remove(vnode.classList, 'text-left');
+    _.remove(vnode.classList, cls => cls === 'text-left');
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {

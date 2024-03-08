@@ -40,7 +40,7 @@ export function maxCountGroup<T>(grouped: _.Dictionary<T[]>) {
     return _.maxBy(_.toPairs(grouped), item => second(item).length)![0];
 }
 
-const TOLERANCE = 1;
+const TOLERANCE = 2;
 export function numSame(num1: number, num2: number) {
     return Math.abs(num1 - num2) <= TOLERANCE;
 }
