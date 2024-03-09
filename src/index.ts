@@ -2,16 +2,24 @@ import { Page } from "./page";
 import { postprocess } from "./postprocess";
 import { preprocess } from "./preprocess";
 import { assert } from "./utils";
-import { VNode } from "./vnode";
+import { SizeSpec, VNode } from "./vnode";
 import * as _ from 'lodash';
+
+export let debug = true;
 
 const TAB = '  ';
 function VNode2Code(vnode: VNode, level: number): string {
     const tab = TAB.repeat(level);
-    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent } = vnode;
+    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent, role = '' } = vnode;
     attributes = {
-        ...attributes
+        ...attributes,
+        role
     };
+    if (debug) {
+        attributes['w'] = vnode.widthSpec || SizeSpec.Unknown;
+        attributes['h'] = vnode.heightSpec || SizeSpec.Unknown;
+    }
+
     classList.length && Object.assign(attributes, { class: classList.filter(Boolean).join(' ') });
     style && Object.assign(attributes, { style: Object.entries(style).map(([key, value]) => `${_.kebabCase(key)}: ${value}`).join(';') });
     attributes = _.omitBy(attributes, v => _.isNil(v) || v === '');

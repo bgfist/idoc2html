@@ -1,4 +1,4 @@
-import { R, assert, groupByWith, groupWith, numSame } from "./utils";
+import { R, assert, groupByWith, groupWith, numSame, removeEle, removeEles } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 import * as _ from 'lodash';
 
@@ -105,7 +105,7 @@ function buildMissingTree(parent: VNode) {
 }
 
 /** 两个盒子是否相似 */
-function isSimilarBox(a: VNode, b: VNode) {
+function isSimilarBoxX(a: VNode, b: VNode) {
     if (
         a.textContent && b.textContent &&
         numSame(a.bounds.top, b.bounds.top) &&
@@ -126,6 +126,26 @@ function isSimilarBox(a: VNode, b: VNode) {
 
 /** 两个盒子是否相似 */
 function isSimilarBoxY(a: VNode, b: VNode) {
+    if (
+        a.textContent && b.textContent &&
+        numSame(a.bounds.left, b.bounds.left) &&
+        numSame(a.bounds.height, b.bounds.height)
+    ) {
+        return true;
+    }
+    if (
+        !a.textContent && !b.textContent &&
+        numSame(a.bounds.left, b.bounds.left) &&
+        numSame(a.bounds.width, b.bounds.width) &&
+        numSame(a.bounds.height, b.bounds.height)
+    ) {
+        return true;
+    }
+    return false;
+}
+
+/** 两个盒子是否相似 */
+function isSimilarBoxWrap(a: VNode, b: VNode) {
     if (
         a.textContent && b.textContent &&
         numSame(a.bounds.height, b.bounds.height)
@@ -160,7 +180,7 @@ function findFlexWrap(nodes: VNode[], cursor: number, baseRepeatStart: number, r
 
     const repeatStart = cursor;
     let repeatCount = 0;
-    while (isSimilarBoxY(nodes[cursor], nodes[baseRepeatStart + repeatCount % repeatGroupCount])) {
+    while (isSimilarBoxWrap(nodes[cursor], nodes[baseRepeatStart + repeatCount % repeatGroupCount])) {
         cursor++;
         repeatCount++;
     }
@@ -211,31 +231,109 @@ function getBounds(nodes: VNode[]) {
     }
 }
 
-/** 寻找重复节点，将其重新归组 */
-function groupRepeatNodes(nodes: VNode[]): VNode[] {
+/** 寻找横向重复节点，将其重新归组 */
+function groupListXNodes(nodes: VNode[]): VNode[] {
     // 1. 处理横向重复 ✅
     // 2. 处理竖向列表
     // 3. 处理flex-wrap多行 ✅
     // 4. 处理多行横向重复(需重新归组)
 
-
     if (!nodes.length) return [];
 
-    function removeRepeatNodes(children: VNode[]) {
-        _.each(children, child => {
-            _.remove(nodes, node => node === child);
+    /** 对临时归组的列表元素节点，检查其结构是否一致 */
+    function checkListXNodesSimilar(children: VNode[]) {
+        // 检查item内部相互间距是否一致
+        const innerGaps = _.map(children, function (child) {
+            const children = child.children!;
+            const gaps = _.map(children.slice(1), function (current, index) {
+                return current.bounds.left - children[index].bounds.right;
+            });
+            return gaps;
         });
+        if (!_.every(_.zip(innerGaps), gap => _.uniqWith(gap as any, numSame).length === 1)) {
+            console.warn('item内部结构不一致');
+            return false;
+        }
+
+        // 优先检查item分布是否均匀
+        const rulers = _.map(children.slice(1), function (current, index) {
+            return current.bounds.left - children[index].bounds.left;
+        });
+        const repeatedRuler = _.uniqWith(rulers, numSame).length === 1;
+
+        if (!repeatedRuler) {
+            // 检查item间距是否一致
+            const gaps = _.map(children.slice(1), function (current, index) {
+                return current.bounds.left - children[index].bounds.right;
+            });
+            const equalGap = _.uniqWith(gaps, numSame).length === 1;
+
+            if (equalGap) {
+                return true;
+            } else {
+                console.warn('item间距不一致');
+            }
+
+            console.warn('item分布不均匀');
+            return false;
+        }
+
+        // 扩充item宽度到至少80%间距
+        const newWidth = _.max([
+            Math.round(rulers[0] * 0.8),
+            ..._.map(children, child => child.bounds.width)
+        ])!;
+        _.forEach(children, child => {
+            child.bounds.width = newWidth;
+            child.bounds.right = child.bounds.left + newWidth;
+        });
+
+        return true;
+    }
+
+    function checkListXNodesGap(children: VNode[]) {
+        if (children.length > 2) {
+            const gaps = _.map(children.slice(1), function (current, index) {
+                return current.bounds.left - children[index].bounds.right;
+            });
+            const equalGap = _.uniqWith(gaps, numSame).length === 1;
+            if (!equalGap) {
+                // 文本节点有可能中线间隔一致
+                if (children[0].textContent) {
+                    const gaps = _.map(children.slice(1), function (current, index) {
+                        return (current.bounds.left + current.bounds.width / 2) - (children[index].bounds.right + children[index].bounds.width / 2);
+                    });
+                    const equalGap = _.uniqWith(gaps, numSame).length === 1;
+                    if (!equalGap) {
+                        console.warn('重复文本节点中线间隔不一致! 直接忽略');
+                        return false;
+                    } else {
+                        // 文本节点中线间隔一致, 则可以归组, 将其宽度重新等分
+                        _.each(children, function (child) {
+                            const newWidth = Math.round(gaps[0] / 2);
+                            const widthDiff = Math.round(newWidth - child.bounds.width) / 2;
+                            child.bounds.width = newWidth;
+                            child.bounds.left = child.bounds.left - widthDiff;
+                            child.bounds.right = child.bounds.right + widthDiff;
+                        });
+                    }
+                } else {
+                    console.warn('重复节点间隔不统一! 直接忽略');
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     let compareIndex = 0;
-    let prev = 0;
-    for (let i = 1; i < nodes.length; prev = i, i++) {
+    for (let i = 1; i < nodes.length; i++) {
         // 换行了重新查
-        if (!numSame(nodes[i].bounds.top, nodes[prev].bounds.top)) {
+        if (!numSame(nodes[i].bounds.top, nodes[i - 1].bounds.top)) {
             compareIndex = i;
             continue;
         }
-        if (!isSimilarBox(nodes[compareIndex], nodes[i])) {
+        if (!isSimilarBoxX(nodes[compareIndex], nodes[i])) {
             continue;
         }
 
@@ -243,7 +341,7 @@ function groupRepeatNodes(nodes: VNode[]): VNode[] {
         const baseRepeatStart = compareIndex;
         const repeatGroupCount = i - compareIndex;
         let repeatCount = repeatGroupCount + 1;
-        while (++i < nodes.length && isSimilarBox(nodes[++compareIndex], nodes[i])) {
+        while (++i < nodes.length && isSimilarBoxX(nodes[++compareIndex], nodes[i])) {
             repeatCount++;
         }
 
@@ -251,18 +349,17 @@ function groupRepeatNodes(nodes: VNode[]): VNode[] {
         if (mod !== 0) {
             console.warn('重复分组不完整!');
             repeatCount -= mod;
+            i -= mod;
         }
 
         // 重复节点之间断开了
         if (!repeatCount) {
             console.warn('重复节点断开了!');
-            // 从这开始查
-            compareIndex = i - mod;
             continue;
         }
 
-        // 文本节点大概率重复
-        if (repeatGroupCount === 1 && nodes[baseRepeatStart].textContent) {
+        // 文本节点大概率重复, 如果只有俩个则忽略
+        if (repeatGroupCount === 1 && nodes[baseRepeatStart].textContent && repeatCount === 2) {
             continue;
         }
 
@@ -274,6 +371,7 @@ function groupRepeatNodes(nodes: VNode[]): VNode[] {
 
         // 将children进行分组
         if (repeatGroupCount > 1) {
+            console.debug('横向列表元素需要先归组');
             const repeatGroups = [];
             for (let j = 0; j < children.length; j += repeatGroupCount) {
                 const group = children.slice(j, j + repeatGroupCount);
@@ -287,14 +385,24 @@ function groupRepeatNodes(nodes: VNode[]): VNode[] {
                 };
                 repeatGroups.push(vnode);
             }
-            removeRepeatNodes(children);
+            if (children.length === repeatCount && !checkListXNodesSimilar(repeatGroups)) {
+                continue;
+            }
+
+            removeEles(nodes, children);
             children = repeatGroups;
         } else {
+            if (children.length === repeatCount && !checkListXNodesGap(children)) {
+                continue;
+            }
+
             _.each(children, child => {
                 child.role = 'list-item';
             });
-            removeRepeatNodes(children);
+            removeEles(nodes, children);
         }
+
+
 
         const vnode: VNode = {
             classList: [],
@@ -306,17 +414,139 @@ function groupRepeatNodes(nodes: VNode[]): VNode[] {
         };
         if (children.length > repeatCount) {
             // 是flex-wrap
+            console.debug('找到横向flex-wrap列表');
             vnode.role = 'list-wrap';
             vnode.heightSpec = SizeSpec.Auto;
             _.each(children, child => {
                 child.heightSpec = SizeSpec.Fixed;
             });
         } else {
+            console.debug('找到横向列表');
             vnode.role = 'list-x';
             vnode.widthSpec = SizeSpec.Auto;
         }
 
-        return [...nodes.slice(0, baseRepeatStart), vnode, ...groupRepeatNodes(nodes.slice(baseRepeatStart))];
+        return [...nodes.slice(0, baseRepeatStart), vnode, ...groupListXNodes(nodes.slice(baseRepeatStart))];
+    }
+
+    return nodes;
+}
+
+/** 寻找纵向重复节点，将其重新归组 */
+function groupListYNodes(parent: VNode) {
+    assert(parent.direction === Direction.Column, '只对column进行list-y列表判断');
+
+    const nodes = parent.children;
+    if (!nodes || nodes.length < 2) return;
+
+    for (let i = 1; i < nodes.length; i++) {
+        if (isSimilarBoxY(nodes[i], nodes[i - 1])) {
+            // 找到纵向重复节点, 目前只处理一组
+            const baseRepeatStart = i - 1;
+            let repeatCount = 2;
+            i++;
+            while (i < nodes.length && isSimilarBoxY(nodes[i], nodes[i - 1])) {
+                repeatCount++;
+            }
+
+            const children = nodes.slice(baseRepeatStart, baseRepeatStart + repeatCount);
+            const gaps = _.map(children.slice(1), function (current, index) {
+                return current.bounds.left - children[index].bounds.right;
+            });
+            const equalGap = _.uniqWith(gaps, numSame).length === 1;
+            if (!equalGap) {
+                console.warn('纵向列表节点间距不一致，无法进行list-y处理');
+                return;
+            }
+
+            console.debug('找到纵向列表');
+            _.each(nodes, child => {
+                child.role = 'list-item';
+                child.heightSpec = SizeSpec.Fixed;
+            });
+
+            if (baseRepeatStart === 0 && repeatCount === nodes.length) {
+                console.debug('纵向列表占满父盒子');
+                parent.role = 'list-y';
+                parent.heightSpec = SizeSpec.Auto;
+                return;
+            }
+
+            const vnode: VNode = {
+                classList: [],
+                bounds: getBounds(children),
+                children,
+                role: 'list-y',
+                heightSpec: SizeSpec.Auto,
+                index: context.index++,
+            };
+            nodes.splice(baseRepeatStart, repeatCount, vnode);
+            return;
+        }
+    }
+}
+
+/** 寻找可以合并的横向列表 */
+function findMergeableListXNodes(nodes: VNode[], toMerge: VNode): VNode[] {
+    const nextOverlapNodeIdx = _.findIndex(nodes, node => isOverlappingX(node, toMerge.children![0]));
+    const nextOverlapNode = nodes[nextOverlapNodeIdx];
+
+    function getListXGap(vnode: VNode) {
+        return vnode.children![1].bounds.left - vnode.children![0].bounds.right;
+    }
+
+    if (nextOverlapNode && nextOverlapNode.role === 'list-x' &&
+        nextOverlapNode.children!.length === toMerge.children!.length &&
+        isOverlappingX(nextOverlapNode.children![0], toMerge.children![0]) &&
+        getListXGap(nextOverlapNode) === getListXGap(toMerge)
+    ) {
+        console.debug('找到可合并的横向列表');
+        return [nextOverlapNode, ...findMergeableListXNodes(nodes.slice(nextOverlapNodeIdx + 1), nextOverlapNode)];
+    }
+    return [];
+}
+
+/** 将多个结构一致的横向列表合成为一个 */
+function tryMergeListXNodes(nodes: VNode[]): VNode[] {
+    if (!nodes.length) return [];
+
+    const firstListXIdx = _.findIndex(nodes, node => node.role === 'list-x');
+    if (firstListXIdx === -1) {
+        return nodes;
+    }
+
+    const firstToMerge = nodes[firstListXIdx];
+    const toMergeLists = findMergeableListXNodes(nodes.slice(firstListXIdx + 1), firstToMerge);
+    if (toMergeLists.length) {
+        // 开始合并
+        console.debug('开始合并横向列表');
+        toMergeLists.unshift(firstToMerge);
+        const children = _.map(_.zip(..._.map(toMergeLists, 'children')), (vChildren) => {
+            const group = vChildren as VNode[];
+            _.each(group, (vnode) => {
+                vnode.role = '';
+            });
+            const vnode: VNode = {
+                classList: [],
+                bounds: getBounds(group),
+                children: group,
+                role: 'list-item',
+                direction: Direction.Column,
+                index: context.index++
+            };
+            return vnode;
+        });
+        const vnode: VNode = {
+            classList: [],
+            bounds: getBounds(children),
+            children,
+            role: 'list-x',
+            direction: Direction.Row,
+            widthSpec: SizeSpec.Auto,
+            index: context.index++
+        };
+        removeEles(nodes, toMergeLists);
+        return [...nodes.slice(0, firstListXIdx), vnode, ...tryMergeListXNodes(nodes.slice(firstListXIdx + 1))];
     }
 
     return nodes;
@@ -369,7 +599,9 @@ function groupNodes(nodes: VNode[]): VNode[] {
                 };
                 // 从上到下
                 group = _.sortBy(group, n => n.bounds.top);
+
                 vnode.children = groupNodes(group);
+                groupListYNodes(vnode);
                 return vnode;
             } else {
                 return group[0];
@@ -407,7 +639,8 @@ function buildFlexBox(parent: VNode) {
                 return a.bounds.top - b.bounds.top;
             }
         });
-        parent.children = groupRepeatNodes(parent.children);
+        parent.children = groupListXNodes(parent.children);
+        parent.children = tryMergeListXNodes(parent.children);
         parent.children = groupNodes(parent.children);
         mergeUnnessaryNodes(parent);
         // 到这里确保父盒子一定比子盒子大
@@ -464,6 +697,7 @@ function mergeUnnessaryNodes(parent: VNode, isPre?: boolean) {
         } else {
             parent.direction = Direction.Column;
             parent.children = _.sortBy(parent.children, (child) => child.bounds.top);
+            groupListYNodes(parent);
         }
     }
 }
@@ -623,15 +857,15 @@ function buildFlexJustify(vnode: VNode) {
     const maxGap = _.max(gaps);
 
     function defaultJustify() {
-        if (equalGap) {
-            vnode.classList.push(R`space-${xy}-${gaps[0]} p-${ss}-${startGap}`);
+        if (equalGap && gaps.length > 1) {
+            vnode.classList.push(R`space-${xy}-${gaps[0]} p${ss}-${startGap}`);
             return;
         }
 
         gaps.unshift(startGap);
 
         // 处理flex1
-        if (maxGap && gaps.filter(gap => gap === maxGap).length === 1) {
+        if (maxGap && gaps.length > 2 && gaps.filter(gap => gap === maxGap).length === 1) {
             const insertIndex = gaps.indexOf(maxGap);
             gaps[insertIndex] = 0;
             gaps.splice(insertIndex, 0, 0);
@@ -660,6 +894,9 @@ function buildFlexJustify(vnode: VNode) {
             if (numSame(startGap, endGap)) {
                 gaps[0] = 0;
                 vnode.classList.push(R`p${xy}-${startGap}`);
+            } else {
+                // 这里加了flex1会把最后一个元素挤到边上
+                vnode.classList.push(R`p${ee}-${endGap}`);
             }
         }
 
@@ -686,7 +923,7 @@ function buildFlexJustify(vnode: VNode) {
                 }
             } else {
                 vnode.classList.push('justify-center');
-                if (equalGap) {
+                if (equalGap && gaps.length > 1) {
                     vnode.classList.push(R`space-${xy}-${gaps[0]}`);
                 } else {
                     gaps.forEach((g, i) => {
@@ -706,14 +943,14 @@ function buildFlexJustify(vnode: VNode) {
                 defaultJustify();
             }
         }
-    } else if (startGap > endGap) {
+    } else if (startGap < endGap) {
         // 走justify-start
         defaultJustify();
-    } else if (startGap < endGap) {
+    } else if (startGap > endGap) {
         // 走justify-end
         vnode.classList.push('justify-end');
 
-        if (equalGap) {
+        if (equalGap && gaps.length > 1) {
             vnode.classList.push(R`space-${xy}-${gaps[0]}`);
         } else {
             gaps.push(endGap);
@@ -751,9 +988,7 @@ function buildFlexWrapLayout(vnode: VNode) {
     const secondChild = vnode.children![1];
     const xGap = secondChild.bounds.left - firstChild.bounds.right;
     const firstWrapChild = _.find(vnode.children, (child) => !numSame(child.bounds.top, firstChild.bounds.top), 1)!;
-    if (!numSame(firstWrapChild.bounds.left, firstChild.bounds.left)) {
-        console.warn('flex-wrap不规范，左边没对齐');
-    }
+    assert(numSame(firstWrapChild.bounds.left, firstChild.bounds.left), 'flex-wrap不规范，左边没对齐');
     const yGap = firstWrapChild.bounds.top - firstChild.bounds.bottom;
     _.each(vnode.children, (child) => {
         child.classList.push(R`ml-${xGap} mt-${yGap}`);
@@ -762,7 +997,7 @@ function buildFlexWrapLayout(vnode: VNode) {
     // 合并margin
     const mlCls = _.find(vnode.classList, (c) => c.startsWith('ml-') || c.startsWith('mx-')) || 'ml-0';
     const [p, v] = mlCls.split('-');
-    _.remove(vnode.classList, cls => cls === mlCls);
+    removeEle(vnode.classList, mlCls);
     if (p === 'ml') {
         vnode.classList.push(R`ml-${+v - xGap}`);
     } else if (p === 'mx') {
@@ -770,7 +1005,7 @@ function buildFlexWrapLayout(vnode: VNode) {
     }
     const mtCls = _.find(vnode.classList, (c) => c.startsWith('mt-') || c.startsWith('my-')) || 'mt-0';
     const [p2, v2] = mtCls.split('-');
-    _.remove(vnode.classList, cls => cls === mtCls);
+    removeEle(vnode.classList, mlCls);
     if (p2 === 'mt') {
         vnode.classList.push(R`mt-${+v2 - yGap}`);
     } else if (p2 === 'my') {

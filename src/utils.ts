@@ -14,6 +14,14 @@ export function second<T>(x: [unknown, T]) {
     return x[1];
 }
 
+export function removeEle<T>(arr: T[], ele: T) {
+    _.remove(arr, (item) => item === ele);
+}
+
+export function removeEles<T>(arr: T[], ele: T[]) {
+    _.remove(arr, (item) => ele.indexOf(item) >= 0);
+}
+
 export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (a: K, b: K) => boolean) {
     return arr.reduce((map, item) => {
         const key = iteratee(item);
