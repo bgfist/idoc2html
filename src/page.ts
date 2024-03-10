@@ -31,6 +31,21 @@ export interface Basic {
      * shape: ["Slice", "Shape"]
      * symbol: ["SymbolInstance"]
      * image: ["Image"] -> 占位图，由程序动态赋值图片
+     * 
+     * [
+     *  [ 'group', 'Artboard' ],
+     *  [ 'group', 'Group' ],
+     *  [ 'path', 'ShapePath' ],
+     *  [ 'rect', 'ShapePath' ],
+     *  [ 'text', 'Text' ],
+     *  [ 'shape', 'Slice' ],
+     *  [ 'oval', 'ShapePath' ],
+     *  [ 'image', 'Image' ],
+     *  [ 'mask', 'ShapePath' ],
+     *  [ 'shape', 'Shape' ],
+     *  [ 'mask', 'Shape' ],
+     *  [ 'symbol', 'SymbolInstance' ]
+     * ]
      */
     type: "group" | "text" | "rect" | "path" | "shape" | "symbol" | "image";
     realType: "Artboard" | "Group" | "Text" | "ShapePath" | "Slice" | "Shape" | "SymbolInstance" | "Image";
@@ -57,6 +72,7 @@ export interface Stroke {
 
 export interface Effect {
     shadows: Shadow[];
+    blur?: any;
 }
 
 export interface Slice {

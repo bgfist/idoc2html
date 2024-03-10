@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { SizeSpec, VNode, context } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
 import { R, assert, filterEmpty, maxCountGroup, numSame } from './utils';
+import { debug, defaultConfig } from './config';
 
 function floats2Int(node: Node) {
     node.bounds = _.mapValues(node.bounds, n => Math.round(n));
@@ -129,9 +130,17 @@ function getLinearColor(vnode: VNode, color: LinearColor) {
 }
 
 function stylishRoot(node: Node, vnode: VNode) {
+    vnode.role = 'page';
     if (node.bounds.width === 375 || node.bounds.width === 750) {
         vnode.widthSpec = SizeSpec.Constrained;
-        vnode.heightSpec = SizeSpec.Constrained;
+
+        if (node.bounds.height / node.bounds.width > 812 / 375) {
+            vnode.heightSpec = SizeSpec.Auto;
+            vnode.classList.push('w-[100vw] min-h-[100vh]');
+            return;
+        } else {
+            vnode.heightSpec = SizeSpec.Constrained;
+        }
     } else if (node.bounds.height === 375 || node.bounds.height === 750) {
         vnode.widthSpec = SizeSpec.Constrained;
         vnode.heightSpec = SizeSpec.Constrained;
@@ -142,20 +151,24 @@ function stylishRoot(node: Node, vnode: VNode) {
 }
 
 function stylishSymbol(node: Node, vnode: VNode) {
-    node.children = [];
+    if (!debug.buildAllNodes) {
+        node.children = [];
+    }
     if (node.bounds.top === 0 && node.bounds.left === 0) {
         vnode.tagName = 'com:header';
-        vnode.widthSpec = SizeSpec.Constrained;
+        vnode.widthSpec = SizeSpec.Fixed;
         vnode.heightSpec = SizeSpec.Auto;
     } else {
         vnode.classList.push('safearea-bottom');
-        vnode.widthSpec = SizeSpec.Constrained;
+        vnode.widthSpec = SizeSpec.Fixed;
         vnode.heightSpec = SizeSpec.Auto;
     }
 }
 
 function stylishSlice(node: Node, vnode: VNode) {
-    node.children = [];
+    if (!debug.buildAllNodes) {
+        node.children = [];
+    }
     // TODO: 处理切图尺寸和实际不一致的问题？
     vnode.classList.push(`bg-cover bg-[url(https://idoc.mucang.cn${(node.slice.bitmapURL)})]`);
     // (vnode.style??={}).backgroundImage = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
@@ -164,7 +177,9 @@ function stylishSlice(node: Node, vnode: VNode) {
 }
 
 function stylishImage(node: Node, vnode: VNode) {
-    node.children = [];
+    if (!debug.buildAllNodes) {
+        node.children = [];
+    }
     vnode.tagName = 'img';
     vnode.classList.push(`block object-cover`);
     (vnode.attributes ??= {}).src = "";
@@ -181,7 +196,6 @@ function stylishText(node: Node, vnode: VNode) {
     // 2. 多行文本高度不固定，如果文本框高度大于其子文本中任意一个文本，则为多行文本
     // 3. 如果文本节点是父节点中唯一的一个节点，且父节点不是切图，则父节点宽度不固定，适用于按钮。除非两个相邻按钮宽度一致
 
-    const commonAlign = maxCountGroup(_.groupBy(node.text.styles, (text) => text.align));
     const textNodes = _.map(node.text.styles, (text) => {
         const textNode: VNode = {
             tagName: 'span',
@@ -216,8 +230,8 @@ function stylishText(node: Node, vnode: VNode) {
         if (text.fontStyles.lineThrough) {
             textNode.classList.push('line-through');
         }
-        if (text.align !== commonAlign) {
-            vnode.classList.push(`text-${text.align}`);
+        if (text.align !== 'left') {
+            textNode.classList.push(`text-${text.align}`);
         }
         return textNode;
     });
@@ -226,14 +240,12 @@ function stylishText(node: Node, vnode: VNode) {
             tagName: 'div',
         });
     } else {
-        vnode.classList.push(`text-${commonAlign}`);
         vnode.textContent = textNodes;
     }
-    _.remove(vnode.classList, cls => cls === 'text-left');
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        vnode.widthSpec = SizeSpec.Fixed;
+        vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
     } else {
         vnode.widthSpec = SizeSpec.Auto;
@@ -272,19 +284,19 @@ function stylishBox(node: Node, vnode: VNode) {
         if (t && r && b && l) {
             addClasses('', tl);
         } else if (t && b) {
-            addClasses('t', tl);
-            addClasses('b', br);
+            addClasses('t-', tl);
+            addClasses('b-', br);
         } else if (l && r) {
-            addClasses('l', tl);
-            addClasses('r', tr);
+            addClasses('l-', tl);
+            addClasses('r-', tr);
         } else if (t) {
-            addClasses('t', tl, t);
+            addClasses('t-', tl, t);
         } else if (r) {
-            addClasses('r', tr, r);
+            addClasses('r-', tr, r);
         } else if (b) {
-            addClasses('b', br, b);
+            addClasses('b-', br, b);
         } else if (l) {
-            addClasses('l', bl, l);
+            addClasses('l-', bl, l);
         } else {
             addClasses('', 0, []);
         }
@@ -313,7 +325,7 @@ function stylishBox(node: Node, vnode: VNode) {
             } else if (shadow.color.type === "normal") {
                 color = shadow.color.value;
             }
-            return `${shadow.type === 'inside' ? 'inset' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px rgba(${color.r},${color.g},${color.b},${color.a})`;
+            return `${shadow.type === 'inside' ? 'inset ' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px rgba(${color.r},${color.g},${color.b},${color.a})`;
         });
         (vnode.style ??= {}).boxShadow = styles.join(',');
     }
@@ -321,8 +333,11 @@ function stylishBox(node: Node, vnode: VNode) {
 
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
-    // 去掉小数
-    floats2Int(node);
+    if (node.bounds.height <= 0 || node.bounds.width <= 0 || !node.basic.opacity) {
+        console.warn('遇到无用空节点,忽略');
+        return null;
+    }
+
     // 将不透明度转成alpha
     opacity2ColorAlpha(node);
 
@@ -360,14 +375,17 @@ export function preprocess(node: Node, level: number): VNode | null {
     else if (
         node.basic.type === 'group' && node.basic.realType === 'Group' ||
         node.basic.type === 'rect' && node.basic.realType === 'ShapePath' ||
-        node.basic.type === 'path' && node.basic.realType === 'ShapePath'
+        node.basic.type === 'path' && node.basic.realType === 'ShapePath' ||
+        node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance'
     ) {
 
     }
     // 其他不识别的节点全部清掉
     // 如果没有子节点也没有样式，清掉该节点
     else {
-        return null;
+        if (!debug.buildAllNodes) {
+            return null;
+        }
     }
 
     // 处理外观样式
@@ -375,10 +393,44 @@ export function preprocess(node: Node, level: number): VNode | null {
         stylishBox(node, vnode);
     }
 
-    // 目前先这样处理，有slice节点，则删掉其他兄弟节点
-    const sliceChild = _.find(node.children, (node) => node.basic.type === 'shape' && node.basic.realType === 'Slice');
-    if (sliceChild) {
-        node.children = [sliceChild];
+    if (!debug.buildAllNodes) {
+        // 目前先这样处理，有slice节点，则删掉其他兄弟节点
+        const sliceChild = _.find(node.children, (node) => node.basic.type === 'shape' && node.basic.realType === 'Slice');
+        if (sliceChild) {
+            node.children = [sliceChild];
+        }
+    }
+
+    // 将children限定在父容器内，比如Image
+    node.children = _.map(node.children, child => {
+        const top = Math.max(child.bounds.top, node.bounds.top);
+        const left = Math.max(child.bounds.left, node.bounds.left);
+        const bottom = Math.min(child.bounds.top + child.bounds.height, node.bounds.top + node.bounds.height);
+        const right = Math.min(child.bounds.left + child.bounds.width, node.bounds.left + node.bounds.width);
+        child.bounds.top = top;
+        child.bounds.left = left;
+        child.bounds.width = right - left;
+        child.bounds.height = bottom - top;
+        // 去掉小数
+        floats2Int(child);
+        return child;
+    });
+
+    if (defaultConfig.codeGenOptions.experimentalZIndex) {
+        const [hasRight, noRight] = _.partition(node.children, n => 'right' in n.bounds);
+        node.children = hasRight.reverse().map((n, i) => {
+            // @ts-ignore
+            n._index = i + 1;
+            return n;
+        }).concat(noRight);
+
+        // @ts-ignore
+        if (node._index) {
+            // @ts-ignore
+            vnode.classList.push(`relative z-${node._index}`);
+        } else if (vnode.textContent) {
+            vnode.classList.push(`relative z-10`);
+        }
     }
 
     const children = _.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty);

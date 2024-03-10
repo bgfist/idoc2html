@@ -2,8 +2,13 @@ import * as _ from 'lodash';
 
 export function assert(condition: boolean, msg: string) {
     if (!condition) {
+        debugger;
         throw new Error(msg);
     }
+}
+
+export function unreachable() {
+    throw new Error('不可能执行到这！');
 }
 
 export function filterEmpty<T>(t: T | null | undefined): t is T {

@@ -21,7 +21,7 @@ export enum Direction {
 };
 
 /** 节点用途 */
-export type Role = '' | 'border' | 'list-x' | 'list-y' | 'list-wrap' | 'list-item' | 'scroller' | 'btn' | 'tab' | 'dialog';
+export type Role = '' | 'page' | 'border' | 'list-x' | 'list-y' | 'list-wrap' | 'list-item' | 'scroller' | 'btn' | 'tab' | 'dialog';
 
 /** 可渲染的虚拟节点 */
 export interface VNode {
