@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { R, assert, groupByWith, numSame, removeEle, removeEles, unreachable } from "./utils";
+import { R, R2, assert, groupByWith, numSame, removeEle, removeEles, unreachable } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 
 function isContainedWithinX(child: VNode, parent: VNode) {
@@ -54,54 +54,74 @@ function maybeBorder(child: VNode, parent: VNode) {
 function findBestParent(node: VNode, nodes: VNode[]) {
     let bestParent: VNode | null = null;
     let minArea = Infinity;
-    let type: 'contained' | 'overlapping' = 'contained';
-    const nodeArea = node.bounds.width * node.bounds.height;
-    for (let potentialParent of nodes) {
+    for (const potentialParent of nodes) {
         if (potentialParent === node) continue;
-        if (isContainedWithin(node, potentialParent) && type === 'contained') {
-            let area = potentialParent.bounds.width * potentialParent.bounds.height;
+        if (isContainedWithin(node, potentialParent)) {
+            const area = potentialParent.bounds.width * potentialParent.bounds.height;
             if (area < minArea) {
-                minArea = area;
-                bestParent = potentialParent;
-            }
-        } else if (isOverlapping(node, potentialParent) && !isContainedWithin(potentialParent, node)) {
-            type = 'overlapping';
-            let area = potentialParent.bounds.width * potentialParent.bounds.height;
-            if (area >= nodeArea && node.index > potentialParent.index && area < minArea) {
                 minArea = area;
                 bestParent = potentialParent;
             }
         }
     }
-    return [bestParent, type] as const;
+    return bestParent;
+}
+
+function findBestIntersectNode(node: VNode, nodes: VNode[]) {
+    let bestIntersectNode: VNode | null = null;
+    let minArea = Infinity;
+    const nodeArea = node.bounds.width * node.bounds.height;
+    for (const potentialParent of nodes) {
+        if (potentialParent === node) continue;
+        if (isOverlapping(node, potentialParent)) {
+            const area = potentialParent.bounds.width * potentialParent.bounds.height;
+            if (area >= nodeArea && area < minArea) {
+                minArea = area;
+                bestIntersectNode = potentialParent;
+            }
+        }
+    }
+    return bestIntersectNode;
 }
 
 /** 为每个节点找到最佳父节点，保证nodes互不相交 */
 function buildMissingNodes(parent: VNode) {
-    const nodes = parent.children;
-    if (!nodes) return;
-    parent.children = nodes.filter(node => {
-        let [bestParent, type] = findBestParent(node, nodes);
+    let nodes = parent.children;
+    if (!nodes || !nodes.length) return;
+
+    const potentialParents = nodes.slice();
+    // 剩下的节点都是直接子节点, 互不包含
+    nodes = nodes.filter(node => {
+        const bestParent = findBestParent(node, potentialParents);
         if (bestParent) {
-            if (type === 'contained') {
-                (bestParent.children ??= []).push(node);
-            } else {
-                (bestParent.attachNodes ??= []).push(node);
-            }
-            return false;
-        } else if (type === 'overlapping') {
-            // 绝对定位元素
-            (parent.attachNodes ??= []).push(node);
-            return false;
-        } else if (maybeBorder(node, parent)) {
-            // 过小的元素有可能是边框
-            node.role = 'border';
-            (parent.attachNodes ??= []).push(node);
+            (bestParent.children ??= []).push(node);
+            _.remove(potentialParents, node);
             return false;
         } else {
             return true;
         }
     });
+
+    const potentialIntersectNodes = nodes.slice();
+    // 剩下的节点都是直接子节点, 互不交叉
+    nodes = nodes.filter(node => {
+        const bestIntersectNode = findBestIntersectNode(node, potentialIntersectNodes);
+        if (bestIntersectNode) {
+            (bestIntersectNode.attachNodes ??= []).push(node);
+            _.remove(potentialIntersectNodes, node);
+            return false;
+        } else if (maybeBorder(node, parent)) {
+            // 过小的元素有可能是边框,做成绝对定位
+            node.role = 'border';
+            (parent.attachNodes ??= []).push(node);
+            _.remove(potentialIntersectNodes, node);
+            return false;
+        } else {
+            return true;
+        }
+    });
+
+    parent.children = nodes;
 }
 
 /** 两个盒子是否相似 */
@@ -662,6 +682,8 @@ function mergeUnnessaryNodes(parent: VNode) {
     }
     const child = children[childIdx];
 
+    console.debug('合并跟父亲一样大的盒子');
+
     // 这里要合并样式，将child合并到parent
     parent.tagName = child.tagName;
     parent.classList = _.union(parent.classList, child.classList);
@@ -929,16 +951,24 @@ function measureFlexJustify(parent: VNode) {
     const endGap = gaps.pop()!;
     const equalMiddleGaps = gaps.length > 1 && _.uniqWith(gaps, numSame).length === 1;
 
-    function justifyFlex1() {
-        gaps.unshift(startGap);
+    function maybeFlex1() {
+        if (gaps.length < 2) {
+            // 2个及以上元素才能用flex1做弹性拉伸
+            return;
+        }
 
         // 可以通过flex1实现和stretch类似的效果
         const flex1GapIndex = (() => {
-            assert(gaps.length >= 2, '2个及以上元素才能用flex1做弹性拉伸');
             // TODO: 生成多个flex1
             const maxGap = _.max(gaps)!;
             return gaps.indexOf(maxGap);
         })();
+
+        if (flex1GapIndex === 0) {
+            // 第一个间隙不能撑开
+            return;
+        }
+
         gaps[flex1GapIndex] = 0;
         gaps.splice(flex1GapIndex, 0, 0);
 
@@ -960,6 +990,7 @@ function measureFlexJustify(parent: VNode) {
             } as any,
             classList: ['flex-1'],
             [`${spec1}Spec`]: SizeSpec.Constrained,
+            [`${spec2}Spec`]: SizeSpec.Fixed,
             index: context.index++
         });
 
@@ -970,6 +1001,12 @@ function measureFlexJustify(parent: VNode) {
             // 这里加了flex1会把最后一个元素挤到边上
             parent.classList.push(R`p${ee}-${endGap}`);
         }
+    }
+
+    function defaultJustify() {
+        gaps.unshift(startGap);
+
+        maybeFlex1();
 
         gaps.forEach((g, i) => {
             children[i].classList.push(R`m${ss}-${g}`);
@@ -1001,8 +1038,11 @@ function measureFlexJustify(parent: VNode) {
         }
     }
 
+    if (parent[justifySpec] === SizeSpec.Auto) {
+        defaultJustify();
+    }
     // 一个子元素, 或者子元素之间紧挨在一起视同为一个元素
-    if (!gaps.length || (equalMiddleGaps && numSame(gaps[0], 0))) {
+    else if (!gaps.length || (equalMiddleGaps && numSame(gaps[0], 0))) {
         if (children.length === 1 && justifySpec === 'widthSpec' && isFlexWrapLike(children[0])) {
             // TODO: 
         } else {
@@ -1040,7 +1080,7 @@ function measureFlexJustify(parent: VNode) {
     } else {
         const maxGap = _.max(gaps)!;
         if (maxGap > startGap && maxGap > endGap) {
-            justifyFlex1();
+            defaultJustify();
         } else if (numSame(startGap, endGap)) {
             parent.classList.push('justify-center');
             _.each(children.slice(1), (child, i) => {
@@ -1087,6 +1127,7 @@ function measureChildSizeSpec(parent: VNode) {
 function measureParentSizeSpec(parent: VNode) {
     const children = parent.children;
     if (!children || !children.length) {
+        // TODO: 裸盒子的尺寸如何确定
         if (!parent.widthSpec) {
             parent.widthSpec = SizeSpec.Fixed;
         }
@@ -1185,23 +1226,25 @@ function measureFlexLayout(parent: VNode) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 
-    if (parent.direction && parent.children && parent.children.length) {
-        parent.classList.push('flex');
-        if (parent.direction === Direction.Column) {
-            parent.classList.push('flex-col');
-        }
-
-        if (parent.role === 'list-wrap') {
-            measureFlexWrapLayout(parent);
-        } else if (parent.role === 'list-x' || parent.role === 'list-y') {
-            measureFlexListLayout(parent);
-        } else {
-            measureFlexAlign(parent);
-            measureFlexJustify(parent);
-        }
-
-        measureChildSizeSpec(parent);
+    if (!parent.direction || !parent.children || !parent.children.length) {
+        return;
     }
+
+    parent.classList.push('flex');
+    if (parent.direction === Direction.Column) {
+        parent.classList.push('flex-col');
+    }
+
+    if (parent.role === 'list-wrap') {
+        measureFlexWrapLayout(parent);
+    } else if (parent.role === 'list-x' || parent.role === 'list-y') {
+        measureFlexListLayout(parent);
+    } else {
+        measureFlexAlign(parent);
+        measureFlexJustify(parent);
+    }
+
+    measureChildSizeSpec(parent);
 }
 
 /** 生成绝对定位 */
@@ -1224,44 +1267,44 @@ function measureAttachPosition(parent: VNode) {
         }
         attachNode.classList.push('absolute');
 
-        const hasNoChildren = !attachNode.children || attachNode.children.length === 0;
+        assert((
+            (attachNode.widthSpec === SizeSpec.Fixed || attachNode.widthSpec === SizeSpec.Auto) &&
+            (attachNode.heightSpec === SizeSpec.Fixed || attachNode.heightSpec === SizeSpec.Auto)
+        ), '绝对定位节点尺寸类型有误');
 
-        if (attachNode.widthSpec === SizeSpec.Fixed) {
-            if (Math.abs(left) < Math.abs(right)) {
-                attachNode.classList.push(R`left-${left}`);
-            } else {
-                attachNode.classList.push(R`right-${right}`);
-            }
-        } else if (attachNode.bounds.width * 2 > parent.bounds.width) {
-            attachNode.classList.push(R`left-${left} right-${right}`);
+        if (
+            attachNode.widthSpec === SizeSpec.Auto &&
+            numSame(left, right) &&
+            attachNode.bounds.width * 2 > parent.bounds.width
+        ) {
             attachNode.widthSpec = SizeSpec.Constrained;
+        }
+
+        if (attachNode.widthSpec === SizeSpec.Constrained) {
+            attachNode.classList.push(R2`left-${left} right-${right}`);
         } else {
-            if (hasNoChildren) {
-                attachNode.widthSpec = SizeSpec.Fixed;
-            }
-            if (Math.abs(left) < Math.abs(right)) {
-                attachNode.classList.push(R`left-${left}`);
+            if (left <= right) {
+                attachNode.classList.push(R2`left-${left}`);
             } else {
-                attachNode.classList.push(R`right-${right}`);
+                attachNode.classList.push(R2`right-${right}`);
             }
         }
-        if (attachNode.heightSpec === SizeSpec.Fixed) {
-            if (Math.abs(top) < Math.abs(bottom)) {
-                attachNode.classList.push(R`top-${top}`);
-            } else {
-                attachNode.classList.push(R`bottom-${bottom}`);
-            }
-        } else if (attachNode.bounds.height * 2 > parent.bounds.height) {
-            attachNode.classList.push(R`top-${top} bottom-${bottom}`);
+
+        if (
+            attachNode.heightSpec === SizeSpec.Auto &&
+            numSame(top, bottom) &&
+            attachNode.bounds.height * 2 > parent.bounds.height
+        ) {
             attachNode.heightSpec = SizeSpec.Constrained;
+        }
+
+        if (attachNode.heightSpec === SizeSpec.Constrained) {
+            attachNode.classList.push(R2`top-${top} bottom-${bottom}`);
         } else {
-            if (hasNoChildren) {
-                attachNode.heightSpec = SizeSpec.Fixed;
-            }
-            if (Math.abs(top) < Math.abs(bottom)) {
-                attachNode.classList.push(R`top-${top}`);
+            if (top <= bottom) {
+                attachNode.classList.push(R2`top-${top}`);
             } else {
-                attachNode.classList.push(R`bottom-${bottom}`);
+                attachNode.classList.push(R2`bottom-${bottom}`);
             }
         }
     });

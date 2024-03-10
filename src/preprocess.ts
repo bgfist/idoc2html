@@ -157,11 +157,11 @@ function stylishSymbol(node: Node, vnode: VNode) {
     if (node.bounds.top === 0 && node.bounds.left === 0) {
         vnode.tagName = 'com:header';
         vnode.widthSpec = SizeSpec.Fixed;
-        vnode.heightSpec = SizeSpec.Auto;
+        vnode.heightSpec = SizeSpec.Fixed;
     } else {
         vnode.classList.push('safearea-bottom');
         vnode.widthSpec = SizeSpec.Fixed;
-        vnode.heightSpec = SizeSpec.Auto;
+        vnode.heightSpec = SizeSpec.Fixed;
     }
 }
 
@@ -427,9 +427,9 @@ export function preprocess(node: Node, level: number): VNode | null {
         // @ts-ignore
         if (node._index) {
             // @ts-ignore
-            vnode.classList.push(`relative z-${node._index}`);
+            vnode.classList.push(`z-${node._index}`);
         } else if (vnode.textContent) {
-            vnode.classList.push(`relative z-10`);
+            vnode.classList.push('z-10');
         }
     }
 

@@ -58,6 +58,7 @@ export function numSame(num1: number, num2: number) {
     return Math.abs(num1 - num2) <= TOLERANCE;
 }
 
+/** 去掉带0值的className; 将className中的负号前移 */
 export function R(strings: TemplateStringsArray, ...values: any[]) {
     // strings 是一个包含模板字符串静态部分的数组
     // values 是模板字符串中插入的表达式的值
@@ -79,5 +80,24 @@ export function R(strings: TemplateStringsArray, ...values: any[]) {
             return '';
         }
         return $1 + $2 + $3;
+    });
+}
+
+/** 将className中的负号前移 */
+export function R2(strings: TemplateStringsArray, ...values: any[]) {
+    // strings 是一个包含模板字符串静态部分的数组
+    // values 是模板字符串中插入的表达式的值
+    // 在这里可以添加自定义的逻辑来处理字符串和值
+    let result = '';
+    // 可以遍历 strings 数组和 values 数组来构建结果字符串
+    for (let i = 0; i < strings.length; i++) {
+        result += strings[i];
+        if (i < values.length) {
+            // 这里可以添加自定义的逻辑来处理每个值
+            result += values[i];
+        }
+    }
+    return result.replace(/(\s?\S+--)(\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
+        return '-' + $1.substring(0, $1.length - 1) + $2 + $3;
     });
 }

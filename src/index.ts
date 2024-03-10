@@ -21,7 +21,7 @@ function VNode2Code(vnode: VNode, level: number): string {
         attributes['h'] = vnode.heightSpec || SizeSpec.Unknown;
 
         if (debug.buildPreOnly) {
-            classList.push(`${vnode.role === 'page' ? 'relative' : tagName === 'span' ? '' : 'absolute'} ${vnode.textContent ? 'z-10' : ''} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+            classList.push(`${vnode.role === 'page' ? 'relative' : tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
         }
     }
 
@@ -36,39 +36,56 @@ function VNode2Code(vnode: VNode, level: number): string {
         textContent = _.map(textContent, n => (VNode2Code(n, level + 1))).join('\n');
     }
 
-    if (children && children.length && debug.buildPreOnly) {
+    if (children && children.length && !debug.buildPreOnly) {
         return `${tab}<${tagName} ${attributesString}>\n${children?.map(n => VNode2Code(n, level + 1)).join('\n')}\n${tab}</${tagName}>`;
     }
     return `${tab}<${tagName} ${attributesString}>${textContent || ''}</${tagName}>`;
 }
 
 function page2VNode(page: Page) {
-    const root = page.layers || (page as unknown as Node);
-    assert(root.basic.type === 'group' && root.basic.realType === 'Artboard', '页面根节点不对');
 
-    // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
-    const vnode = preprocess(root, 0)!;
-
-    if (!debug.buildPreOnly) {
-        postprocess(vnode);
-    }
-
-    return vnode;
 }
 
 type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 export type Config = DeepPartial<typeof defaultConfig>;
+export { debug };
 
 /** 将幕客设计稿json转成html代码 */
 export function transform(page: Page, config?: Config) {
     _.merge(defaultConfig, config);
 
-    const vnode = page2VNode(page)
+    const root = page.layers || (page as unknown as Node);
+    assert(root.basic.type === 'group' && root.basic.realType === 'Artboard', '页面根节点不对');
 
-    if (debug.buildPreOnly) {
-        let vnodes: VNode[] = [];
+    // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
+    const vnode = preprocess(root, 0)!;
+
+    function unwrapAllNodes() {
+        const vnodes: VNode[] = [];
+        const collectVNodes = (vnode: VNode) => {
+            vnodes.push(vnode);
+            _.each(vnode.children, collectVNodes);
+            vnode.children = [];
+        };
+        collectVNodes(vnode);
+        return vnodes;
+    }
+
+    if (!debug.buildPreOnly) {
+        const vnodes: VNode[] = [];
+        const collectVNodes = (vnode: VNode) => {
+            vnodes.push(vnode);
+            _.each(vnode.children, collectVNodes);
+            vnode.children = [];
+        };
+        _.each(vnode.children, collectVNodes);
+        vnode.children = vnodes;
+        postprocess(vnode);
+        return VNode2Code(vnode, 0);
+    } else {
+        const vnodes: VNode[] = [];
         const collectVNodes = (vnode: VNode) => {
             vnodes.push(vnode);
             _.each(vnode.children, collectVNodes);
@@ -87,6 +104,4 @@ export function transform(page: Page, config?: Config) {
         });
         return vnodes.map(n => VNode2Code(n, 0)).join('\n');
     }
-
-    return VNode2Code(vnode, 0);
 }
