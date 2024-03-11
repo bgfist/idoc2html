@@ -25,6 +25,7 @@ export type Role = '' | 'page' | 'border' | 'list-x' | 'list-y' | 'list-wrap' | 
 
 /** 可渲染的虚拟节点 */
 export interface VNode {
+    id?: string;
     tagName?: string;
     classList: string[];
     attributes?: Record<string, string>;

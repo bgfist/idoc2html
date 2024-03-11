@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const pageJson = require('./demo2.json');
-const { transform, debug } = require('../dist/index');
+const { transform, debug, BuildStage } = require('../dist/index');
 
-debug.sizeSpec = true;
-debug.buildPreOnly = false;
+debug.showId = true;
+debug.showSizeSpec = true;
+debug.buildToStage = BuildStage.Tree;
 debug.buildAllNodes = false;
 const page = transform(pageJson, {
     codeGenOptions: {

@@ -1,4 +1,4 @@
-import { debug, defaultConfig } from "./config";
+import { BuildStage, Config, debug, defaultConfig } from "./config";
 import { Page } from "./page";
 import { postprocess } from "./postprocess";
 import { preprocess } from "./preprocess";
@@ -7,23 +7,24 @@ import { SizeSpec, VNode } from "./vnode";
 import * as _ from 'lodash';
 
 const TAB = '  ';
-function VNode2Code(vnode: VNode, level: number): string {
+function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     const tab = TAB.repeat(level);
-    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent, role = '' } = vnode;
+    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent = '', role = '' } = vnode;
+    const prependAttrs: Record<string, string> = {};
+    if (debug.showId) {
+        prependAttrs['id'] = vnode.id || '';
+    }
+    if (defaultConfig.codeGenOptions.role) {
+        prependAttrs['role'] = role;
+    }
+    if (debug.showSizeSpec) {
+        prependAttrs['w'] = vnode.widthSpec || SizeSpec.Unknown;
+        prependAttrs['h'] = vnode.heightSpec || SizeSpec.Unknown;
+    }
     attributes = {
+        ...prependAttrs,
         ...attributes,
     };
-    if (defaultConfig.codeGenOptions.role) {
-        attributes['role'] = role;
-    }
-    if (debug.sizeSpec) {
-        attributes['w'] = vnode.widthSpec || SizeSpec.Unknown;
-        attributes['h'] = vnode.heightSpec || SizeSpec.Unknown;
-
-        if (debug.buildPreOnly) {
-            classList.push(`${vnode.role === 'page' ? 'relative' : tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
-        }
-    }
 
     classList.length && Object.assign(attributes, { class: classList.filter(Boolean).join(' ') });
     style && Object.assign(attributes, { style: Object.entries(style).map(([key, value]) => `${_.kebabCase(key)}: ${value}`).join(';') });
@@ -33,24 +34,20 @@ function VNode2Code(vnode: VNode, level: number): string {
     children = _.concat(children || [], attachNodes || []);
 
     if (_.isArray(textContent)) {
-        textContent = _.map(textContent, n => (VNode2Code(n, level + 1))).join('\n');
+        textContent = _.map(textContent, n => (VNode2Code(n, level + 1, recursive))).join('\n');
     }
 
-    if (children && children.length && !debug.buildPreOnly) {
-        return `${tab}<${tagName} ${attributesString}>\n${children?.map(n => VNode2Code(n, level + 1)).join('\n')}\n${tab}</${tagName}>`;
+    if (children && children.length && recursive) {
+        // 文本节点可能有依附的绝对定位元素, 文本保持最高层级
+        if (textContent) {
+            textContent = `\n${tab}${TAB}<div class="relative z-10">${textContent}</div>`;
+        }
+        return `${tab}<${tagName} ${attributesString}>${textContent}\n${children.map(n => VNode2Code(n, level + 1, recursive)).join('\n')}\n${tab}</${tagName}>`;
     }
-    return `${tab}<${tagName} ${attributesString}>${textContent || ''}</${tagName}>`;
+    return `${tab}<${tagName} ${attributesString}>${textContent}</${tagName}>`;
 }
 
-function page2VNode(page: Page) {
-
-}
-
-type DeepPartial<T> = T extends object ? {
-    [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
-export type Config = DeepPartial<typeof defaultConfig>;
-export { debug };
+export * from './config';
 
 /** 将幕客设计稿json转成html代码 */
 export function transform(page: Page, config?: Config) {
@@ -62,7 +59,7 @@ export function transform(page: Page, config?: Config) {
     // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
     const vnode = preprocess(root, 0)!;
 
-    if (!debug.buildPreOnly) {
+    ; (function unwrapAllNodes() {
         const vnodes: VNode[] = [];
         const collectVNodes = (vnode: VNode) => {
             vnodes.push(vnode);
@@ -71,11 +68,14 @@ export function transform(page: Page, config?: Config) {
         };
         _.each(vnode.children, collectVNodes);
         vnode.children = vnodes;
-        postprocess(vnode);
-        return VNode2Code(vnode, 0);
-    } else {
+    })();
+
+    postprocess(vnode);
+
+    if (debug.buildToStage === BuildStage.Pre) {
         const vnodes: VNode[] = [];
         const collectVNodes = (vnode: VNode) => {
+            vnode.classList.push(`${vnode.role === 'page' ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
             vnodes.push(vnode);
             _.each(vnode.children, collectVNodes);
         };
@@ -91,6 +91,28 @@ export function transform(page: Page, config?: Config) {
                 return a.bounds.top - b.bounds.top;
             }
         });
-        return vnodes.map(n => VNode2Code(n, 0)).join('\n');
+        return vnodes.map(n => VNode2Code(n, 0, false)).join('\n');
+    } else if (debug.buildToStage === BuildStage.Tree) {
+        const makeAbsolute = (vnode: VNode, parent?: VNode, isAttachNode?: boolean) => {
+            if (parent) {
+                const left = vnode.bounds.left - parent.bounds.left;
+                const top = vnode.bounds.top - parent.bounds.top;
+                if (isAttachNode) {
+                    vnode.attributes = {
+                        is: 'attachNode',
+                        ...vnode.attributes
+                    };
+                }
+                vnode.classList.push(`${vnode.tagName === 'span' ? '' : 'absolute'} left-[${left}px] top-[${top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+            } else {
+                vnode.classList.push(`relative w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+            }
+            _.each(vnode.children, child => makeAbsolute(child, vnode));
+            _.each(vnode.attachNodes, child => makeAbsolute(child, vnode, true));
+        };
+        makeAbsolute(vnode);
+        return VNode2Code(vnode, 0, true);
+    } else {
+        return VNode2Code(vnode, 0, true);
     }
 }

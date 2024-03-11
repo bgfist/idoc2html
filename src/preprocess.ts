@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { SizeSpec, VNode, context } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
-import { R, assert, filterEmpty, maxCountGroup, numSame } from './utils';
+import { R, assert, filterEmpty, numSame } from './utils';
 import { debug, defaultConfig } from './config';
 
 function floats2Int(node: Node) {
@@ -184,9 +184,27 @@ function stylishImage(node: Node, vnode: VNode) {
     if (!debug.buildAllNodes) {
         node.children = [];
     }
-    vnode.tagName = 'img';
-    vnode.classList.push(`block object-cover`);
-    (vnode.attributes ??= {}).src = "";
+
+    // vnode.classList.push('bg-cover');
+    // (vnode.style ??= {}).backgroundImage = "url()";
+    // img元素不能有子节点，可以尝试包一层
+    vnode.attachNodes = [
+        {
+            tagName: 'img',
+            bounds: {
+                ...vnode.bounds
+            },
+            widthSpec: SizeSpec.Constrained,
+            heightSpec: SizeSpec.Constrained,
+            classList: ['block object-cover'],
+            attributes: {
+                src: ''
+            },
+            index: context.index++
+        }
+    ];
+    // 防止被当作幽灵节点删除
+    vnode.classList = ['$ghost'];
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
 }
@@ -350,6 +368,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     opacity2ColorAlpha(node);
 
     const vnode: VNode = {
+        id: node.basic.id,
         classList: [],
         bounds: {
             ...node.bounds,

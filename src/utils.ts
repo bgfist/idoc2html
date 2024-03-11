@@ -27,7 +27,7 @@ export function removeEles<T>(arr: T[], ele: T[]) {
     _.remove(arr, (item) => ele.indexOf(item) >= 0);
 }
 
-export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (a: K, b: K) => boolean) {
+export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (current: K, before: K) => boolean) {
     return arr.reduce((map, item) => {
         const key = iteratee(item);
         let found = false;
@@ -47,10 +47,6 @@ export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (
 
 export function groupWith<T>(arr: T[], compare: (a: T, b: T) => boolean) {
     return groupByWith(arr, _.identity, compare);
-}
-
-export function maxCountGroup<T>(grouped: _.Dictionary<T[]>) {
-    return _.maxBy(_.toPairs(grouped), item => second(item).length)![0];
 }
 
 const TOLERANCE = 2;
