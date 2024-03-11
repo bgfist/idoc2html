@@ -40,6 +40,10 @@ function opacity2ColorAlpha(node: Node) {
 }
 
 function getNormalColor(rgba: RGBA): string {
+    if (!rgba.a) {
+        return 'transparent';
+    }
+
     let r = rgba.r / 255;
     let g = rgba.g / 255;
     let b = rgba.b / 255;
@@ -156,11 +160,11 @@ function stylishSymbol(node: Node, vnode: VNode) {
     }
     if (node.bounds.top === 0 && node.bounds.left === 0) {
         vnode.tagName = 'com:header';
-        vnode.widthSpec = SizeSpec.Fixed;
+        vnode.widthSpec = SizeSpec.Constrained;
         vnode.heightSpec = SizeSpec.Fixed;
     } else {
         vnode.classList.push('safearea-bottom');
-        vnode.widthSpec = SizeSpec.Fixed;
+        vnode.widthSpec = SizeSpec.Constrained;
         vnode.heightSpec = SizeSpec.Fixed;
     }
 }
@@ -333,9 +337,13 @@ function stylishBox(node: Node, vnode: VNode) {
 
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
-    if (node.bounds.height <= 0 || node.bounds.width <= 0 || !node.basic.opacity) {
+    if (node.bounds.height <= 0 || node.bounds.width <= 0) {
         console.warn('遇到无用空节点,忽略');
         return null;
+    }
+
+    if (!node.basic.opacity) {
+        console.warn('元素透明，但仍保留以维持原有层级');
     }
 
     // 将不透明度转成alpha

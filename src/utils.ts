@@ -58,7 +58,24 @@ export function numSame(num1: number, num2: number) {
     return Math.abs(num1 - num2) <= TOLERANCE;
 }
 
-/** 去掉带0值的className; 将className中的负号前移 */
+/** 
+ * 规范className
+ * 
+ * 将className中的负号前移
+ * @param removeZero 是否去掉带0值的className
+ */
+export function normalizeClassName(className: string, removeZero: boolean) {
+    return className.replace(/(\s?\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
+        if ($2[0] === '-') {
+            $2 = $2.substring(1);
+            $1 = '-' + $1;
+        } else if (removeZero && $2[0] == 0) {
+            return '';
+        }
+        return $1 + $2 + $3;
+    });
+}
+
 export function R(strings: TemplateStringsArray, ...values: any[]) {
     // strings 是一个包含模板字符串静态部分的数组
     // values 是模板字符串中插入的表达式的值
@@ -72,15 +89,7 @@ export function R(strings: TemplateStringsArray, ...values: any[]) {
             result += values[i];
         }
     }
-    return result.replace(/(\s?\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
-        if ($2[0] === '-') {
-            $2 = $2.substring(1);
-            $1 = '-' + $1;
-        } else if ($2[0] == 0) {
-            return '';
-        }
-        return $1 + $2 + $3;
-    });
+    return normalizeClassName(result, true);
 }
 
 /** 将className中的负号前移 */
@@ -97,7 +106,5 @@ export function R2(strings: TemplateStringsArray, ...values: any[]) {
             result += values[i];
         }
     }
-    return result.replace(/(\s?\S+--)(\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
-        return '-' + $1.substring(0, $1.length - 1) + $2 + $3;
-    });
+    return normalizeClassName(result, false);
 }

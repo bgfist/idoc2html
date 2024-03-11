@@ -62,17 +62,6 @@ export function transform(page: Page, config?: Config) {
     // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
     const vnode = preprocess(root, 0)!;
 
-    function unwrapAllNodes() {
-        const vnodes: VNode[] = [];
-        const collectVNodes = (vnode: VNode) => {
-            vnodes.push(vnode);
-            _.each(vnode.children, collectVNodes);
-            vnode.children = [];
-        };
-        collectVNodes(vnode);
-        return vnodes;
-    }
-
     if (!debug.buildPreOnly) {
         const vnodes: VNode[] = [];
         const collectVNodes = (vnode: VNode) => {

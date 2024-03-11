@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { R, R2, assert, groupByWith, numSame, removeEle, removeEles, unreachable } from "./utils";
+import { R, R2, assert, groupByWith, groupWith, numSame, removeEle, removeEles, unreachable } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 
 function isContainedWithinX(child: VNode, parent: VNode) {
@@ -43,10 +43,10 @@ function isOverlapping(child: VNode, parent: VNode,) {
 /** 判断节点是不是边框/分隔线 */
 function maybeBorder(child: VNode, parent: VNode) {
     if (numSame(child.bounds.width, 1)) {
-        return numSame(child.bounds.left, parent.bounds.left) || numSame(child.bounds.right, parent.bounds.right);
+        return (numSame(child.bounds.left, parent.bounds.left) || numSame(child.bounds.right, parent.bounds.right)) && 'width';
     }
     if (numSame(child.bounds.height, 1)) {
-        return numSame(child.bounds.top, parent.bounds.top) || numSame(child.bounds.bottom, parent.bounds.bottom);
+        return (numSame(child.bounds.top, parent.bounds.top) || numSame(child.bounds.bottom, parent.bounds.bottom)) && 'height';
     }
 }
 
@@ -75,7 +75,10 @@ function findBestIntersectNode(node: VNode, nodes: VNode[]) {
         if (potentialParent === node) continue;
         if (isOverlapping(node, potentialParent)) {
             const area = potentialParent.bounds.width * potentialParent.bounds.height;
-            if (area >= nodeArea && area < minArea) {
+
+            if (area === nodeArea) {
+                console.warn('元素互相交叉且面积相等，暂不处理');
+            } else if (area > nodeArea && area < minArea) {
                 minArea = area;
                 bestIntersectNode = potentialParent;
             }
@@ -86,38 +89,45 @@ function findBestIntersectNode(node: VNode, nodes: VNode[]) {
 
 /** 为每个节点找到最佳父节点，保证nodes互不相交 */
 function buildMissingNodes(parent: VNode) {
-    let nodes = parent.children;
+    let nodes = parent.children!;
     if (!nodes || !nodes.length) return;
 
-    const potentialParents = nodes.slice();
+    // 先将互相包含的节点选一个父节点出来
+    const grouped = groupWith(nodes, (a, b) => isContainedWithin(a, b) && isContainedWithin(b, a));
+    nodes = _.map(Array.from(grouped.values()), nodes => {
+        const [node, ...leftover] = nodes;
+        _.each(leftover, child => mergeNode(node, child));
+        return node;
+    });
+
     // 剩下的节点都是直接子节点, 互不包含
     nodes = nodes.filter(node => {
-        const bestParent = findBestParent(node, potentialParents);
+        const bestParent = findBestParent(node, nodes);
         if (bestParent) {
             (bestParent.children ??= []).push(node);
-            _.remove(potentialParents, node);
             return false;
         } else {
             return true;
         }
     });
 
-    const potentialIntersectNodes = nodes.slice();
     // 剩下的节点都是直接子节点, 互不交叉
     nodes = nodes.filter(node => {
-        const bestIntersectNode = findBestIntersectNode(node, potentialIntersectNodes);
+        const bestIntersectNode = findBestIntersectNode(node, nodes);
         if (bestIntersectNode) {
             (bestIntersectNode.attachNodes ??= []).push(node);
-            _.remove(potentialIntersectNodes, node);
-            return false;
-        } else if (maybeBorder(node, parent)) {
-            // 过小的元素有可能是边框,做成绝对定位
-            node.role = 'border';
-            (parent.attachNodes ??= []).push(node);
-            _.remove(potentialIntersectNodes, node);
             return false;
         } else {
-            return true;
+            // 过小的元素有可能是边框,做成绝对定位
+            const borderSpec = maybeBorder(node, parent);
+            if (borderSpec) {
+                node.role = 'border';
+                node[`${borderSpec}Spec`] = SizeSpec.Fixed;
+                (parent.attachNodes ??= []).push(node);
+                return false;
+            } else {
+                return true;
+            }
         }
     });
 
@@ -428,6 +438,7 @@ function groupListXNodes(nodes: VNode[]): VNode[] {
             children,
             role: 'list-x',
             direction: Direction.Row,
+            widthSpec: SizeSpec.Auto,
             index: context.index++
         };
         if (children.length > repeatCount) {
@@ -436,12 +447,15 @@ function groupListXNodes(nodes: VNode[]): VNode[] {
             vnode.role = 'list-wrap';
             vnode.heightSpec = SizeSpec.Auto;
             _.each(children, child => {
+                child.widthSpec = SizeSpec.Fixed;
                 child.heightSpec = SizeSpec.Fixed;
             });
         } else {
             console.debug('找到横向列表');
             vnode.role = 'list-x';
-            vnode.widthSpec = SizeSpec.Auto;
+            _.each(children, child => {
+                child.widthSpec = SizeSpec.Fixed;
+            });
         }
 
         return [...nodes.slice(0, baseRepeatStart), vnode, ...groupListXNodes(nodes.slice(baseRepeatStart))];
@@ -478,7 +492,7 @@ function groupListYNodes(parent: VNode) {
             }
 
             console.debug('找到纵向列表');
-            _.each(nodes, child => {
+            _.each(children, child => {
                 child.role = 'list-item';
                 child.heightSpec = SizeSpec.Fixed;
             });
@@ -550,6 +564,7 @@ function tryMergeListXNodes(nodes: VNode[]): VNode[] {
                 children: group,
                 role: 'list-item',
                 direction: Direction.Column,
+                widthSpec: SizeSpec.Fixed,
                 index: context.index++
             };
             return vnode;
@@ -668,6 +683,24 @@ function isEqualBox(a: VNode, b: VNode) {
     return numSame(a.bounds.width, b.bounds.width) && numSame(a.bounds.height, b.bounds.height);
 }
 
+function mergeNode(dest: VNode, src: VNode) {
+    // 这里要合并样式，将src合并到dest
+    dest.tagName = src.tagName;
+    dest.classList = _.union(dest.classList, src.classList);
+
+    if (src.widthSpec) {
+        dest.widthSpec = src.widthSpec;
+    }
+    if (src.heightSpec) {
+        dest.heightSpec = src.heightSpec;
+    }
+
+    dest.style = _.merge(dest.style, src.style);
+    dest.attributes = _.merge(dest.attributes, src.attributes);
+    dest.direction = src.direction;
+    dest.attachNodes = _.union(dest.attachNodes, src.attachNodes);
+}
+
 /** 提前先把和父盒子一样大的消掉 */
 function mergeUnnessaryNodes(parent: VNode) {
     const { children } = parent;
@@ -680,25 +713,10 @@ function mergeUnnessaryNodes(parent: VNode) {
     if (childIdx === -1) {
         return;
     }
+
     const child = children[childIdx];
-
     console.debug('合并跟父亲一样大的盒子');
-
-    // 这里要合并样式，将child合并到parent
-    parent.tagName = child.tagName;
-    parent.classList = _.union(parent.classList, child.classList);
-
-    if (child.widthSpec) {
-        parent.widthSpec = child.widthSpec;
-    }
-    if (child.heightSpec) {
-        parent.heightSpec = child.heightSpec;
-    }
-
-    parent.style = _.merge(parent.style, child.style);
-    parent.attributes = _.merge(parent.attributes, child.attributes);
-    parent.direction = child.direction;
-    parent.attachNodes = _.union(parent.attachNodes, child.attachNodes);
+    mergeNode(parent, child);
     children.splice(childIdx, 1, ...(child.children || []));
 
     // 继续移除，这里也可以不加，防止有几个相同大小的盒子连续嵌套
@@ -727,21 +745,7 @@ function mergeUnnessaryFlexBox(parent: VNode) {
 
     // 两个盒子一样大
     if (isEqualBox(parent, child)) {
-        // 这里要合并样式，将child合并到parent
-        parent.tagName = child.tagName;
-        parent.classList = _.union(parent.classList, child.classList);
-
-        if (child.widthSpec) {
-            parent.widthSpec = child.widthSpec;
-        }
-        if (child.heightSpec) {
-            parent.heightSpec = child.heightSpec;
-        }
-
-        parent.style = _.merge(parent.style, child.style);
-        parent.attributes = _.merge(parent.attributes, child.attributes);
-        parent.direction = child.direction;
-        parent.attachNodes = _.union(parent.attachNodes, child.attachNodes);
+        mergeNode(parent, child);
         children.splice(0, 1, ...(child.children || []));
         return;
     }
@@ -751,7 +755,7 @@ function mergeUnnessaryFlexBox(parent: VNode) {
 
 /** 设置自身的flex-direction */
 function setFlexDirection(parent: VNode) {
-    if (!parent.children || !parent.children.length) {
+    if (parent.direction || !parent.children || !parent.children.length) {
         return;
     }
 
@@ -787,7 +791,14 @@ function measureFlexAlign(parent: VNode) {
     function getCommonMarginOverHalf(key: 'marginStart' | 'marginEnd' | 'marginDiff') {
         // 使用groupBy对数组进行分组
         const grouped = groupByWith(margins, m => m[key], numSame);
-        const maxMagin = _.maxBy(Array.from(grouped.values()), g => g.length)!;
+        /** 数量最多&数值最小的优先 */
+        const maxMagin = Array.from(grouped.values()).sort((a, b) => {
+            if (a.length === b.length) {
+                return Math.abs(a[0][key]) - Math.abs(b[0][key]);
+            } else {
+                return b.length - a.length;
+            }
+        })[0];
         if (maxMagin.length * 2 > margins.length) {
             return [maxMagin.length, maxMagin[0][key]] as const;
         } else {
@@ -801,28 +812,31 @@ function measureFlexAlign(parent: VNode) {
     const maxCommonMarginCount = Math.max(commonMarginStartCount, commonMarginEndCount, commonMarginDiffCount);
 
     function defaultAlignStretch() {
-        if (numSame(commonMarginStart, commonMarginEnd)) {
-            parent.classList.push(R`p${xy}-${commonMarginEnd}`);
-        } else {
-            parent.classList.push(R`p${s}-${commonMarginStart} p${e}-${commonMarginEnd}`);
-            margins.forEach(margin => {
-                margin.marginStart -= commonMarginStart;
-                margin.marginEnd -= commonMarginEnd;
-            });
-        }
+        // if (numSame(commonMarginStart, commonMarginEnd)) {
+        //     parent.classList.push(R`p${xy}-${commonMarginEnd}`);
+        // } else {
+        //     parent.classList.push(R`p${s}-${commonMarginStart} p${e}-${commonMarginEnd}`);
+        //     margins.forEach(margin => {
+        //         margin.marginStart -= commonMarginStart;
+        //         margin.marginEnd -= commonMarginEnd;
+        //     });
+        // }
 
         _.each(children, (child, i) => {
+            const margin = margins[i];
             if (child[alignSpec] === SizeSpec.Fixed) {
-                if (numSame(commonMarginStart, commonMarginEnd)) {
+                if (numSame(margin.marginStart, margin.marginEnd)) {
                     child.classList.push('self-center');
-                } else if (commonMarginStart < commonMarginEnd) {
-                    child.classList.push(R`self-start m${s}-${commonMarginStart}`);
+                } else if (margin.marginStart < margin.marginEnd) {
+                    child.classList.push(R`self-start m${s}-${margin.marginStart}`);
                 } else {
-                    child.classList.push(R`self-end m${e}-${commonMarginEnd}`);
+                    child.classList.push(R`self-end m${e}-${margin.marginEnd}`);
                 }
+            } else if (child[alignSpec] === SizeSpec.Constrained) {
+                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
             } else if (child[alignSpec] === SizeSpec.Auto) {
-                child.classList.push(R`m${s}-${commonMarginStart} m${e}-${Math.min(commonMarginStart, commonMarginEnd)}`);
                 child[alignSpec] = SizeSpec.Constrained;
+                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${Math.min(margin.marginEnd, margin.marginStart)}`);
                 // TODO: 处理auto元素的最大宽度
             } else {
                 unreachable();
@@ -949,7 +963,7 @@ function measureFlexJustify(parent: VNode) {
     const gaps = ranges.map(([p, n]) => p - n);
     const startGap = gaps.shift()!;
     const endGap = gaps.pop()!;
-    const equalMiddleGaps = gaps.length > 1 && _.uniqWith(gaps, numSame).length === 1;
+    const equalMiddleGaps = _.uniqWith(gaps, numSame).length === 1;
 
     function maybeFlex1() {
         if (gaps.length < 2) {
@@ -1129,20 +1143,13 @@ function measureParentSizeSpec(parent: VNode) {
     if (!children || !children.length) {
         // TODO: 裸盒子的尺寸如何确定
         if (!parent.widthSpec) {
-            parent.widthSpec = SizeSpec.Fixed;
+            parent.widthSpec = SizeSpec.Constrained;
         }
         if (!parent.heightSpec) {
-            parent.heightSpec = SizeSpec.Fixed;
+            parent.heightSpec = SizeSpec.Constrained;
         }
         return;
     }
-
-    assert(_.every(children, child => {
-        return (
-            (child.widthSpec === SizeSpec.Fixed || child.widthSpec === SizeSpec.Auto) &&
-            (child.heightSpec === SizeSpec.Fixed || child.heightSpec === SizeSpec.Auto)
-        );
-    }), "所有子元素的尺寸类型应该都是固定或撑开");
 
     if (parent.direction === Direction.Row) {
         if (!parent.widthSpec) {
@@ -1150,7 +1157,7 @@ function measureParentSizeSpec(parent: VNode) {
         }
         if (!parent.heightSpec) {
             if (_.some(children, child => child.heightSpec === SizeSpec.Auto)) {
-                parent.heightSpec = SizeSpec.Auto;
+                parent.heightSpec = SizeSpec.Constrained;
             } else {
                 parent.heightSpec = SizeSpec.Fixed;
             }
@@ -1163,7 +1170,7 @@ function measureParentSizeSpec(parent: VNode) {
         }
         if (!parent.widthSpec) {
             if (_.some(children, child => child.widthSpec === SizeSpec.Auto)) {
-                parent.widthSpec = SizeSpec.Auto;
+                parent.widthSpec = SizeSpec.Constrained;
             } else {
                 parent.widthSpec = SizeSpec.Fixed;
             }
@@ -1183,23 +1190,29 @@ function measureFlexWrapLayout(parent: VNode) {
     _.each(parent.children, (child) => {
         child.classList.push(R`ml-${xGap} mt-${yGap}`);
     });
+
     // vnode.classList.push(R`ml-${-xGap} mt-${-yGap}`);
     // 合并margin
-    const mlCls = _.find(parent.classList, (c) => c.startsWith('ml-') || c.startsWith('mx-')) || 'ml-0';
-    const [p, v] = mlCls.split('-');
-    removeEle(parent.classList, mlCls);
-    if (p === 'ml') {
-        parent.classList.push(R`ml-${+v - xGap}`);
-    } else if (p === 'mx') {
-        parent.classList.push(R`ml-${+v - xGap} mr-${v}`);
-    }
-    const mtCls = _.find(parent.classList, (c) => c.startsWith('mt-') || c.startsWith('my-')) || 'mt-0';
-    const [p2, v2] = mtCls.split('-');
-    removeEle(parent.classList, mlCls);
-    if (p2 === 'mt') {
-        parent.classList.push(R`mt-${+v2 - yGap}`);
-    } else if (p2 === 'my') {
-        parent.classList.push(R`mt-${+v2 - yGap} mb-${v2}`);
+    mergeMargin();
+
+    function mergeMargin() {
+        parent.classList = parent.classList.filter(Boolean).join(' ').split(' ');
+        const mlCls = _.find(parent.classList, (c) => c.startsWith('ml-') || c.startsWith('mx-')) || 'ml-0';
+        const [p, v] = mlCls.split('-');
+        removeEle(parent.classList, mlCls);
+        if (p === 'ml') {
+            parent.classList.push(R`ml-${+v - xGap}`);
+        } else if (p === 'mx') {
+            parent.classList.push(R`ml-${+v - xGap} mr-${v}`);
+        }
+        const mtCls = _.find(parent.classList, (c) => c.startsWith('mt-') || c.startsWith('my-')) || 'mt-0';
+        const [p2, v2] = mtCls.split('-');
+        removeEle(parent.classList, mtCls);
+        if (p2 === 'mt') {
+            parent.classList.push(R`mt-${+v2 - yGap}`);
+        } else if (p2 === 'my') {
+            parent.classList.push(R`mt-${+v2 - yGap} mb-${v2}`);
+        }
     }
 }
 
@@ -1266,11 +1279,6 @@ function measureAttachPosition(parent: VNode) {
             parent.classList.push('relative');
         }
         attachNode.classList.push('absolute');
-
-        assert((
-            (attachNode.widthSpec === SizeSpec.Fixed || attachNode.widthSpec === SizeSpec.Auto) &&
-            (attachNode.heightSpec === SizeSpec.Fixed || attachNode.heightSpec === SizeSpec.Auto)
-        ), '绝对定位节点尺寸类型有误');
 
         if (
             attachNode.widthSpec === SizeSpec.Auto &&
