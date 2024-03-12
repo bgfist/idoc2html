@@ -59,6 +59,38 @@ function isGhostNode(vnode: VNode) {
     return _.isEmpty(vnode.classList);
 }
 
+function isSingleLineText(vnode: VNode) {
+    return _.isString(vnode.textContent);
+}
+
+function isMultiLineText(vnode: VNode) {
+    return _.isArray(vnode.textContent);
+}
+
+// 行盒子只有一个多行元素，如果只有一行，则居中展示，如果多行，则
+function isFlexWrapLike(vnode: VNode) {
+    return vnode.role === 'list-wrap' || isMultiLineText(vnode);
+}
+
+/** 处理auto元素内容居中，仅横向 */
+function setAutoCenter(vnode: VNode) {
+    if (vnode.role === 'list-x') {
+        vnode.classList.push('justify-center');
+    } else if (isTextNode(vnode) && vnode.widthSpec === SizeSpec.Auto) {
+        vnode.classList.push('text-center');
+    }
+}
+
+/** 处理auto元素内容超出，仅横向 */
+function setAutoOverflow(vnode: VNode) {
+    // 文本节点
+    if (vnode.role === 'list-x') {
+        vnode.classList.push('overflow-x-auto');
+    } else if (isTextNode(vnode) && vnode.widthSpec === SizeSpec.Auto) {
+        vnode.classList.push('overflow-hidden text-ellipsis whitespace-nowrap');
+    }
+}
+
 /** 寻找父节点，最小的包围盒子 */
 function findBestParent(node: VNode, nodes: VNode[]) {
     let bestParent: VNode | null = null;
@@ -887,7 +919,13 @@ function measureFlexAlign(parent: VNode) {
                 child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
             } else if (child[alignSpec] === SizeSpec.Auto) {
                 child[alignSpec] = SizeSpec.Constrained;
-                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${Math.min(margin.marginEnd, margin.marginStart)}`);
+                const realMarginEnd = Math.min(margin.marginEnd, margin.marginStart);
+                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${realMarginEnd}`);
+                child.bounds.right = parent.bounds[ef] - realMarginEnd;
+                child.bounds.width = child.bounds.right - child.bounds.left;
+                if (numSame(margin.marginStart, margin.marginEnd)) {
+                    setAutoCenter(child);
+                }
                 // TODO: 处理auto元素的最大宽度
             } else {
                 unreachable();
@@ -1017,7 +1055,7 @@ function measureFlexJustify(parent: VNode) {
     const equalMiddleGaps = _.uniqWith(gaps, numSame).length === 1;
 
     function maybeInsertFlex1() {
-        if (gaps.length < 2) {
+        if (gaps.length - 1 < 2) {
             // 2个及以上元素才能用flex1做弹性拉伸
             return;
         }
@@ -1071,36 +1109,14 @@ function measureFlexJustify(parent: VNode) {
     function defaultJustify() {
         gaps.unshift(startGap);
 
-        maybeInsertFlex1();
+        if (parent[justifySpec] === SizeSpec.Constrained) {
+            maybeInsertFlex1();
+        }
 
         gaps.forEach((g, i) => {
             children[i].classList.push(R`m${ss}-${g}`);
         });
-    }
-
-    function isMultiLineText(vnode: VNode) {
-        return _.isArray(vnode.textContent);
-    }
-
-    // 行盒子只有一个多行元素，如果只有一行，则居中展示，如果多行，则
-    function isFlexWrapLike(vnode: VNode) {
-        return vnode.role === 'list-wrap' || isMultiLineText(vnode);
-    }
-
-    /** 处理auto元素内容超出 */
-    function overflowAuto(vnode: VNode) {
-        // 文本节点
-        if (isTextNode(vnode) && vnode[justifySpec] === SizeSpec.Auto) {
-            if (justifySpec === 'heightSpec' && vnode.heightSpec === SizeSpec.Auto) {
-                // 多行
-            } else {
-                // 单行
-            }
-        } else if (justifySpec === 'widthSpec' && vnode.role === 'list-x') {
-
-        } else if (justifySpec === 'heightSpec' && vnode.role === 'list-y') {
-
-        }
+        parent.classList.push(R`p${ee}-${endGap}`);
     }
 
     if (parent[justifySpec] === SizeSpec.Auto) {

@@ -5,7 +5,7 @@ const { transform, debug, BuildStage } = require('../dist/index');
 
 debug.showId = true;
 debug.showSizeSpec = true;
-debug.buildToStage = BuildStage.Tree;
+debug.buildToStage = BuildStage.Measure;
 debug.buildAllNodes = false;
 const page = transform(pageJson, {
     codeGenOptions: {
