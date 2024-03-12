@@ -50,8 +50,30 @@ export function groupWith<T>(arr: T[], compare: (a: T, b: T) => boolean) {
 }
 
 const TOLERANCE = 2;
-export function numSame(num1: number, num2: number) {
+export function numEq(num1: number, num2: number) {
     return Math.abs(num1 - num2) <= TOLERANCE;
+}
+export function numGt(num1: number, num2: number) {
+    return !numEq(num1, num2) && num1 > num2;
+}
+export function numGte(num1: number, num2: number) {
+    return numEq(num1, num2) || num1 >= num2;
+}
+export function numLt(num1: number, num2: number) {
+    return !numEq(num1, num2) && num1 < num2;
+}
+export function numLte(num1: number, num2: number) {
+    return numEq(num1, num2) || num1 <= num2;
+}
+
+export function allNumsEqual(arr: number[]) {
+    return _.uniqWith(arr, numEq).length === 1;
+}
+export function allElesIn<T>(arr: T[], exclude: T[]) {
+    return _.difference(arr, exclude).length === 0;
+}
+export function anyElesIn<T>(arr: T[], exclude: T[]) {
+    return _.difference(exclude, arr).length !== exclude.length;
 }
 
 /** 

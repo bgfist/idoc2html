@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
-import { SizeSpec, VNode, context } from './vnode';
+import { SizeSpec, VNode, context, newVNode } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
-import { R, assert, filterEmpty, numSame } from './utils';
+import { R, assert, filterEmpty, numEq } from './utils';
 import { debug, defaultConfig } from './config';
 
 function floats2Int(node: Node) {
@@ -140,7 +140,8 @@ function stylishRoot(node: Node, vnode: VNode) {
 
         if (node.bounds.height / node.bounds.width > 812 / 375) {
             vnode.heightSpec = SizeSpec.Auto;
-            vnode.classList.push('w-[100vw] min-h-[100vh]');
+            // 用w-full，w-[100vw]有时候把滚动条宽度也带进去了
+            vnode.classList.push('w-full min-h-[100vh]');
             return;
         } else {
             vnode.heightSpec = SizeSpec.Constrained;
@@ -196,7 +197,7 @@ function stylishImage(node: Node, vnode: VNode) {
             },
             widthSpec: SizeSpec.Constrained,
             heightSpec: SizeSpec.Constrained,
-            classList: ['block object-cover'],
+            classList: ['block object-cover w-full h-full'],
             attributes: {
                 src: ''
             },
@@ -269,6 +270,7 @@ function stylishText(node: Node, vnode: VNode) {
     if (isMultiLine) {
         vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
+        vnode.textMultiLine = true;
     } else {
         vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Fixed;
@@ -326,7 +328,7 @@ function stylishBox(node: Node, vnode: VNode) {
     if (node.stroke && node.stroke.borders && node.stroke.borders.length) {
         // TODO: 暂时只支持一个border
         const border = node.stroke.borders[0];
-        if (numSame(border.strokeWidth, 1)) {
+        if (numEq(border.strokeWidth, 1)) {
             vnode.classList.push('border');
         } else {
             vnode.classList.push(R`border-${border.strokeWidth}`);
@@ -367,7 +369,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     // 将不透明度转成alpha
     opacity2ColorAlpha(node);
 
-    const vnode: VNode = {
+    const vnode = newVNode({
         id: node.basic.id,
         classList: [],
         bounds: {
@@ -376,7 +378,7 @@ export function preprocess(node: Node, level: number): VNode | null {
             bottom: node.bounds.top + node.bounds.height,
         },
         index: context.index++,
-    };
+    });
 
     // 根节点决定设计尺寸
     if (level === 0) {

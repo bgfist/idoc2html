@@ -3,7 +3,7 @@ import { Page } from "./page";
 import { postprocess } from "./postprocess";
 import { preprocess } from "./preprocess";
 import { assert } from "./utils";
-import { SizeSpec, VNode } from "./vnode";
+import { SizeSpec, VNode, getClassName } from "./vnode";
 import * as _ from 'lodash';
 
 const TAB = '  ';
@@ -26,7 +26,7 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
         ...attributes,
     };
 
-    classList.length && Object.assign(attributes, { class: classList.filter(Boolean).join(' ') });
+    classList.length && Object.assign(attributes, { class: getClassName(vnode) });
     style && Object.assign(attributes, { style: Object.entries(style).map(([key, value]) => `${_.kebabCase(key)}: ${value}`).join(';') });
     attributes = _.omitBy(attributes, v => _.isNil(v) || v === '');
     const attributesString = Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join(' ');

@@ -31,6 +31,7 @@ export interface VNode {
     attributes?: Record<string, string>;
     children?: VNode[];
     textContent?: string | VNode[];
+    textMultiLine?: boolean;
     style?: Record<string, string>;
     role?: Role;
 
@@ -57,3 +58,16 @@ export interface VNode {
 export const context = {
     index: 0,
 };
+
+/** 仅便于调试 */
+export function newVNode(vnode: VNode) {
+    return vnode;
+}
+
+export function getClassName(vnode: VNode) {
+    return vnode.classList.filter(Boolean).join(' ');
+}
+
+export function getClassList(vnode: VNode) {
+    return getClassName(vnode).split(' ');
+}
