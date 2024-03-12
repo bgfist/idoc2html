@@ -21,7 +21,7 @@ export enum Direction {
 };
 
 /** 节点用途 */
-export type Role = '' | 'page' | 'border' | 'list-x' | 'list-y' | 'list-wrap' | 'list-item' | 'scroller' | 'btn' | 'tab' | 'dialog';
+export type Role = '' | 'page' | 'border' | 'divider' | 'list-x' | 'list-y' | 'list-wrap' | 'list-item' | 'scroller' | 'btn' | 'tab' | 'dialog';
 
 /** 可渲染的虚拟节点 */
 export interface VNode {
@@ -57,6 +57,9 @@ export interface VNode {
 /** 节点遍历上下文 */
 export const context = {
     index: 0,
+} as {
+    index: number;
+    root: VNode;
 };
 
 /** 仅便于调试 */

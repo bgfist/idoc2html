@@ -134,6 +134,7 @@ function getLinearColor(vnode: VNode, color: LinearColor) {
 }
 
 function stylishRoot(node: Node, vnode: VNode) {
+    context.root = vnode;
     vnode.role = 'page';
     if (node.bounds.width === 375 || node.bounds.width === 750) {
         vnode.widthSpec = SizeSpec.Constrained;
@@ -184,6 +185,14 @@ function stylishSlice(node: Node, vnode: VNode) {
 function stylishImage(node: Node, vnode: VNode) {
     if (!debug.buildAllNodes) {
         node.children = [];
+        
+        // 图片占满屏幕，一般是截的一个背景图
+        if (
+            numEq(vnode.bounds.width, context.root.bounds.width) &&
+            numEq(vnode.bounds.height, context.root.bounds.height)
+        ) {
+            return null;
+        }
     }
 
     // vnode.classList.push('bg-cover');
@@ -268,7 +277,8 @@ function stylishText(node: Node, vnode: VNode) {
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        vnode.widthSpec = SizeSpec.Auto;
+        // TODO: 这里可以更灵活，用Constrained
+        vnode.widthSpec = SizeSpec.Fixed;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
     } else {

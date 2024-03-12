@@ -7,6 +7,15 @@ import { SizeSpec, VNode, getClassName } from "./vnode";
 import * as _ from 'lodash';
 
 const TAB = '  ';
+
+/**
+ * 根据vnode信息生成html代码
+ * 
+ * @param vnode 
+ * @param level 
+ * @param recursive 是否递归生成
+ * @returns 
+ */
 function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     const tab = TAB.repeat(level);
     let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent = '', role = '' } = vnode;
@@ -49,8 +58,14 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
 
 export * from './config';
 
-/** 将幕客设计稿json转成html代码 */
-export function transform(page: Page, config?: Config) {
+/** 
+ * 将幕客设计稿json转成html代码 
+ * 
+ * @param page 幕客设计稿json
+ * @param config 生成配置
+ * @returns 可用的html代码，样式用tailwind.css实现
+ */
+export function iDocJson2Html(page: Page, config?: Config) {
     _.merge(defaultConfig, config);
 
     const root = page.layers || (page as unknown as Node);
@@ -59,16 +74,18 @@ export function transform(page: Page, config?: Config) {
     // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
     const vnode = preprocess(root, 0)!;
 
-    ; (function unwrapAllNodes() {
-        const vnodes: VNode[] = [];
-        const collectVNodes = (vnode: VNode) => {
-            vnodes.push(vnode);
+    if (!debug.keepOriginalTree) {
+        ; (function unwrapAllNodes() {
+            const vnodes: VNode[] = [];
+            const collectVNodes = (vnode: VNode) => {
+                vnodes.push(vnode);
+                _.each(vnode.children, collectVNodes);
+                vnode.children = [];
+            };
             _.each(vnode.children, collectVNodes);
-            vnode.children = [];
-        };
-        _.each(vnode.children, collectVNodes);
-        vnode.children = vnodes;
-    })();
+            vnode.children = vnodes;
+        })();
+    }
 
     postprocess(vnode);
 

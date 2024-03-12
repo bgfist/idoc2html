@@ -29,7 +29,23 @@ function isOverlapping(child: VNode, parent: VNode,) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
-/** 判断节点是不是边框/分隔线 */
+/** 判断节点是不是分隔线 */
+function maybeDivider(vnode: VNode) {
+    if (numEq(vnode.bounds.width, 1) && vnode.bounds.height >= 20) {
+        vnode.role = 'divider';
+        vnode.widthSpec = SizeSpec.Fixed;
+        vnode.heightSpec = SizeSpec.Constrained;
+        return true;
+    } else if (numEq(vnode.bounds.height, 1) && vnode.bounds.width >= 20) {
+        vnode.role = 'divider';
+        vnode.widthSpec = SizeSpec.Constrained;
+        vnode.heightSpec = SizeSpec.Fixed;
+        return true;
+    }
+    return false;
+}
+
+/** 判断节点是不是边框 */
 function maybeBorder(child: VNode, parent: VNode) {
     if (numEq(child.bounds.width, 1)) {
         const attachLeftOrRight = numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
@@ -50,6 +66,11 @@ function maybeBorder(child: VNode, parent: VNode) {
             return true;
         }
     }
+}
+
+/** 判断节点是不是按钮 */
+function maybeButton(vnode: VNode) {
+    // 按钮要么宽度固定，要么内容撑开，宽度不能用Constrained
 }
 
 function isTextNode(vnode: VNode) {
@@ -90,15 +111,18 @@ function isFlexWrapLike(vnode: VNode) {
 }
 
 /** 处理auto元素内容居中，仅横向 */
-function setAutoCenter(vnode: VNode) {
-    if (vnode.role === 'list-x') {
-        vnode.classList.push('justify-center');
-    } else if (isSingleLineText(vnode) && vnode.widthSpec === SizeSpec.Auto) {
+function setAutoContentsAlign(vnode: VNode, side: 'center' | 'start' | 'end') {
+    if (isTextNode(vnode)) {
+        const sideMap = {
+            'center': 'center',
+            'start': 'left',
+            'end': 'right'
+        };
         if (!anyElesIn(getClassList(vnode), ['text-left', 'text-center', 'text-right'])) {
-            vnode.classList.push('text-center');
+            vnode.classList.push(`text-${sideMap[side]}`);
         }
-    } else if (isMultiLineText(vnode) && vnode.widthSpec === SizeSpec.Auto) {
-        // TODO: 多行元素如何实现只有一行时text-center，多行时text-left。而且不是什么时候都text-center
+    } else {
+        vnode.classList.push(`justify-${side}`);
     }
 }
 
@@ -780,7 +804,7 @@ function groupNodes(nodes: VNode[]): VNode[] {
 
 /** 生成flexbox盒子 */
 function buildFlexBox(parent: VNode) {
-    if (parent.children) {
+    if (parent.children && parent.children.length) {
         assert(!parent.direction, "这里应该还没生成flex盒子");
         // 先从上到下/从左到右排序
         parent.children.sort((a, b) => {
@@ -802,25 +826,54 @@ function buildFlexBox(parent: VNode) {
     }
 }
 
-/** 两个盒子是否一样 */
+/** 两个盒子是否一样大 */
 function isEqualBox(a: VNode, b: VNode) {
     return numEq(a.bounds.width, b.bounds.width) && numEq(a.bounds.height, b.bounds.height);
 }
 
 function mergeNode(dest: VNode, src: VNode) {
+    if (isTextNode(dest)) {
+        console.warn('其他节点往文本节点合并，只能当作依附元素');
+        (dest.attachNodes ??= []).push(src);
+        return;
+    }
+
+    if (isTextNode(src)) {
+        console.warn('文本节点往其他节点合并');
+        dest.textContent = src.textContent;
+        dest.textMultiLine = src.textMultiLine;
+
+        if (dest.children) {
+            _.remove(dest.children, src);
+            if (dest.children.length) {
+                console.warn('其他节点只能当作依附元素');
+                (dest.attachNodes ??= []).push(...(src.attachNodes || []).slice());
+                dest.children.length = 0;
+            }
+        }
+    }
+
     // 这里要合并样式，将src合并到dest
+    dest.id = src.id;
     dest.tagName = src.tagName;
     dest.classList = _.union(dest.classList, src.classList);
 
-    if (src.widthSpec) {
+    if (src.widthSpec && dest.widthSpec !== SizeSpec.Fixed) {
+        // 尺寸固定的元素不能被覆盖
         dest.widthSpec = src.widthSpec;
     }
-    if (src.heightSpec) {
+    if (src.heightSpec && dest.heightSpec !== SizeSpec.Fixed) {
         dest.heightSpec = src.heightSpec;
     }
 
     dest.style = _.merge(dest.style, src.style);
     dest.attributes = _.merge(dest.attributes, src.attributes);
+    if (src.role) {
+        if (dest.role) {
+            console.warn('role冲突');
+        }
+        dest.role = src.role;
+    }
     dest.direction = src.direction;
     dest.attachNodes = _.union(dest.attachNodes, src.attachNodes);
 }
@@ -860,7 +913,7 @@ function mergeUnnessaryFlexBox(parent: VNode) {
     if (
         child.heightSpec !== SizeSpec.Fixed &&
         child.widthSpec !== SizeSpec.Fixed &&
-        (isGhostNode(child) || isTextNode(child))
+        isGhostNode(child)
     ) {
         child.bounds = {
             ...parent.bounds
@@ -903,6 +956,7 @@ function measureFlexAlign(parent: VNode) {
     const s = sf[0];
     const e = ef[0];
     const alignSpec = parent.direction === Direction.Row ? 'heightSpec' : 'widthSpec';
+    const alignSpecSize = parent.direction === Direction.Row ? 'height' : 'width';
 
     type Margin = {
         marginStart: number,
@@ -955,19 +1009,37 @@ function measureFlexAlign(parent: VNode) {
                 child.classList.push(mayNeedAlign('stretch'));
                 child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
             } else if (child[alignSpec] === SizeSpec.Auto) {
-                // 保留auto元素的居中
-                if (possibleAlignCenter(margin)) {
-                    setAutoCenter(child);
+                if (
+                    // 这两种容器横向没法自由撑开, 可以优化判断下，横向只能可以往右撑开
+                    // 竖向撑开的做法也不一样 align-content ? 多行文本包一个div然后用flex居中等
+                    (isListWrapContainer(child) || isMultiLineText(child))
+                ) {
+                    // 这里只预留auto空间，不做布局
+                    
+                } else {
+                    // 保留auto元素的位置
+                    if (possibleAlignCenter(margin)) {
+                        // 往两边撑开
+                        setAutoContentsAlign(child, 'center');
+                    } else if (margin.marginStart < margin.marginEnd) {
+                        // 往右边撑开
+                        setAutoContentsAlign(child, 'start');
+                    } else {
+                        // 往左边撑开
+                        setAutoContentsAlign(child, 'end');
+                    }
+                    // Auto元素需要自动撑开
+                    const realMargin = Math.min(margin.marginEnd, margin.marginStart);
+                    margin.marginStart = margin.marginEnd = realMargin;
+
+                    child.bounds[sf] = parent.bounds[sf] + realMargin;
+                    child.bounds[ef] = parent.bounds[ef] - realMargin;
+                    child.bounds[alignSpecSize] = child.bounds[ef] - child.bounds[sf];
                 }
 
-                // Auto元素需要自动撑开
-                const realMarginEnd = Math.min(margin.marginEnd, margin.marginStart);
-                child.classList.push(mayNeedAlign('stretch'));
-                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${realMarginEnd}`);
-
                 changeChildSizeSpec(child, alignSpec);
-                child.bounds.right = parent.bounds[ef] - realMarginEnd;
-                child.bounds.width = child.bounds.right - child.bounds.left;
+                child.classList.push(mayNeedAlign('stretch'));
+                child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
 
                 // TODO: 处理auto元素的最大宽度
             } else {
@@ -1146,16 +1218,15 @@ function measureFlexJustify(parent: VNode) {
     }
     // 一个子元素, 或者子元素之间紧挨在一起视同为一个元素
     else if (!gaps.length || (equalMiddleGaps && numEq(gaps[0], 0))) {
-        if (children.length === 1 && justifySpec === 'widthSpec' && isFlexWrapLike(children[0])) {
-            // TODO: 
-        } else {
-            if (justifySide === 'center') {
-                parent.classList.push('justify-center');
-            } else if (justifySide === 'start') {
-                parent.classList.push(R`p${ss}-${startGap}`);
-            } else if (justifySide === 'end') {
-                parent.classList.push(R`justify-end p${ee}-${startGap}`);
-            }
+        // TODO: 单行居中，多行居左?
+        // children.length === 1 && justifySpec === 'widthSpec' && isFlexWrapLike(children[0])
+
+        if (justifySide === 'center') {
+            parent.classList.push('justify-center');
+        } else if (justifySide === 'start') {
+            parent.classList.push(R`p${ss}-${startGap}`);
+        } else if (justifySide === 'end') {
+            parent.classList.push(R`justify-end p${ee}-${endGap}`);
         }
     }
     // 中间间隔相等
@@ -1227,11 +1298,20 @@ function changeChildSizeSpec(child: VNode, alignSpec: 'widthSpec' | 'heightSpec'
 function measureParentSizeSpec(parent: VNode) {
     const children = parent.children;
     if (!children || !children.length) {
+        if (maybeDivider(parent)) {
+            return;
+        }
+
         // TODO: 裸盒子的尺寸如何确定
         if (!parent.widthSpec || !parent.heightSpec) {
-            assert(!parent.widthSpec && !parent.heightSpec, '裸盒子宽高应该都未设置');
-            console.debug('遇到裸盒子', parent.id);
+            console.debug('遇到裸盒子', parent.id, parent.role);
+        }
+
+        if (!parent.widthSpec) {
             parent.widthSpec = SizeSpec.Fixed;
+        }
+
+        if (!parent.heightSpec) {
             parent.heightSpec = SizeSpec.Fixed;
         }
         return;
@@ -1342,8 +1422,6 @@ function measureFlexLayout(parent: VNode) {
         measureFlexAlign(parent);
         measureFlexJustify(parent);
     }
-
-    // measureChildSizeSpec(parent);
 }
 
 /** 生成绝对定位 */
