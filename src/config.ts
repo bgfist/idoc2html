@@ -8,6 +8,14 @@ export enum BuildStage {
     Measure = 3
 }
 
+/** auto元素内容撑开策略 */
+export enum AllocSpaceStrategy {
+    None = 0,
+    Strict = 1,
+    Symmetric = 2,
+    Intelligent = 3,
+}
+
 /** 调试配置 */
 export const debug = {
     /** 是否生成id属性 */
@@ -29,8 +37,12 @@ export const defaultConfig = {
         /** 生成role属性 */
         role: true,
         /** 生成层级z-index */
-        experimentalZIndex: false
+        experimentalZIndex: false,
     },
+    /** 为auto元素分配更多空间，指定分配策略 */
+    allocSpaceForAuto: AllocSpaceStrategy.None,
+    /** 黑名单节点id，将删掉这些节点 */
+    blackListNodes: [] as string[]
 };
 
 type DeepPartial<T> = T extends object ? {

@@ -43,7 +43,7 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     children = _.concat(children || [], attachNodes || []);
 
     if (_.isArray(textContent)) {
-        textContent = _.map(textContent, n => (VNode2Code(n, level + 1, recursive))).join('\n');
+        textContent = `\n${_.map(textContent, n => (VNode2Code(n, level + 1, recursive))).join('\n')}\n${tab}`;
     }
 
     if (children && children.length && recursive) {

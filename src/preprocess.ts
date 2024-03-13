@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { SizeSpec, VNode, context, newVNode } from './vnode';
+import { SizeSpec, VNode, context, getClassName, newVNode } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
 import { R, assert, filterEmpty, numEq } from './utils';
 import { debug, defaultConfig } from './config';
@@ -37,6 +37,10 @@ function opacity2ColorAlpha(node: Node) {
     if (node.effect && node.effect.shadows) {
         _.each(node.effect.shadows, s => setColor(s.color));
     }
+}
+
+function checkNearlyInvisible(node: Node) {
+
 }
 
 function getNormalColor(rgba: RGBA): string {
@@ -185,7 +189,7 @@ function stylishSlice(node: Node, vnode: VNode) {
 function stylishImage(node: Node, vnode: VNode) {
     if (!debug.buildAllNodes) {
         node.children = [];
-        
+
         // 图片占满屏幕，一般是截的一个背景图
         if (
             numEq(vnode.bounds.width, context.root.bounds.width) &&
@@ -237,7 +241,7 @@ function stylishText(node: Node, vnode: VNode) {
             },
             index: context.index++,
         };
-        textNode.textContent = text.value;
+        textNode.textContent = text.value.replace('\n', ' '); // 换行符用空格代替
         if (text.font.color.type === "normal") {
             textNode.classList.push(`text-${getNormalColor(text.font.color.value)}`);
         } else if (text.font.color.type === "linearGradient") {
@@ -277,11 +281,11 @@ function stylishText(node: Node, vnode: VNode) {
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        // TODO: 这里可以更灵活，用Constrained
-        vnode.widthSpec = SizeSpec.Fixed;
+        vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
     } else {
+        vnode.classList.push('whitespace-nowrap');
         vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Fixed;
     }
@@ -289,6 +293,11 @@ function stylishText(node: Node, vnode: VNode) {
 
 function stylishBox(node: Node, vnode: VNode) {
     if (node.fill && node.fill.colors && node.fill.colors.length) {
+        if (getClassName(vnode).indexOf('bg-[url(') !== -1) {
+            console.warn('节点已有图片背景，不能再指定颜色背景了');
+            return;
+        }
+
         // 只支持一个颜色
         const color = node.fill.colors[0];
         if (color.type === 'normal') {
@@ -367,6 +376,10 @@ function stylishBox(node: Node, vnode: VNode) {
 
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
+    if (defaultConfig.blackListNodes.includes(node.basic.id)) {
+        return null;
+    }
+
     if (node.bounds.height <= 0 || node.bounds.width <= 0) {
         console.warn('遇到无用空节点,忽略');
         return null;
