@@ -83,14 +83,14 @@ export function anyElesIn<T>(arr: T[], exclude: T[]) {
  * @param removeZero 是否去掉带0值的className
  */
 export function normalizeClassName(className: string, removeZero: boolean) {
-    return className.replace(/(\s?\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$1, $2, $3]: any[]) {
+    return className.replace(/(\s?)(\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$0, $1, $2, $3]: any[]) {
         if ($2[0] === '-') {
             $2 = $2.substring(1);
             $1 = '-' + $1;
         } else if (removeZero && $2[0] == 0) {
-            return '';
+            return $3;
         }
-        return $1 + $2 + $3;
+        return $0 + $1 + $2 + $3;
     });
 }
 

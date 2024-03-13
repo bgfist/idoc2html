@@ -10,7 +10,9 @@ export enum BuildStage {
 
 /** auto元素内容撑开策略 */
 export enum AllocSpaceStrategy {
+    /** 全部不撑开 */
     None = 0,
+    /** 多行元素宽度固定，其他自动撑开 */
     Strict = 1,
     Symmetric = 2,
     Intelligent = 3,

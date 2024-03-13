@@ -645,6 +645,7 @@ function groupListYNodes(parent: VNode) {
             i++;
             while (i < nodes.length && isSimilarBoxY(nodes[i], nodes[i - 1])) {
                 repeatCount++;
+                i++;
             }
 
             const children = nodes.slice(baseRepeatStart, baseRepeatStart + repeatCount);
@@ -1039,7 +1040,7 @@ function measureFlexAlign(parent: VNode) {
             if (
                 // 这两种容器横向没法自由撑开, 可以优化判断下，横向只能可以往右撑开
                 // 竖向撑开的做法也不一样 align-content/多行文本包一个div然后用flex居中等
-                (isListWrapContainer(child) || isMultiLineText(child))
+                (isFlexWrapLike(child))
             ) {
                 if (alignSpec === 'widthSpec') {
                     // 只能处理往右撑开的
@@ -1325,9 +1326,9 @@ function measureFlexJustify(parent: VNode) {
             parent.classList.push(R`space-${xy}-${gaps[0]}`);
 
             if (justifySide === 'start') {
-                parent.classList.push(R`p-${ss}-${startGap}`);
+                parent.classList.push(R`p${ss}-${startGap}`);
             } else if (justifySide === 'end') {
-                parent.classList.push(R`p-${ee}-${endGap}`);
+                parent.classList.push(R`p${ee}-${endGap}`);
             }
         } else {
             if (justifySide === 'center') {
@@ -1346,6 +1347,15 @@ function measureFlexJustify(parent: VNode) {
                 });
             }
         }
+    }
+
+    if (parent[justifySpec] === SizeSpec.Auto) {
+        // 对多行元素需要设置固定尺寸
+        _.each(children, child => {
+            if (isFlexWrapLike(child) && child[justifySpec] === SizeSpec.Auto) {
+                child[justifySpec] = SizeSpec.Fixed;
+            }
+        });
     }
 
     // 已经在扩充auto元素尺寸时指定过了
