@@ -984,6 +984,71 @@ function measureFlexAlign(parent: VNode) {
         return numEq(margin.marginStart, margin.marginEnd);
     };
 
+    function expandAutoContents(child: VNode, margin: Margin) {
+        if (
+            // 这两种容器横向没法自由撑开, 可以优化判断下，横向只能可以往右撑开
+            // 竖向撑开的做法也不一样 align-content ? 多行文本包一个div然后用flex居中等
+            (isListWrapContainer(child) || isMultiLineText(child))
+        ) {
+            if (alignSpec === 'widthSpec') {
+                // 只能处理往右撑开的
+                return;
+            }
+
+            if (isListWrapContainer(child)) {
+                // 保留auto元素的位置
+                if (possibleAlignCenter(margin)) {
+                    // 往两边撑开
+                    child.classList.push('content-center')
+                } else if (margin.marginStart < margin.marginEnd) {
+                    // 往下边撑开
+                    child.classList.push('content-start');
+                } else {
+                    // 往上边撑开
+                    child.classList.push('content-end');
+                }
+            } else if (isMultiLineText(child)) {
+                // 用一个子元素包起来
+                child.textContent = [
+                    newVNode({ ...child })
+                ];
+                child.classList.push('flex');
+
+                // 保留auto元素的位置
+                if (possibleAlignCenter(margin)) {
+                    // 往两边撑开
+                    child.classList.push('items-center')
+                } else if (margin.marginStart < margin.marginEnd) {
+                    // 往下边撑开
+                    child.classList.push('items-start');
+                } else {
+                    // 往上边撑开
+                    child.classList.push('items-end');
+                }
+            }
+        } else {
+            // 保留auto元素的位置
+            if (possibleAlignCenter(margin)) {
+                // 往两边撑开
+                setAutoContentsAlign(child, 'center');
+            } else if (margin.marginStart < margin.marginEnd) {
+                // 往右边撑开
+                setAutoContentsAlign(child, 'start');
+            } else {
+                // 往左边撑开
+                setAutoContentsAlign(child, 'end');
+            }
+        }
+
+        // Auto元素需要自动撑开
+        const realMargin = Math.min(margin.marginEnd, margin.marginStart);
+        margin.marginStart = margin.marginEnd = realMargin;
+
+        child.bounds[sf] = parent.bounds[sf] + realMargin;
+        child.bounds[ef] = parent.bounds[ef] - realMargin;
+        child.bounds[alignSpecSize] = child.bounds[ef] - child.bounds[sf];
+    }
+
     function setFlexAlign(parentAlign: string) {
         const mayNeedAlign = (childAlign: string) => {
             return childAlign === parentAlign ? '' : `self-${childAlign}`;
@@ -1009,32 +1074,10 @@ function measureFlexAlign(parent: VNode) {
                 child.classList.push(mayNeedAlign('stretch'));
                 child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
             } else if (child[alignSpec] === SizeSpec.Auto) {
-                if (
-                    // 这两种容器横向没法自由撑开, 可以优化判断下，横向只能可以往右撑开
-                    // 竖向撑开的做法也不一样 align-content ? 多行文本包一个div然后用flex居中等
-                    (isListWrapContainer(child) || isMultiLineText(child))
-                ) {
-                    // 这里只预留auto空间，不做布局
-                    
-                } else {
-                    // 保留auto元素的位置
-                    if (possibleAlignCenter(margin)) {
-                        // 往两边撑开
-                        setAutoContentsAlign(child, 'center');
-                    } else if (margin.marginStart < margin.marginEnd) {
-                        // 往右边撑开
-                        setAutoContentsAlign(child, 'start');
-                    } else {
-                        // 往左边撑开
-                        setAutoContentsAlign(child, 'end');
-                    }
-                    // Auto元素需要自动撑开
-                    const realMargin = Math.min(margin.marginEnd, margin.marginStart);
-                    margin.marginStart = margin.marginEnd = realMargin;
-
-                    child.bounds[sf] = parent.bounds[sf] + realMargin;
-                    child.bounds[ef] = parent.bounds[ef] - realMargin;
-                    child.bounds[alignSpecSize] = child.bounds[ef] - child.bounds[sf];
+                // 这里主要是把给auto尺寸的元素多留一点空间
+                // 除了列表和文本，其他的都不多留，因为只有列表和文本内部可视为一个整体，后续再看
+                if (isListContainer(child) || isTextNode(child)) {
+                    expandAutoContents(child, margin);
                 }
 
                 changeChildSizeSpec(child, alignSpec);
@@ -1295,12 +1338,12 @@ function changeChildSizeSpec(child: VNode, alignSpec: 'widthSpec' | 'heightSpec'
 }
 
 /** 根据子元素确定父盒子的尺寸类型 */
-function measureParentSizeSpec(parent: VNode) {
+function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
     const children = parent.children;
     if (!children || !children.length) {
-        if (maybeDivider(parent)) {
-            return;
-        }
+        // if (maybeDivider(parent)) {
+        //     return;
+        // }
 
         // TODO: 裸盒子的尺寸如何确定
         if (!parent.widthSpec || !parent.heightSpec) {
@@ -1308,11 +1351,19 @@ function measureParentSizeSpec(parent: VNode) {
         }
 
         if (!parent.widthSpec) {
-            parent.widthSpec = SizeSpec.Fixed;
+            if (grandParent.direction === Direction.Column) {
+                parent.widthSpec = SizeSpec.Constrained;
+            } else {
+                parent.widthSpec = SizeSpec.Fixed;
+            }
         }
 
         if (!parent.heightSpec) {
-            parent.heightSpec = SizeSpec.Fixed;
+            if (grandParent.direction === Direction.Row) {
+                parent.heightSpec = SizeSpec.Constrained;
+            } else {
+                parent.heightSpec = SizeSpec.Fixed;
+            }
         }
         return;
     }
@@ -1496,14 +1547,13 @@ function buildTree(vnode: VNode) {
 
     _.each(vnode.children, buildTree);
     _.each(vnode.attachNodes, buildTree);
-
-    measureParentSizeSpec(vnode);
+    _.each(vnode.children, child => measureParentSizeSpec(child, vnode));
 }
 
 /** 计算flexbox布局 */
 function measureTree(vnode: VNode) {
     // TODO: 前面会创建一些幽灵盒子，都是flex容器，需尝试扩大容器
-    expandGhostNodes(vnode);
+    // expandGhostNodes(vnode);
 
     // 从根节点开始，根节点宽高都是弹性尺寸
     measureFlexLayout(vnode);
