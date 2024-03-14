@@ -7,6 +7,7 @@ debug.showId = true;
 debug.showSizeSpec = true;
 debug.buildToStage = BuildStage.Measure;
 debug.buildAllNodes = false;
+debug.keepOriginalTree = false;
 const page = iDocJson2Html(pageJson, {
     codeGenOptions: {
         experimentalZIndex: true,

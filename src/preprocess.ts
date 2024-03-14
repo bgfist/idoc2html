@@ -449,7 +449,10 @@ export function preprocess(node: Node, level: number): VNode | null {
         // 目前先这样处理，有slice节点，则删掉其他兄弟节点
         const sliceChild = _.find(node.children, (node) => node.basic.type === 'shape' && node.basic.realType === 'Slice');
         if (sliceChild) {
-            node.children = [sliceChild];
+            node.children = _.filter(node.children, (node) => !!node.slice.bitmapURL);
+            if (node.children.length > 1) {
+                console.warn('切图可能重复');
+            }
         }
     }
 

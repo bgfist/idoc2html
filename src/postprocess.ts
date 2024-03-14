@@ -175,6 +175,7 @@ function findBestParent(node: VNode, nodes: VNode[]) {
 function findBestIntersectNode(node: VNode, nodes: VNode[]) {
     let bestIntersectNode: VNode | null = null;
     let minArea = Infinity;
+    // const nodeArea = isTextNode(node) ? 100000000 : node.bounds.width * node.bounds.height;
     const nodeArea = node.bounds.width * node.bounds.height;
     for (const potentialParent of nodes) {
         if (potentialParent === node) continue;
@@ -534,10 +535,16 @@ function groupListXNodes(nodes: VNode[]): VNode[] {
             repeatCount -= mod;
             i -= mod;
         }
+        const repeatTimes = Math.round(repeatCount / repeatGroupCount);
 
         // 重复节点之间断开了
-        if (!repeatCount) {
+        if (repeatTimes === 0) {
             console.warn('重复节点断开了!');
+            continue;
+        }
+
+        if (repeatTimes === 1) {
+            console.warn('只有一个节点，不构成列表');
             continue;
         }
 
@@ -781,6 +788,16 @@ function groupNodesByOverlapX(nodes: VNode[]) {
     return groups;
 }
 
+/**
+ * TODO: 分组逻辑重构
+ * 
+ * 1. 交叉的盒子不一定要变成绝对定位，容许负margin的存在
+ * 2. 优化绝对定位盒子的判断，如：单纯的文本节点不能作绝对定位
+ * 3. 先划分盒子，再进行重复分组
+ * 4. 划分盒子不一定先横着划分
+ *    > 算法逻辑是，看哪种划分方式生成的直接子节点数量少就用哪种
+ * /
+
 /** 将子节点按行或列归组 */
 function groupNodes(nodes: VNode[]): VNode[] {
     if (!nodes.length) return [];
@@ -798,12 +815,16 @@ function groupNodes(nodes: VNode[]): VNode[] {
                     classList: [],
                     direction: Direction.Column,
                     bounds: getBounds(group),
+                    children: group,
                     index: context.index++
                 });
-                // 从上到下
-                group = _.sortBy(group, n => n.bounds.top);
 
-                vnode.children = groupNodes(group);
+                if (intersectingNodes.length > group.length) {
+                    // 继续分割
+                    vnode.children = groupNodes(group);
+                }
+                // 从上到下
+                vnode.children = _.sortBy(vnode.children, n => n.bounds.top);
                 groupListYNodes(vnode);
                 return vnode;
             } else {
@@ -961,6 +982,7 @@ function setFlexDirection(parent: VNode) {
     }
 
     // TODO: 单个子元素的布局相对灵活，需要优化
+    // 优化思路：看哪种方式需要的样式少就用哪种
     if (parent.children.length === 1) {
         parent.direction = Direction.Row;
         parent.children = _.sortBy(parent.children, (child) => child.bounds.left);
@@ -1653,7 +1675,6 @@ function measureAttachPosition(parent: VNode) {
 /** 生成规范的flexbox树结构 */
 function buildTree(vnode: VNode) {
     if (!vnode.direction) {
-        removeGhostNodes(vnode);
         mergeUnnessaryNodes(vnode);
         buildMissingNodes(vnode);
         buildFlexBox(vnode);
@@ -1681,6 +1702,20 @@ function measureTree(vnode: VNode) {
 
 /** 对节点树进行重建/重组/布局 */
 export function postprocess(vnode: VNode) {
+    if (!debug.keepOriginalTree) {
+        ; (function unwrapAllNodes() {
+            const vnodes: VNode[] = [];
+            const collectVNodes = (vnode: VNode) => {
+                vnodes.push(vnode);
+                _.each(vnode.children, collectVNodes);
+                vnode.children = [];
+            };
+            _.each(vnode.children, collectVNodes);
+            vnode.children = vnodes;
+        })();
+        removeGhostNodes(vnode);
+    }
+
     if (debug.buildToStage >= BuildStage.Tree) {
         buildTree(vnode);
     }

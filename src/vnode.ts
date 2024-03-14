@@ -72,5 +72,5 @@ export function getClassName(vnode: VNode) {
 }
 
 export function getClassList(vnode: VNode) {
-    return getClassName(vnode).split(' ');
+    return getClassName(vnode).split(' ').filter(Boolean);
 }
