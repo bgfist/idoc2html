@@ -1,9 +1,10 @@
 import { BuildStage, Config, debug, defaultConfig } from "./config";
+import { getClassName } from "./helpers";
 import { Page } from "./page";
 import { postprocess } from "./postprocess";
 import { preprocess } from "./preprocess";
 import { assert } from "./utils";
-import { SizeSpec, VNode, getClassName } from "./vnode";
+import { SizeSpec, VNode } from "./vnode";
 import * as _ from 'lodash';
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {

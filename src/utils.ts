@@ -76,53 +76,15 @@ export function anyElesIn<T>(arr: T[], exclude: T[]) {
     return _.difference(exclude, arr).length !== exclude.length;
 }
 
-/** 
- * 规范className
- * 
- * 将className中的负号前移
- * @param removeZero 是否去掉带0值的className
- */
-export function normalizeClassName(className: string, removeZero: boolean) {
-    return className.replace(/(\s?)(\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$0, $1, $2, $3]: any[]) {
-        if ($2[0] === '-') {
-            $2 = $2.substring(1);
-            $1 = '-' + $1;
-        } else if (removeZero && $2[0] == 0) {
-            return $3;
-        }
-        return $0 + $1 + $2 + $3;
-    });
-}
-
-export function R(strings: TemplateStringsArray, ...values: any[]) {
-    // strings 是一个包含模板字符串静态部分的数组
-    // values 是模板字符串中插入的表达式的值
-    // 在这里可以添加自定义的逻辑来处理字符串和值
-    let result = '';
-    // 可以遍历 strings 数组和 values 数组来构建结果字符串
-    for (let i = 0; i < strings.length; i++) {
-        result += strings[i];
-        if (i < values.length) {
-            // 这里可以添加自定义的逻辑来处理每个值
-            result += values[i];
+export function calculateCharacterWidth(str: string) {
+    let width = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        if (char >= 0x00 && char <= 0x7F) { // 半角字符
+            width += 0.5;
+        } else {
+            width += 1;
         }
     }
-    return normalizeClassName(result, true);
-}
-
-/** 将className中的负号前移 */
-export function R2(strings: TemplateStringsArray, ...values: any[]) {
-    // strings 是一个包含模板字符串静态部分的数组
-    // values 是模板字符串中插入的表达式的值
-    // 在这里可以添加自定义的逻辑来处理字符串和值
-    let result = '';
-    // 可以遍历 strings 数组和 values 数组来构建结果字符串
-    for (let i = 0; i < strings.length; i++) {
-        result += strings[i];
-        if (i < values.length) {
-            // 这里可以添加自定义的逻辑来处理每个值
-            result += values[i];
-        }
-    }
-    return normalizeClassName(result, false);
+    return width;
 }

@@ -42,7 +42,11 @@ export const defaultConfig = {
         experimentalZIndex: false,
     },
     /** 为auto元素分配更多空间，指定分配策略 */
-    allocSpaceForAuto: AllocSpaceStrategy.None,
+    allocSpaceForAuto: {
+        flexWrapItemFixedWidth: true,
+        multiLineTextFixedWidth: false,
+        listXStrategy: AllocSpaceStrategy.None
+    },
     /** 黑名单节点id，将删掉这些节点 */
     blackListNodes: [] as string[]
 };

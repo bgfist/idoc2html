@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import { SizeSpec, VNode, context, getClassName, newVNode } from './vnode';
+import { SizeSpec, VNode, context } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
-import { R, assert, filterEmpty, numEq } from './utils';
+import { assert, calculateCharacterWidth, filterEmpty, numEq } from './utils';
 import { debug, defaultConfig } from './config';
+import { R, getClassName, isEqualBox, newVNode } from './helpers';
 
 function floats2Int(node: Node) {
     node.bounds = _.mapValues(node.bounds, n => Math.round(n));
@@ -140,24 +141,9 @@ function getLinearColor(vnode: VNode, color: LinearColor) {
 function stylishRoot(node: Node, vnode: VNode) {
     context.root = vnode;
     vnode.role = 'page';
-    if (node.bounds.width === 375 || node.bounds.width === 750) {
-        vnode.widthSpec = SizeSpec.Constrained;
-
-        if (node.bounds.height / node.bounds.width > 812 / 375) {
-            vnode.heightSpec = SizeSpec.Auto;
-            // 用w-full，w-[100vw]有时候把滚动条宽度也带进去了
-            vnode.classList.push('w-full min-h-[100vh]');
-            return;
-        } else {
-            vnode.heightSpec = SizeSpec.Constrained;
-        }
-    } else if (node.bounds.height === 375 || node.bounds.height === 750) {
-        vnode.widthSpec = SizeSpec.Constrained;
-        vnode.heightSpec = SizeSpec.Constrained;
-    } else {
-        throw new Error('暂不支持这种设计尺寸');
-    }
-    vnode.classList.push('w-[100vw] h-[100vh]');
+    vnode.widthSpec = SizeSpec.Constrained;
+    vnode.heightSpec = SizeSpec.Auto;
+    vnode.classList.push('w-full min-h-[100vh]');
 }
 
 function stylishSymbol(node: Node, vnode: VNode) {
@@ -191,10 +177,7 @@ function stylishImage(node: Node, vnode: VNode) {
         node.children = [];
 
         // 图片占满屏幕，一般是截的一个背景图
-        if (
-            numEq(vnode.bounds.width, context.root.bounds.width) &&
-            numEq(vnode.bounds.height, context.root.bounds.height)
-        ) {
+        if (isEqualBox(vnode, context.root)) {
             return null;
         }
     }
@@ -281,12 +264,26 @@ function stylishText(node: Node, vnode: VNode) {
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        vnode.widthSpec = SizeSpec.Auto;
+        vnode.widthSpec = defaultConfig.allocSpaceForAuto.multiLineTextFixedWidth ? SizeSpec.Fixed : SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
     } else {
         vnode.classList.push('whitespace-nowrap');
-        vnode.widthSpec = SizeSpec.Auto;
+
+        // 有的文本框跟文字本身宽度并不一致，会多出一些空间，这时候应该视作Fixed尺寸，简单判断下，数字和字母为半个字宽
+        if (
+            _.isString(vnode.textContent) &&
+            (
+                (vnode.bounds.width / Number(node.text.styles![0].font.size)) -
+                calculateCharacterWidth(vnode.textContent)
+            ) > 2
+        ) {
+            console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
+            vnode.widthSpec = SizeSpec.Fixed;
+        } else {
+            vnode.widthSpec = SizeSpec.Auto;
+        }
+
         vnode.heightSpec = SizeSpec.Fixed;
     }
 }

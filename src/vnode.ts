@@ -61,16 +61,3 @@ export const context = {
     index: number;
     root: VNode;
 };
-
-/** 仅便于调试 */
-export function newVNode(vnode: VNode) {
-    return vnode;
-}
-
-export function getClassName(vnode: VNode) {
-    return vnode.classList.filter(Boolean).join(' ');
-}
-
-export function getClassList(vnode: VNode) {
-    return getClassName(vnode).split(' ').filter(Boolean);
-}

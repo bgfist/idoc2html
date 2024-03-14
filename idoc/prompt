@@ -1,0 +1,13 @@
+你是一个h5前端开发，下面是你的html代码
+
+```html
+${html}
+```
+
+下面是js数据对象
+
+```js
+const state = ${jsState};
+```
+
+你要尽可能给html中的文本用对象的字段插值，如```<div>{{state.shortName}}</div>```，如果你执行了插值，请将原始文本作为data-ref属性添加到对应元素上

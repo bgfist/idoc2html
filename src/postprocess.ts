@@ -1,133 +1,9 @@
 import * as _ from 'lodash';
-import { R, R2, allNumsEqual, anyElesIn, assert, groupByWith, groupWith, normalizeClassName, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, unreachable } from "./utils";
-import { Direction, SizeSpec, VNode, context, getClassList, newVNode } from "./vnode";
+import { allNumsEqual, anyElesIn, assert, groupByWith, groupWith, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, unreachable } from "./utils";
+import { Direction, SizeSpec, VNode, context } from "./vnode";
 import { BuildStage, debug, defaultConfig } from './config';
-
-function isContainedWithinX(child: VNode, parent: VNode) {
-    return numGte(child.bounds.left, parent.bounds.left) && numLte(child.bounds.right, parent.bounds.right);
-}
-
-function isContainedWithinY(child: VNode, parent: VNode) {
-    return numGte(child.bounds.top, parent.bounds.top) && numLte(child.bounds.bottom, parent.bounds.bottom);
-}
-
-/** 处理元素之间的包含关系 */
-function isContainedWithin(child: VNode, parent: VNode) {
-    return isContainedWithinX(child, parent) && isContainedWithinY(child, parent);
-}
-
-function isOverlappingX(child: VNode, parent: VNode) {
-    return numLt(child.bounds.left, parent.bounds.right) && numGt(child.bounds.right, parent.bounds.left);
-}
-
-function isOverlappingY(child: VNode, parent: VNode) {
-    return numLt(child.bounds.top, parent.bounds.bottom) && numGt(child.bounds.bottom, parent.bounds.top);
-}
-
-/** 处理元素之间的重叠关系 */
-function isOverlapping(child: VNode, parent: VNode,) {
-    return isOverlappingX(child, parent) && isOverlappingY(child, parent);
-}
-
-/** flex盒子方向一横一竖 */
-function isCrossDirection(a: VNode, b: VNode) {
-    return a.direction && b.direction && a.direction !== b.direction;
-}
-
-/** 判断节点是不是分隔线 */
-function maybeDivider(vnode: VNode) {
-    if (numEq(vnode.bounds.width, 1) && vnode.bounds.height >= 20) {
-        vnode.role = 'divider';
-        vnode.widthSpec = SizeSpec.Fixed;
-        vnode.heightSpec = SizeSpec.Constrained;
-        return true;
-    } else if (numEq(vnode.bounds.height, 1) && vnode.bounds.width >= 20) {
-        vnode.role = 'divider';
-        vnode.widthSpec = SizeSpec.Constrained;
-        vnode.heightSpec = SizeSpec.Fixed;
-        return true;
-    }
-    return false;
-}
-
-/** 判断节点是不是边框 */
-function maybeBorder(child: VNode, parent: VNode) {
-    if (numEq(child.bounds.width, 1)) {
-        const attachLeftOrRight = numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
-
-        if (attachLeftOrRight) {
-            child.role = 'border';
-            child.widthSpec = SizeSpec.Fixed;
-            child.heightSpec = SizeSpec.Constrained;
-            return true;
-        }
-    } else if (numEq(child.bounds.height, 1)) {
-        const attachTopOrBottom = numEq(child.bounds.top, parent.bounds.top) || numEq(child.bounds.bottom, parent.bounds.bottom);
-
-        if (attachTopOrBottom) {
-            child.role = 'border';
-            child.widthSpec = SizeSpec.Constrained;
-            child.heightSpec = SizeSpec.Fixed;
-            return true;
-        }
-    }
-}
-
-/** 判断节点是不是内联按钮，这种有交互的节点不一定能自动扩充 */
-function maybeInlineButton(vnode: VNode) {
-    // 按钮要么宽度固定，要么内容撑开，宽度不能用Constrained
-    if (!vnode.children || vnode.children.length !== 1) {
-        return false;
-    }
-    const onlyChild = vnode.children[0];
-
-    if (
-        isTextNode(onlyChild) &&
-        vnode.bounds.width < Math.min(context.root.bounds.width, context.root.bounds.height) / 2 &&
-        vnode.bounds.height <= onlyChild.bounds.height * 3 &&
-        !vnode.role
-    ) {
-        vnode.role = 'btn';
-        return true;
-    }
-}
-
-function isTextNode(vnode: VNode) {
-    return !!vnode.textContent;
-}
-
-function isGhostNode(vnode: VNode) {
-    return _.isEmpty(vnode.classList);
-}
-
-function isSingleLineText(vnode: VNode) {
-    return isTextNode(vnode) && !isMultiLineText(vnode);
-}
-
-function isMultiLineText(vnode: VNode) {
-    return !!vnode.textMultiLine;
-}
-
-function isListWrapContainer(vnode: VNode) {
-    return vnode.role === 'list-wrap';
-}
-
-function isListXContainer(vnode: VNode) {
-    return vnode.role === 'list-x' || isListWrapContainer(vnode);
-}
-
-function isListYContainer(vnode: VNode) {
-    return vnode.role === 'list-y' || isListWrapContainer(vnode);
-}
-
-function isListContainer(vnode: VNode) {
-    return isListXContainer(vnode) || isListYContainer(vnode);
-}
-
-// 多行元素
-function isFlexWrapLike(vnode: VNode) {
-    return isListWrapContainer(vnode) || isMultiLineText(vnode);
-}
+import { R, R2, getClassList, isContainedWithin, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isMultiLineText, isOverlapping, isOverlappingX, isSingleLineText, isTextNode, newVNode, normalizeClassName } from './helpers';
+import { maybeBorder, maybeInlineButton } from './roles';
 
 /** 处理auto元素内容居中，仅横向 */
 function setAutoContentsAlign(vnode: VNode, side: 'center' | 'start' | 'end') {
@@ -362,7 +238,7 @@ function findFlexWrap(nodes: VNode[], cursor: number, baseRepeatStart: number, r
 
     const repeatStart = cursor;
     let repeatCount = 0;
-    while (isSimilarBoxWrap(nodes[cursor], nodes[baseRepeatStart + repeatCount % repeatGroupCount])) {
+    while (cursor < nodes.length && isSimilarBoxWrap(nodes[cursor], nodes[baseRepeatStart + repeatCount % repeatGroupCount])) {
         cursor++;
         repeatCount++;
     }
@@ -620,14 +496,16 @@ function groupListXNodes(nodes: VNode[]): VNode[] {
             vnode.role = 'list-wrap';
             vnode.heightSpec = SizeSpec.Auto;
             _.each(children, child => {
-                // child.widthSpec = SizeSpec.Fixed;
+                if (defaultConfig.allocSpaceForAuto.flexWrapItemFixedWidth) {
+                    child.widthSpec = SizeSpec.Fixed;
+                }
                 child.heightSpec = SizeSpec.Fixed;
             });
         } else {
             console.debug('找到横向列表');
             vnode.role = 'list-x';
             _.each(children, child => {
-                // child.widthSpec = SizeSpec.Fixed;
+                child.heightSpec = SizeSpec.Fixed;
             });
         }
 
@@ -668,7 +546,7 @@ function groupListYNodes(parent: VNode) {
             console.debug('找到纵向列表');
             _.each(children, child => {
                 child.role = 'list-item';
-                child.heightSpec = SizeSpec.Fixed;
+                child.widthSpec = SizeSpec.Fixed;
             });
 
             if (baseRepeatStart === 0 && repeatCount === nodes.length) {
@@ -867,11 +745,6 @@ function buildFlexBox(parent: VNode) {
         mergeUnnessaryFlexBox(parent);
         setFlexDirection(parent);
     }
-}
-
-/** 两个盒子是否一样大 */
-function isEqualBox(a: VNode, b: VNode) {
-    return numEq(a.bounds.width, b.bounds.width) && numEq(a.bounds.height, b.bounds.height);
 }
 
 function mergeNode(dest: VNode, src: VNode) {
@@ -1277,6 +1150,14 @@ function measureFlexJustify(parent: VNode) {
     let justifySide = numEq(startGap, endGap) && !numEq(startGap, 0) ? 'center' : numLt(startGap, endGap) ? 'start' : 'end';
 
     function maybeInsertFlex1() {
+        if (
+            parent[justifySpec] === SizeSpec.Auto &&
+            !getClassList(parent).some(className => className.startsWith(`min-${justifySpec.slice(0, 1)}-`))
+        ) {
+            // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
+            return;
+        }
+
         // 第一个间隙是左边距
 
         if (gaps.length - 1 < 2) {
@@ -1306,7 +1187,7 @@ function measureFlexJustify(parent: VNode) {
         const pos = Math.round(parent.bounds[sf] + parent.bounds[ef] / 2);
         const [eefn, ssfn] = ranges[flex1GapIndex];
 
-        children.splice(flex1GapIndex, 0, {
+        const flex1Vnode = newVNode({
             bounds: {
                 [sf]: pos,
                 [ef]: pos,
@@ -1320,19 +1201,38 @@ function measureFlexJustify(parent: VNode) {
             [`${spec2}Spec`]: SizeSpec.Fixed,
             index: context.index++
         });
+        if (parent[justifySpec] === SizeSpec.Auto) {
+            flex1Vnode.classList.push(R`min-${spec1.slice(0, 1)}-${flex1Vnode.bounds[spec1]}`);
+        }
+
+        children.splice(flex1GapIndex, 0, flex1Vnode);
     }
 
     function defaultJustify() {
         gaps.unshift(startGap);
 
-        if (parent[justifySpec] === SizeSpec.Constrained) {
-            maybeInsertFlex1();
-        }
+        maybeInsertFlex1();
 
-        gaps.forEach((g, i) => {
-            children[i].classList.push(R`m${ss}-${g}`);
-        });
-        parent.classList.push(R`p${ee}-${endGap}`);
+        if (justifySide === 'center') {
+            gaps.forEach((g, i) => {
+                if (i < 2) {
+                    return;
+                }
+                children[i].classList.push(R`m${ss}-${g}`);
+            });
+            parent.classList.push(R`p${xy}-${startGap}`);
+        } else if (justifySide === 'start') {
+            gaps.push(endGap);
+            gaps.slice(1).forEach((g, i) => {
+                children[i].classList.push(R`m${ee}-${g}`);
+            });
+            parent.classList.push(R`p${ss}-${endGap}`);
+        } else if (justifySide === 'end') {
+            gaps.forEach((g, i) => {
+                children[i].classList.push(R`m${ss}-${g}`);
+            });
+            parent.classList.push(R`p${ee}-${endGap}`);
+        }
     }
 
     function sideJustify() {
@@ -1371,14 +1271,14 @@ function measureFlexJustify(parent: VNode) {
         }
     }
 
-    if (parent[justifySpec] === SizeSpec.Auto) {
-        // 对多行元素需要设置固定尺寸
-        _.each(children, child => {
-            if (isFlexWrapLike(child) && child[justifySpec] === SizeSpec.Auto) {
-                child[justifySpec] = SizeSpec.Fixed;
-            }
-        });
-    }
+    // if (parent[justifySpec] === SizeSpec.Auto) {
+    //     // 对多行元素需要设置固定尺寸
+    //     _.each(children, child => {
+    //         if (isFlexWrapLike(child) && child[justifySpec] === SizeSpec.Auto) {
+    //             child[justifySpec] = SizeSpec.Fixed;
+    //         }
+    //     });
+    // }
 
     // 已经在扩充auto元素尺寸时指定过了
     parent.classList = getClassList(parent);
@@ -1525,6 +1425,9 @@ function measureFlexWrapLayout(parent: VNode) {
         child.classList.push(R`ml-${xGap} mt-${yGap}`);
     });
 
+    // flex-wrap应该留出左边的间距, 再多预留两像素吧
+    parent.bounds.width += xGap + 2;
+
     // vnode.classList.push(R`ml-${-xGap} mt-${-yGap}`);
     // 合并margin
     mergeMargin();
@@ -1566,29 +1469,27 @@ function measureFlexListLayout(parent: VNode) {
 
 /** 生成flexbox布局 */
 function measureFlexLayout(parent: VNode) {
+    if (parent.children?.length) {
+        parent.classList.push('flex');
+        if (parent.direction === Direction.Column) {
+            parent.classList.push('flex-col');
+        }
+
+        if (parent.role === 'list-wrap') {
+            measureFlexWrapLayout(parent);
+        } else if (parent.role === 'list-x' || parent.role === 'list-y') {
+            measureFlexListLayout(parent);
+        } else {
+            measureFlexAlign(parent);
+            measureFlexJustify(parent);
+        }
+    }
+
     if (parent.widthSpec === SizeSpec.Fixed) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
     if (parent.heightSpec === SizeSpec.Fixed) {
         parent.classList.push(R`h-${parent.bounds.height}`);
-    }
-
-    if (!parent.direction || !parent.children || !parent.children.length) {
-        return;
-    }
-
-    parent.classList.push('flex');
-    if (parent.direction === Direction.Column) {
-        parent.classList.push('flex-col');
-    }
-
-    if (parent.role === 'list-wrap') {
-        measureFlexWrapLayout(parent);
-    } else if (parent.role === 'list-x' || parent.role === 'list-y') {
-        measureFlexListLayout(parent);
-    } else {
-        measureFlexAlign(parent);
-        measureFlexJustify(parent);
     }
 }
 
