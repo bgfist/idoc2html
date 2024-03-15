@@ -3,7 +3,7 @@ import { SizeSpec, VNode, context } from './vnode';
 import { LinearColor, RGBA, Node, Color } from './page';
 import { assert, calculateCharacterWidth, filterEmpty, numEq } from './utils';
 import { debug, defaultConfig } from './config';
-import { R, getClassName, isEqualBox, newVNode } from './helpers';
+import { R, addRole, getClassName, isEqualBox, newVNode } from './helpers';
 
 function floats2Int(node: Node) {
     node.bounds = _.mapValues(node.bounds, n => Math.round(n));
@@ -140,7 +140,7 @@ function getLinearColor(vnode: VNode, color: LinearColor) {
 
 function stylishRoot(node: Node, vnode: VNode) {
     context.root = vnode;
-    vnode.role = 'page';
+    addRole(vnode, 'page');
     vnode.widthSpec = SizeSpec.Constrained;
     vnode.heightSpec = SizeSpec.Auto;
     vnode.classList.push('w-full min-h-[100vh]');
@@ -185,21 +185,18 @@ function stylishImage(node: Node, vnode: VNode) {
     // vnode.classList.push('bg-cover');
     // (vnode.style ??= {}).backgroundImage = "url()";
     // img元素不能有子节点，可以尝试包一层
-    vnode.attachNodes = [
-        {
-            tagName: 'img',
-            bounds: {
-                ...vnode.bounds
-            },
-            widthSpec: SizeSpec.Constrained,
-            heightSpec: SizeSpec.Constrained,
-            classList: ['block object-cover w-full h-full'],
-            attributes: {
-                src: ''
-            },
-            index: context.index++
+    vnode.attachNodes = [newVNode({
+        tagName: 'img',
+        bounds: {
+            ...vnode.bounds
+        },
+        widthSpec: SizeSpec.Constrained,
+        heightSpec: SizeSpec.Constrained,
+        classList: ['block object-cover w-full h-full'],
+        attributes: {
+            src: ''
         }
-    ];
+    })];
     // 防止被当作幽灵节点删除
     vnode.classList = ['$ghost'];
     vnode.widthSpec = SizeSpec.Fixed;
@@ -216,14 +213,12 @@ function stylishText(node: Node, vnode: VNode) {
     // 3. 如果文本节点是父节点中唯一的一个节点，且父节点不是切图，则父节点宽度不固定，适用于按钮。除非两个相邻按钮宽度一致
 
     const textNodes = _.map(node.text.styles, (text) => {
-        const textNode: VNode = {
+        const textNode = newVNode({
             tagName: 'span',
-            classList: [],
             bounds: {
                 ...vnode.bounds
             },
-            index: context.index++,
-        };
+        });
         textNode.textContent = text.value.replace('\n', ' '); // 换行符用空格代替
         if (text.font.color.type === "normal") {
             textNode.classList.push(`text-${getNormalColor(text.font.color.value)}`);
@@ -397,7 +392,6 @@ export function preprocess(node: Node, level: number): VNode | null {
             right: node.bounds.left + node.bounds.width,
             bottom: node.bounds.top + node.bounds.height,
         },
-        index: context.index++,
     });
 
     // 根节点决定设计尺寸

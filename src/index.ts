@@ -1,5 +1,5 @@
 import { BuildStage, Config, debug, defaultConfig } from "./config";
-import { getClassName } from "./helpers";
+import { getClassName, isRole } from "./helpers";
 import { Page } from "./page";
 import { postprocess } from "./postprocess";
 import { preprocess } from "./preprocess";
@@ -43,11 +43,11 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
         prependAttrs['id'] = vnode.id || '';
     }
     if (defaultConfig.codeGenOptions.role) {
-        prependAttrs['role'] = role;
+        prependAttrs['role'] = _.uniq(role).join(',');
     }
     if (debug.showSizeSpec) {
-        prependAttrs['w'] = vnode.widthSpec || SizeSpec.Unknown;
-        prependAttrs['h'] = vnode.heightSpec || SizeSpec.Unknown;
+        prependAttrs['w'] = vnode.widthSpec || '';
+        prependAttrs['h'] = vnode.heightSpec || '';
     }
     attributes = {
         ...prependAttrs,
@@ -97,7 +97,7 @@ export function iDocJson2Html(page: Page, config?: Config) {
         if (!debug.keepOriginalTree) {
             const vnodes: VNode[] = [];
             const collectVNodes = (vnode: VNode) => {
-                vnode.classList.push(`${vnode.role === 'page' ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+                vnode.classList.push(`${isRole(vnode, 'page') ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
                 vnodes.push(vnode);
                 _.each(vnode.children, collectVNodes);
             };

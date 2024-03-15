@@ -1,7 +1,5 @@
 /** 宽高尺寸类型 */
 export enum SizeSpec {
-    /** 未知 */
-    Unknown = '',
     /** 固定 */
     Fixed = 'Fixed',
     /** 由子节点撑开 */
@@ -12,8 +10,6 @@ export enum SizeSpec {
 
 /** flex方向 */
 export enum Direction {
-    /** 未知 */
-    Unknown = '',
     /** 横向的flex盒子 */
     Row = 'Row',
     /** 竖向的flex盒子 */
@@ -28,12 +24,12 @@ export interface VNode {
     id?: string;
     tagName?: string;
     classList: string[];
-    attributes?: Record<string, string>;
-    children?: VNode[];
+    attributes: Record<string, string>;
+    children: VNode[];
     textContent?: string | VNode[];
     textMultiLine?: boolean;
-    style?: Record<string, string>;
-    role?: Role;
+    style: Record<string, string>;
+    role: Role[];
 
     bounds: {
         left: number;
@@ -47,11 +43,8 @@ export interface VNode {
     heightSpec?: SizeSpec;
     direction?: Direction;
 
-    /** 层级 */
-    index: number;
-
     /** 此节点相交的节点，面积比它更小。可以做绝对定位，也可以做负的margin */
-    attachNodes?: VNode[];
+    attachNodes: VNode[];
 }
 
 /** 节点遍历上下文 */

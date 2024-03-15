@@ -1,10 +1,20 @@
 import * as _ from "lodash";
-import { VNode } from "./vnode";
-import { numEq, numGte, numLte, numLt, numGt } from "./utils";
+import { Role, VNode } from "./vnode";
+import { numEq, numGte, numLte, numLt, numGt, removeEle } from "./utils";
+
+type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** 仅便于调试 */
-export function newVNode(vnode: VNode) {
-    return vnode;
+export function newVNode(vnode: OptionalKeys<VNode, 'children' | 'classList' | 'attributes' | 'style' | 'role' | 'attachNodes'>): VNode {
+    return {
+        classList: [],
+        children: [],
+        attachNodes: [],
+        attributes: {},
+        style: {},
+        role: [],
+        ...vnode
+    };
 }
 
 export function getClassName(vnode: VNode) {
@@ -13,6 +23,18 @@ export function getClassName(vnode: VNode) {
 
 export function getClassList(vnode: VNode) {
     return vnode.classList.join(' ').split(' ').filter(Boolean);
+}
+
+export function isRole(vnode: VNode, role: Role) {
+    return _.includes(vnode.role, role);
+}
+
+export function addRole(vnode: VNode, role: Role) {
+    vnode.role.push(role);
+}
+
+export function removeRole(vnode: VNode, role: Role) {
+    removeEle(vnode.role, role);
 }
 
 /** 
@@ -97,6 +119,14 @@ export function isOverlapping(child: VNode, parent: VNode,) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
+export function getIntersectionArea(a: VNode, b: VNode) {
+    return (Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left)) * (Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top));
+}
+
+export function getXMiddleLine(vnode: VNode) {
+    return vnode.bounds.left + vnode.bounds.width / 2;
+}
+
 /** flex盒子方向一横一竖 */
 export function isCrossDirection(a: VNode, b: VNode) {
     return a.direction && b.direction && a.direction !== b.direction;
@@ -119,19 +149,19 @@ export function isMultiLineText(vnode: VNode) {
 }
 
 export function isListWrapContainer(vnode: VNode) {
-    return vnode.role === 'list-wrap';
+    return isRole(vnode, 'list-wrap');
 }
 
 export function isListXContainer(vnode: VNode) {
-    return vnode.role === 'list-x' || isListWrapContainer(vnode);
+    return isRole(vnode, 'list-x');
 }
 
 export function isListYContainer(vnode: VNode) {
-    return vnode.role === 'list-y' || isListWrapContainer(vnode);
+    return isRole(vnode, 'list-y');
 }
 
 export function isListContainer(vnode: VNode) {
-    return isListXContainer(vnode) || isListYContainer(vnode);
+    return isListXContainer(vnode) || isListYContainer(vnode) || isListWrapContainer(vnode);
 }
 
 /** 多行元素 */
