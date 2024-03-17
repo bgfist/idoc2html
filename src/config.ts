@@ -48,7 +48,9 @@ export const defaultConfig = {
         listXStrategy: AllocSpaceStrategy.None
     },
     /** 黑名单节点id，将删掉这些节点 */
-    blackListNodes: [] as string[]
+    blackListNodes: [] as string[],
+    /** 这些节点只能做叶子节点，防止错乱的层级 */
+    leafNodes: [] as string[]
 };
 
 type DeepPartial<T> = T extends object ? {

@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { Range, allNumsEqual, anyElesIn, assert, collectContinualRanges, collectRepeatRanges, groupByWith, groupWith, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, replaceRangesWithEle, unreachable } from "./utils";
+import { Range, allNumsEqual, anyElesIn, assert, collectContinualRanges, collectRepeatRanges, combineAndIterate, groupByWith, groupWith, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, replaceRangesWithEle, unreachable } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 import { BuildStage, debug, defaultConfig } from './config';
-import { R, R2, addRole, getClassList, getIntersectionArea, getXMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, newVNode, normalizeClassName, removeRole } from './helpers';
+import { R, R2, addRole, getClassList, getIntersectionArea, getMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, newVNode, normalizeClassName, removeRole } from './helpers';
 import { maybeBorder, maybeInlineButton } from './roles';
 
 /** 处理auto元素内容居中，仅横向 */
@@ -115,54 +115,62 @@ function expandGhostNodes(parent: VNode) {
 }
 
 /** 给列表元素的文本节点扩充宽度 */
-function expandItemRoomForListX(vnode: VNode, isItemGroup: boolean, leftAvailableRoom: number, rightAvailableRoom: number) {
-    // 中线均匀，需要把每个item的宽度设置成一样的
-    const middleLineGap = getListXItemMiddleLineGap(vnode);
-    const itemNode = vnode.children[0];
+// function expandItemRoomForListX(vnode: VNode, isItemGroup: boolean, leftAvailableRoom: number, rightAvailableRoom: number) {
+//     // 中线均匀，需要把每个item的宽度设置成一样的
+//     const middleLineGap = getListXItemMiddleLineGap(vnode);
+//     const itemNode = vnode.children[0];
 
-    if (isItemGroup) {
-        // 只考虑文本节点在右边的扩充
-        const lastChild = _.last(itemNode.children)!;
+//     if (isItemGroup) {
+//         // 只考虑文本节点在右边的扩充
+//         const lastChild = _.last(itemNode.children)!;
 
-        if (
-            isTextNode(lastChild) &&
-            _.every(vnode.children.slice(0, -1), vnode => vnode.widthSpec === SizeSpec.Fixed)
-        ) {
-            // 往右边扩充
-            const rightWidth = rightAvailableRoom + lastChild.bounds.width;
-            const newWidth = Math.min(middleLineGap * 0.8, rightWidth);
-            _.each(vnode.children, child => {
-                const textNode = _.last(child.children)!;
-                textNode.widthSpec = SizeSpec.Fixed;
-                const widthDiff = newWidth - child.bounds.width;
-                child.bounds.width = newWidth;
-                child.bounds.right += widthDiff;
-            });
-        } else if (!_.every(vnode.children, vnode => vnode.widthSpec === SizeSpec.Fixed)) {
-            console.warn('横向列表元素无法自动扩充空间');
-        }
-    } else if (isTextNode(itemNode)) {
-        // 往两边扩充
-        const leftWidth = leftAvailableRoom + _.first(vnode.children)!.bounds.width / 2;
-        const rightWidth = rightAvailableRoom + _.last(vnode.children)!.bounds.width / 2;
-        // TODO: 文本靠太近，甚至已经小于20%的间距？
-        const halfWidth = Math.min(middleLineGap * 0.4, leftWidth, rightWidth);
-        const newWidth = halfWidth * 2;
-        _.each(vnode.children, child => {
-            child.widthSpec = SizeSpec.Fixed;
-            child.classList.push('text-center');
-            const widthDiff = newWidth - child.bounds.width;
-            child.bounds.width = newWidth;
-            child.bounds.left -= widthDiff / 2;
-            child.bounds.right += widthDiff / 2;
-        });
-    }
-}
+//         if (
+//             isTextNode(lastChild) &&
+//             _.every(vnode.children.slice(0, -1), vnode => vnode.widthSpec === SizeSpec.Fixed)
+//         ) {
+//             // 往右边扩充
+//             const rightWidth = rightAvailableRoom + lastChild.bounds.width;
+//             const newWidth = Math.min(middleLineGap * 0.8, rightWidth);
+//             _.each(vnode.children, child => {
+//                 const textNode = _.last(child.children)!;
+//                 textNode.widthSpec = SizeSpec.Fixed;
+//                 const widthDiff = newWidth - child.bounds.width;
+//                 child.bounds.width = newWidth;
+//                 child.bounds.right += widthDiff;
+//             });
+//         } else if (!_.every(vnode.children, vnode => vnode.widthSpec === SizeSpec.Fixed)) {
+//             console.warn('横向列表元素无法自动扩充空间');
+//         }
+//     } else if (isTextNode(itemNode)) {
+//         // 往两边扩充
+//         const leftWidth = leftAvailableRoom + _.first(vnode.children)!.bounds.width / 2;
+//         const rightWidth = rightAvailableRoom + _.last(vnode.children)!.bounds.width / 2;
+//         // TODO: 文本靠太近，甚至已经小于20%的间距？
+//         const halfWidth = Math.min(middleLineGap * 0.4, leftWidth, rightWidth);
+//         const newWidth = halfWidth * 2;
+//         _.each(vnode.children, child => {
+//             child.widthSpec = SizeSpec.Fixed;
+//             child.classList.push('text-center');
+//             const widthDiff = newWidth - child.bounds.width;
+//             child.bounds.width = newWidth;
+//             child.bounds.left -= widthDiff / 2;
+//             child.bounds.right += widthDiff / 2;
+//         });
+//     }
+// }
 
 /** 为每个节点找到最佳父节点，保证nodes互不相交 */
 function buildMissingNodes(parent: VNode) {
     let nodes = parent.children;
     if (!nodes.length) return;
+
+    let [leafNodes, leftover] = _.partition(nodes, node => _.includes(defaultConfig.leafNodes, node.id!));
+
+    if (leftover.length) {
+        nodes = leftover;
+    } else {
+        leafNodes = [];
+    }
 
     // 先将互相包含的节点选一个父节点出来
     const grouped = groupWith(nodes, (a, b) => isContainedWithin(a, b) && isContainedWithin(b, a));
@@ -186,6 +194,8 @@ function buildMissingNodes(parent: VNode) {
             return true;
         }
     });
+
+    nodes = nodes.concat(leafNodes);
 
     // 剩下的节点都是直接子节点, 互不交叉
     nodes = nodes.filter(node => {
@@ -293,270 +303,253 @@ function getBounds(nodes: VNode[]) {
     }
 }
 
-/** 获取列表item之间的中线间距 */
-function getListXItemMiddleLineGap(vnode: VNode) {
-    return getXMiddleLine(vnode.children[1]) - getXMiddleLine(vnode.children[0]);
-}
-
-/** 获取列表item之间的间距 */
-function getListXItemGap(vnode: VNode) {
-    return vnode.children[1].bounds.left - vnode.children[0].bounds.right;
-}
-
-/** 寻找重复节点，将其重新归组 */
-function groupListNodes(nodes: VNode[], direction: Direction): VNode[] {
-    function getGap(rightItem: VNode, leftItem: VNode) {
-        if (direction === Direction.Row) {
-            return rightItem.bounds.left - leftItem.bounds.right;
-        } else {
-            return rightItem.bounds.top - leftItem.bounds.bottom;
-        }
+/** 获取两个元素之间direction方向的间距 */
+function getItemGap(nextItem: VNode, prevItem: VNode, direction: Direction) {
+    if (direction === Direction.Row) {
+        return nextItem.bounds.left - prevItem.bounds.right;
+    } else {
+        return nextItem.bounds.top - prevItem.bounds.bottom;
     }
+}
 
-    /** 对临时归组的list-item节点，检查其内部结构是否一致 */
-    function checkListItemInner(list: VNode[]) {
-        // 检查item内部相互间距是否一致
-        const innerGaps = _.map(list, function (listItem) {
-            const children = listItem.children;
-            const gaps = _.map(children.slice(1), function (current, index) {
-                return getGap(current, children[index]);
-            });
-            return gaps;
-        });
-        if (!_.every(_.zip(...innerGaps), gap => allNumsEqual(gap as number[]))) {
-            console.warn('item内部结构不一致');
+/** 检查列表是否合法 */
+function checkListInvalid(otherNodes: VNode[], list: VNode) {
+    otherNodes = _.difference(otherNodes, list.children);
+    return _.some(otherNodes, node => isOverlapping(list, node) && !isContainedWithin(list, node));
+}
+
+/** 寻找重复节点，将其归成列表 */
+function groupListNodes(nodes: VNode[], direction: Direction) {
+    const ranges = collectContinualRanges(nodes, _.constant(true), range => {
+        const listItems = nodes.slice(range.start, range.end);
+        const gaps = listItems.slice(1).map((item, index) => getItemGap(item, listItems[index], direction));
+        if (!allNumsEqual(gaps)) {
             return false;
         }
 
         return true;
+    });
+    const lists = ranges.map(range => {
+        const listItems = nodes.slice(range.start, range.end);
+        const listNode = newVNode({
+            children: listItems,
+            bounds: getBounds(listItems),
+            role: [direction === Direction.Row ? 'list-x' : 'list-y'],
+            direction,
+            [direction === Direction.Row ? 'widthSpec' : 'heightSpec']: SizeSpec.Auto,
+        });
+        _.each(listItems, child => {
+            addRole(child, 'list-item');
+        });
+        return listNode;
+    });
+
+    return lists;
+}
+
+/** 将多个结构一致的列表合成为一个 */
+function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direction) {
+    /** 获取列表item之间的间距 */
+    function getListItemGap(vnode: VNode) {
+        return getItemGap(vnode.children[1], vnode.children[0], direction);
+    }
+    /** 获取列表item中线之间的间距 */
+    function getListItemMiddleLineGap(vnode: VNode) {
+        return getMiddleLine(vnode.children[1], direction) - getMiddleLine(vnode.children[0], direction);
     }
 
-    /** 检查list-item间距 */
-    function checkListItemGap(list: VNode[]) {
-        // 优先检查item间距是否一致
-        const gaps = _.map(list.slice(1), function (current, index) {
-            return getGap(current, list[index]);
-        });
-        const equalGap = allNumsEqual(gaps);
-
-        if (equalGap) {
-            return true;
-        } else {
-            // console.warn('重复节点间隔不统一! 直接忽略');
-            console.debug('item间距不一致');
+    let mergeType: 'flexWrap' | 'normal' | false = false;
+    function compareList(a: VNode, b: VNode) {
+        if (direction === Direction.Row && (!mergeType || mergeType == 'flexWrap')) {
+            if (
+                isSimilarBoxWrap(a.children[0], b.children[0]) &&
+                numEq(getListItemGap(a), getListItemGap(b)) &&
+                numEq(a.children[0].bounds.left, b.children[0].bounds.left)
+            ) {
+                if (!mergeType && isTextNode(a.children[0]) && a.children.length === 2) {
+                    mergeType = false;
+                    return mergeType;
+                }
+                mergeType = 'flexWrap';
+                return mergeType;
+            }
         }
-
-        // 检查item分布是否均匀
-        const rulers = _.map(list.slice(1), function (current, index) {
-            return getGap(current, list[index]);
-        });
-        const repeatedRuler = allNumsEqual(rulers);
-
-        if (repeatedRuler) {
-            return true;
-        } else {
-            // console.warn('重复文本节点中线间隔不一致! 直接忽略');
-            console.debug('item分布不均匀');
+        if (!mergeType || mergeType == 'normal') {
+            if (
+                a.children.length === b.children.length &&
+                numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b))
+            ) {
+                mergeType = 'normal';
+                return mergeType;
+            }
         }
-
+        mergeType = false;
         return false;
     }
 
-    const compareFn = direction === Direction.Row ? isSimilarBoxX : isSimilarBoxY;
-    const isValidRange = (range: Range<number>) => {
-        const repeatGroupCount = range.ele;
-        const baseRepeatStart = range.start;
-        const repeatCount = range.end - range.start;
+    function mergeLists(range: Range<'flexWrap' | 'normal'>) {
+        // 开始合并
+        const mergeType = range.ele;
+        const toMergeLists = lists.slice(range.start, range.end);
 
-        // 文本节点大概率重复, 如果只有俩个则忽略
-        if (repeatGroupCount === 1 && isTextNode(nodes[baseRepeatStart]) && repeatCount === 2) {
-            return false;
-        }
+        if (mergeType === 'flexWrap') {
+            console.debug('找到合并的横向flexWrap列表');
+            const children = _.flatMap(toMergeLists, listX => listX.children);
 
-        const children = nodes.slice(baseRepeatStart, baseRepeatStart + repeatCount);
-        const isItemGroup = repeatGroupCount > 1;
-        if (isItemGroup) {
-            const repeatGroups: VNode[] = [];
-            for (let j = 0; j < children.length; j += repeatGroupCount) {
-                const group = nodes.slice(j, j + repeatGroupCount);
+            const vnode = newVNode({
+                bounds: getBounds(children),
+                children,
+                role: ['list-wrap'],
+                direction: Direction.Row,
+                widthSpec: SizeSpec.Auto,
+                heightSpec: SizeSpec.Auto
+            });
+
+            // flex-wrap应该留出左边的间距
+            const xGap = toMergeLists[0].children[1].bounds.left - toMergeLists[0].children[0].bounds.right;
+            vnode.bounds.left -= xGap;
+            // 右边也多留两像素保持换行与设计稿一致
+            vnode.bounds.right += 2;
+            vnode.bounds.width = vnode.bounds.right - vnode.bounds.left;
+            // 上面也要留出margin
+            const yGap = toMergeLists[1].children[0].bounds.top - toMergeLists[0].children[0].bounds.bottom;
+            vnode.bounds.top -= yGap;
+            vnode.bounds.height = vnode.bounds.bottom - vnode.bounds.top;
+
+            return {
+                vnode,
+                toMergeLists
+            };
+        } else {
+            console.debug(`找到合并的${direction === Direction.Row ? '横向' : '纵向'}列表`);
+            const children = _.map(_.zip(..._.map(toMergeLists, 'children')), (vChildren) => {
+                const group = vChildren as VNode[];
+                _.each(group, (vnode) => {
+                    removeRole(vnode, 'list-item');
+                });
                 const vnode = newVNode({
                     bounds: getBounds(group),
                     children: group,
-                    role: ['list-item'],
-                    direction
+                    role: ['list-item']
                 });
-                repeatGroups.push(vnode);
-            }
-            return checkListItemInner(repeatGroups) && checkListItemGap(repeatGroups);
-        } else {
-            return checkListItemGap(children);
-        }
-    };
-
-    const ranges = collectRepeatRanges(nodes, compareFn, isValidRange);
-
-    if (ranges.length) {
-        return replaceRangesWithEle(nodes, ranges.map(range => {
-            const { start, end, ele: repeatGroupCount } = range;
-
-            let children = nodes.slice(start, end);
-            const isItemGroup = repeatGroupCount > 1;
-
-            // 将children进行分组
-            if (isItemGroup) {
-                console.debug(`${direction === Direction.Row ? '横向' : '纵向'}列表元素需要先归组`);
-                const repeatGroups: VNode[] = [];
-                for (let j = 0; j < children.length; j += repeatGroupCount) {
-                    const group = children.slice(j, j + repeatGroupCount);
-                    const vnode = newVNode({
-                        bounds: getBounds(group),
-                        children: group,
-                        role: ['list-item'],
-                        direction
-                    });
-                    repeatGroups.push(vnode);
-                }
-
-                children = repeatGroups;
-            } else {
-                _.each(children, child => {
-                    addRole(child, 'list-item');
-                });
-            }
-
+                return vnode;
+            });
             const vnode = newVNode({
-                classList: [],
                 bounds: getBounds(children),
                 children,
                 role: [direction === Direction.Row ? 'list-x' : 'list-y'],
                 direction,
-                [direction === Direction.Row ? 'widthSpec' : 'heightSpec']: SizeSpec.Auto,
-            });
-
-            console.debug(`找到${direction === Direction.Row ? '横向' : '纵向'}列表`);
-            _.each(children, child => {
-                child[direction === Direction.Row ? 'heightSpec' : 'widthSpec'] = SizeSpec.Fixed;
+                [direction === Direction.Row ? 'widthSpec' : 'heightSpec']: SizeSpec.Auto
             });
 
             return {
-                ...range,
-                ele: vnode
+                vnode,
+                toMergeLists
             };
-        }));
-    }
-
-    return nodes;
-}
-
-/** 将多个结构一致的横向列表合成为一个 */
-function tryMergeListXNodes(nodes: VNode[]): VNode[] {
-    let mergeType: 'normal' | 'flexWrap' | '' = '';
-    const compareFn = (a: VNode, b: VNode) => {
-        if (isListXContainer(a) && isListXContainer(a)) {
-            if (!mergeType) {
-                if (
-                    isSimilarBoxWrap(a.children[0], b.children[0]) &&
-                    numEq(getListXItemGap(a), getListXItemGap(b))
-                ) {
-                    mergeType = 'flexWrap';
-                    return mergeType;
-                } else if (
-                    a.children.length === b.children.length &&
-                    numEq(getListXItemMiddleLineGap(a), getListXItemMiddleLineGap(b))
-                ) {
-                    mergeType = 'normal';
-                    return mergeType;
-                }
-            } else if (mergeType === 'flexWrap') {
-                return (
-                    isSimilarBoxWrap(a.children[0], b.children[0]) &&
-                    numEq(getListXItemGap(a), getListXItemGap(b))
-                );
-            } else if (mergeType === 'normal') {
-                return (
-                    a.children.length === b.children.length &&
-                    numEq(getListXItemMiddleLineGap(a), getListXItemMiddleLineGap(b))
-                );
-            }
         }
-        return false;
-    };
-
-    const ranges = collectContinualRanges(nodes, compareFn);
-
-    if (ranges.length) {
-        return replaceRangesWithEle(nodes, ranges.map(range => {
-            // 开始合并
-            const toMergeLists = nodes.slice(range.start, range.end);
-            let vnode: VNode;
-
-            if (range.ele === 'flexWrap') {
-                console.debug('开始合并flexWrap列表');
-                const children = _.flatMap(toMergeLists, listX => listX.children);
-
-                vnode = newVNode({
-                    bounds: getBounds(children),
-                    children,
-                    role: ['list-wrap'],
-                    direction: Direction.Row,
-                    widthSpec: SizeSpec.Auto,
-                    heightSpec: SizeSpec.Auto
-                });
-
-                // flex-wrap应该留出左边的间距
-                const xGap = toMergeLists[0].children[1].bounds.left - toMergeLists[0].children[0].bounds.right;
-                vnode.bounds.left -= xGap;
-                // 右边也多留两像素保持换行与设计稿一致
-                vnode.bounds.right += 2;
-                vnode.bounds.width = vnode.bounds.right - vnode.bounds.left;
-                // 上面也要留出margin
-                const yGap = toMergeLists[1].children[0].bounds.top - toMergeLists[0].children[0].bounds.bottom;
-                vnode.bounds.top -= yGap;
-                vnode.bounds.height = vnode.bounds.bottom - vnode.bounds.top;
-            } else {
-                console.debug('开始合并横向列表');
-                const children = _.map(_.zip(..._.map(toMergeLists, 'children')), (vChildren) => {
-                    const group = vChildren as VNode[];
-                    _.each(group, (vnode) => {
-                        removeRole(vnode, 'list-item');
-                    });
-                    const vnode = newVNode({
-                        classList: [],
-                        bounds: getBounds(group),
-                        children: group,
-                        role: ['list-item'],
-                        direction: Direction.Column,
-                        heightSpec: SizeSpec.Fixed,
-                    });
-                    return vnode;
-                });
-                vnode = newVNode({
-                    bounds: getBounds(children),
-                    children,
-                    role: ['list-x'],
-                    direction: Direction.Row,
-                    widthSpec: SizeSpec.Auto,
-                });
-            }
-            return {
-                ...range,
-                ele: vnode
-            };
-        }))
     }
 
-    return nodes;
+    const ranges = collectContinualRanges(lists, compareList, range => {
+        const listItems = lists.slice(range.start, range.end);
+        const fakeListNode = {
+            bounds: getBounds(listItems),
+            children: _.flatMap(listItems, list => list.children),
+        } as VNode;
+        if (checkListInvalid(otherNodes, fakeListNode)) {
+            return false;
+        }
+        return true;
+    });
+
+    return ranges.map(range => mergeLists(range));
 }
 
-/**
- * TODO: 分组逻辑重构
- * 
- * 1. 交叉的盒子不一定要变成绝对定位，容许负margin的存在
- * 2. 优化绝对定位盒子的判断，如：单纯的文本节点不能作绝对定位
- * 3. 先划分盒子，再进行重复分组
- * 4. 划分盒子不一定先横着划分
- *    > 算法逻辑是，看哪种划分方式生成的直接子节点数量少就用哪种
- */
+/** 先寻找可能构成列表的节点，这些节点应该作为一个整体 */
+function buildListNodes(vnode: VNode) {
+    {
+        const otherNodes = vnode.children;
+        let rows = Array.from(groupWith(vnode.children, isSimilarBoxX).values()).filter(nodes => nodes.length > 1);
+        rows = _.sortBy(rows, row => row[0].bounds.top).map(nodes => _.sortBy(nodes, node => node.bounds.left));
+        rows = rows.map(row => groupListNodes(row, Direction.Row));
+        rows = rows.filter(row => row.length);
+        // 现在rows里面只有列表节点
+
+        const removedNodes = _.flatMapDeep(rows, row => row.map(list => list.children));
+        const addPlainListNodes = _.flatten(rows);
+        const addCombinedListNodes: VNode[] = [];
+
+        combineAndIterate(rows, combination => {
+            const mergeInfos = tryMergeListNodes(otherNodes, combination, Direction.Row);
+            _.each(mergeInfos, mergeInfo => {
+                const { vnode, toMergeLists } = mergeInfo;
+                removeEles(addPlainListNodes, toMergeLists);
+                addCombinedListNodes.push(vnode);
+            });
+            return mergeInfos.length > 0;
+        });
+
+        const addListNodes = [...addPlainListNodes, ...addCombinedListNodes];
+        _.each(addPlainListNodes, list => {
+            // 文本节点大概率重复, 如果只有俩个则忽略
+            if (
+                (isTextNode(list.children[0]) && list.children.length === 2) ||
+                checkListInvalid(otherNodes, list)
+            ) {
+                removeEle(addListNodes, list);
+                _.each(list.children, child => {
+                    removeRole(child, 'list-item');
+                });
+                removeEles(removedNodes, list.children);
+            } else {
+                console.debug('找到横向列表');
+            }
+        });
+        removeEles(vnode.children, removedNodes);
+        vnode.children.push(...addListNodes);
+    }
+    {
+        const otherNodes = vnode.children;
+        let cols = Array.from(groupWith(vnode.children, isSimilarBoxY).values()).filter(nodes => nodes.length > 1);
+        cols = _.sortBy(cols, col => col[0].bounds.left).map(nodes => _.sortBy(nodes, node => node.bounds.top));
+        cols = cols.map(col => groupListNodes(col, Direction.Column));
+        cols = cols.filter(col => col.length);
+        // 现在cols里面只有列表节点
+
+        const removedNodes = _.flatMapDeep(cols, col => col.map(list => list.children));
+        const addPlainListNodes = _.flatten(cols);
+        const addCombinedListNodes: VNode[] = [];
+
+        combineAndIterate(cols, combination => {
+            const mergeInfos = tryMergeListNodes(otherNodes, combination, Direction.Column);
+            _.each(mergeInfos, mergeInfo => {
+                const { vnode, toMergeLists } = mergeInfo;
+                removeEles(addPlainListNodes, toMergeLists);
+                addCombinedListNodes.push(vnode);
+            });
+            return mergeInfos.length > 0;
+        });
+
+        const addListNodes = [...addPlainListNodes, ...addCombinedListNodes];
+        _.each(addPlainListNodes, list => {
+            // 文本节点大概率重复, 如果只有俩个则忽略
+            if (
+                (isTextNode(list.children[0]) && list.children.length === 2) ||
+                checkListInvalid(otherNodes, list)
+            ) {
+                removeEle(addListNodes, list);
+                _.each(list.children, child => {
+                    removeRole(child, 'list-item');
+                });
+                removeEles(removedNodes, list.children);
+            } else {
+                console.debug('找到纵向列表');
+            }
+        });
+
+        removeEles(vnode.children, removedNodes);
+        vnode.children.push(...addListNodes);
+    }
+}
 
 /** 决定盒子的排列方向，算法逻辑是，看哪种划分方式生成的直接子节点数量少就用哪种 */
 function decideFlexDirection(nodes: VNode[]) {
@@ -648,6 +641,7 @@ function buildFlexBox(parent: VNode) {
     }
 }
 
+/** 合并节点 */
 function mergeNode(dest: VNode, src: VNode) {
     if (isTextNode(dest)) {
         console.warn('其他节点往文本节点合并，只能当作依附元素');
@@ -723,6 +717,10 @@ function mergeUnnessaryFlexBox(parent: VNode) {
     }
 
     const child = children[0];
+    if (isListContainer(child)) {
+        return;
+    }
+
     // 子盒子可以扩大
     if (
         child.heightSpec !== SizeSpec.Fixed &&
@@ -731,6 +729,7 @@ function mergeUnnessaryFlexBox(parent: VNode) {
     ) {
         mergeNode(parent, child);
         parent.children = child.children;
+        mergeUnnessaryFlexBox(parent);
     }
 }
 
@@ -906,8 +905,8 @@ function measureFlexAlign(parent: VNode) {
         });
     }
 
-    // 这种情况下容器没法撑开，会坍缩成0尺寸，给个最小尺寸兜底
-    if (parent[alignSpec] === SizeSpec.Constrained && _.every(children, child => child[alignSpec] === SizeSpec.Constrained)) {
+    // 这种情况下给个最小尺寸
+    if (parent[alignSpec] === SizeSpec.Auto) {
         parent.classList.push(R`min-${alignSpecSize.substring(0, 1)}-${parent.bounds[alignSpecSize]}`);
     }
 
@@ -1420,20 +1419,11 @@ function measureAttachPosition(parent: VNode) {
 /** 生成规范的flexbox树结构 */
 function buildTree(vnode: VNode) {
     if (!vnode.direction) {
-        if (vnode.children.length === 9) {
-            debugger;
-        }
         mergeUnnessaryNodes(vnode);
         buildMissingNodes(vnode);
+        buildListNodes(vnode);
+        buildMissingNodes(vnode);
         buildFlexBox(vnode);
-    }
-    if (!isListContainer(vnode)) {
-        if (vnode.direction === Direction.Row) {
-            vnode.children = groupListNodes(vnode.children, Direction.Row);
-        } else if (vnode.direction === Direction.Column) {
-            vnode.children = tryMergeListXNodes(vnode.children);
-            vnode.children = groupListNodes(vnode.children, Direction.Column);
-        }
     }
     mergeUnnessaryFlexBox(vnode);
 

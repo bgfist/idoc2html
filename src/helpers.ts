@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Role, VNode } from "./vnode";
+import { Direction, Role, VNode } from "./vnode";
 import { numEq, numGte, numLte, numLt, numGt, removeEle } from "./utils";
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -123,8 +123,12 @@ export function getIntersectionArea(a: VNode, b: VNode) {
     return (Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left)) * (Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top));
 }
 
-export function getXMiddleLine(vnode: VNode) {
-    return vnode.bounds.left + vnode.bounds.width / 2;
+export function getMiddleLine(vnode: VNode, direction: Direction) {
+    if (direction === Direction.Row) {
+        return vnode.bounds.left + vnode.bounds.width / 2;
+    } else {
+        return vnode.bounds.top + vnode.bounds.height / 2;
+    }
 }
 
 /** flex盒子方向一横一竖 */
