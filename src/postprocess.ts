@@ -2,8 +2,8 @@ import * as _ from 'lodash';
 import { Range, allNumsEqual, anyElesIn, assert, collectContinualRanges, collectRepeatRanges, combineAndIterate, groupByWith, groupWith, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, replaceRangesWithEle, unreachable } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 import { BuildStage, debug, defaultConfig } from './config';
-import { R, R2, addRole, getClassList, getIntersectionArea, getMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, isTextRight, newVNode, normalizeClassName, removeRole } from './helpers';
-import { maybeBorder, maybeInlineButton } from './roles';
+import { R, R2, addRole, getBounds, getClassList, getIntersectionArea, getMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, isTextRight, newVNode, normalizeClassName, removeRole } from './helpers';
+import { maybeBorder, maybeInlineButton, maybeTable } from './roles';
 
 /** 处理auto元素内容居中，仅横向 */
 function setAutoContentsAlign(vnode: VNode, side: 'center' | 'start' | 'end') {
@@ -221,9 +221,6 @@ function buildMissingNodes(parent: VNode) {
 
 /** 两个盒子是否相似 */
 function isSimilarBoxX(a: VNode, b: VNode) {
-    if (isGhostNode(a) || isGhostNode(b)) {
-        return false;
-    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.top, b.bounds.top) &&
@@ -245,9 +242,6 @@ function isSimilarBoxX(a: VNode, b: VNode) {
 /** 两个盒子是否相似 */
 function isSimilarBoxY(a: VNode, b: VNode) {
     // TODO: 是否不用高度相等
-    if (isGhostNode(a) || isGhostNode(b)) {
-        return false;
-    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.height, b.bounds.height) &&
@@ -271,9 +265,6 @@ function isSimilarBoxY(a: VNode, b: VNode) {
 
 /** 两个盒子是否相似 */
 function isSimilarBoxWrap(a: VNode, b: VNode) {
-    if (isGhostNode(a) || isGhostNode(b)) {
-        return false;
-    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.left, b.bounds.left) &&
@@ -289,29 +280,6 @@ function isSimilarBoxWrap(a: VNode, b: VNode) {
         return true;
     }
     return false;
-}
-
-/** 获取一堆节点的边界 */
-function getBounds(nodes: VNode[]) {
-    let minLeft = Infinity;
-    let maxRight = -Infinity;
-    let minTop = Infinity;
-    let maxBottom = -Infinity;
-    for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        minLeft = Math.min(minLeft, node.bounds.left);
-        maxRight = Math.max(maxRight, node.bounds.right);
-        minTop = Math.min(minTop, node.bounds.top);
-        maxBottom = Math.max(maxBottom, node.bounds.bottom);
-    }
-    return {
-        left: minLeft,
-        top: minTop,
-        right: maxRight,
-        bottom: maxBottom,
-        width: maxRight - minLeft,
-        height: maxBottom - minTop,
-    }
 }
 
 /** 获取两个元素之间direction方向的间距 */
@@ -510,6 +478,13 @@ function buildListNodes(vnode: VNode) {
         const otherNodes = vnode.children;
         let rows = Array.from(groupWith(vnode.children, isSimilarBoxX).values()).filter(nodes => nodes.length > 1);
         rows = _.sortBy(rows, row => row[0].bounds.top).map(nodes => _.sortBy(nodes, node => node.bounds.left));
+
+        const tables = maybeTable(rows);
+        tables.forEach(table => {
+            removeEles(rows, table.tableRows);
+            vnode.children.push(table.tableBody);
+        });
+
         rows = rows.map(row => groupListNodes(row, Direction.Row));
         rows = rows.filter(row => row.length);
         // 现在rows里面只有列表节点

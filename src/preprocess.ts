@@ -400,7 +400,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     }
     // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
     else if (level === 1 && node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance') {
-        stylishSymbol(node, vnode);
+        // stylishSymbol(node, vnode);
     }
     // 将切图的children清空，切图只保留本身图片
     else if (node.slice.bitmapURL) {

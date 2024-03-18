@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { Direction, Role, VNode } from "./vnode";
-import { numEq, numGte, numLte, numLt, numGt, removeEle } from "./utils";
+import { numEq, numGte, numLte, numLt, numGt, removeEle, assert } from "./utils";
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -128,6 +128,42 @@ export function getMiddleLine(vnode: VNode, direction: Direction) {
         return vnode.bounds.left + vnode.bounds.width / 2;
     } else {
         return vnode.bounds.top + vnode.bounds.height / 2;
+    }
+}
+
+export function getItemGaps(vnodes: VNode[], direction: Direction) {
+    assert(vnodes.length > 1, '至少两个元素才能计算间距');
+    const gaps = vnodes.slice(1).map((current, index) => {
+        const prev = vnodes[index];
+        if (direction === Direction.Row) {
+            return current.bounds.left - prev.bounds.right;
+        } else {
+            return current.bounds.top - prev.bounds.bottom;
+        }
+    });
+    return gaps;
+}
+
+/** 获取一堆节点的边界 */
+export function getBounds(nodes: VNode[]) {
+    let minLeft = Infinity;
+    let maxRight = -Infinity;
+    let minTop = Infinity;
+    let maxBottom = -Infinity;
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        minLeft = Math.min(minLeft, node.bounds.left);
+        maxRight = Math.max(maxRight, node.bounds.right);
+        minTop = Math.min(minTop, node.bounds.top);
+        maxBottom = Math.max(maxBottom, node.bounds.bottom);
+    }
+    return {
+        left: minLeft,
+        top: minTop,
+        right: maxRight,
+        bottom: maxBottom,
+        width: maxRight - minLeft,
+        height: maxBottom - minTop,
     }
 }
 
