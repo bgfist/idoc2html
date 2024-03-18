@@ -81,20 +81,6 @@ export function anyElesIn<T>(arr: T[], exclude: T[]) {
     return _.difference(exclude, arr).length !== exclude.length;
 }
 
-export function calculateCharacterWidth(str: string) {
-    let width = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        if (char >= 0x00 && char <= 0x7f) {
-            // 半角字符
-            width += 0.5;
-        } else {
-            width += 1;
-        }
-    }
-    return width;
-}
-
 export interface Range<T> {
     start: number;
     end: number;

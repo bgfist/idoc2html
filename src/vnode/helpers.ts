@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import { Direction, Role, VNode } from './vnode';
-import { numEq, numGte, numLte, numLt, numGt, removeEle, assert } from './utils';
+import { assert, numEq, numGt, numGte, numLt, numLte, removeEle } from '../utils';
+import { Direction, Role, VNode } from './';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 

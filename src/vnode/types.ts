@@ -59,11 +59,3 @@ export interface VNode {
     /** 此节点相交的节点，面积比它更小。可以做绝对定位，也可以做负的margin */
     attachNodes: VNode[];
 }
-
-/** 节点遍历上下文 */
-export const context = {
-    index: 0
-} as {
-    index: number;
-    root: VNode;
-};

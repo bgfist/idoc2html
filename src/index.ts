@@ -1,11 +1,12 @@
+import * as _ from 'lodash';
 import { BuildStage, Config, debug, defaultConfig } from './config';
-import { getClassName, isRole } from './helpers';
 import { Page } from './page';
 import { postprocess } from './postprocess';
 import { preprocess } from './preprocess';
 import { assert } from './utils';
-import { VNode } from './vnode';
-import * as _ from 'lodash';
+import { VNode, getClassName, isRole } from './vnode';
+
+export * from './config';
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
     if (parent) {
@@ -94,8 +95,6 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     return `${tab}<${tagName} ${attributesString}>${textContent}</${tagName}>`;
 }
 
-export * from './config';
-
 /**
  * 将幕客设计稿json转成html代码
  *
@@ -117,7 +116,11 @@ export function iDocJson2Html(page: Page, config?: Config) {
             const vnodes: VNode[] = [];
             const collectVNodes = (vnode: VNode) => {
                 vnode.classList.push(
-                    `${isRole(vnode, 'page') ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
+                    `${
+                        isRole(vnode, 'page') ? 'relative'
+                        : vnode.tagName === 'span' ? ''
+                        : 'absolute'
+                    } left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
                 );
                 vnodes.push(vnode);
                 _.each(vnode.children, collectVNodes);

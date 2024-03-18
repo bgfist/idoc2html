@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
+import { Direction, SizeSpec, VNode, context } from '.';
+import { allNumsEqual, collectContinualRanges, numEq } from '../utils';
 import { addRole, getBounds, getClassName, getItemGaps, isEqualBox, isTextNode, newVNode } from './helpers';
-import { allNumsEqual, collectContinualRanges, numEq } from './utils';
-import { Direction, SizeSpec, VNode, context } from './vnode';
 
 /** 判断节点是不是分隔线 */
 export function maybeDivider(vnode: VNode) {
@@ -70,6 +70,7 @@ export function maybeDialogMask(vnode: VNode) {
     return isEqualBox(vnode, context.root) && getClassName(vnode).indexOf('bg-[hsla(0,0%,0%,0.)') !== -1;
 }
 
+/** 判断是否是表格布局 */
 export function maybeTable(rows: VNode[][]) {
     const ranges = collectContinualRanges(
         rows,
