@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Range, allNumsEqual, anyElesIn, assert, collectContinualRanges, collectRepeatRanges, combineAndIterate, groupByWith, groupWith, numEq, numGt, numGte, numLt, numLte, removeEle, removeEles, replaceRangesWithEle, unreachable } from "./utils";
 import { Direction, SizeSpec, VNode, context } from "./vnode";
 import { BuildStage, debug, defaultConfig } from './config';
-import { R, R2, addRole, getClassList, getIntersectionArea, getMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, newVNode, normalizeClassName, removeRole } from './helpers';
+import { R, R2, addRole, getClassList, getIntersectionArea, getMiddleLine, isContainedWithin, isContainedWithinX, isContainedWithinY, isCrossDirection, isEqualBox, isFlexWrapLike, isGhostNode, isListContainer, isListWrapContainer, isListXContainer, isListYContainer, isMultiLineText, isOverlapping, isOverlappingX, isRole, isSingleLineText, isTextNode, isTextRight, newVNode, normalizeClassName, removeRole } from './helpers';
 import { maybeBorder, maybeInlineButton } from './roles';
 
 /** 处理auto元素内容居中，仅横向 */
@@ -221,6 +221,9 @@ function buildMissingNodes(parent: VNode) {
 
 /** 两个盒子是否相似 */
 function isSimilarBoxX(a: VNode, b: VNode) {
+    if (isGhostNode(a) || isGhostNode(b)) {
+        return false;
+    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.top, b.bounds.top) &&
@@ -242,11 +245,16 @@ function isSimilarBoxX(a: VNode, b: VNode) {
 /** 两个盒子是否相似 */
 function isSimilarBoxY(a: VNode, b: VNode) {
     // TODO: 是否不用高度相等
-
+    if (isGhostNode(a) || isGhostNode(b)) {
+        return false;
+    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.height, b.bounds.height) &&
-        numEq(a.bounds.left, b.bounds.left)
+        (
+            (isTextRight(a) && isTextRight(b) && numEq(a.bounds.right, b.bounds.right)) ||
+            (numEq(a.bounds.left, b.bounds.left))
+        )
     ) {
         return true;
     }
@@ -263,6 +271,9 @@ function isSimilarBoxY(a: VNode, b: VNode) {
 
 /** 两个盒子是否相似 */
 function isSimilarBoxWrap(a: VNode, b: VNode) {
+    if (isGhostNode(a) || isGhostNode(b)) {
+        return false;
+    }
     if (
         isTextNode(a) && isTextNode(b) &&
         numEq(a.bounds.left, b.bounds.left) &&
@@ -318,6 +329,15 @@ function checkListInvalid(otherNodes: VNode[], list: VNode) {
     return _.some(otherNodes, node => isOverlapping(list, node) && !isContainedWithin(list, node));
 }
 
+/** 文本节点大概率重复，需要排除这种过度包装成列表 */
+function checkListItemUnnecessary(itemNodes: VNode[]) {
+    const textHeight = _.uniqWith(itemNodes.map(item => isTextNode(item) ? item.bounds.height : 0));
+
+    if (textHeight.length === 1 && textHeight[0] !== 0) {
+        return true;
+    }
+}
+
 /** 寻找重复节点，将其归成列表 */
 function groupListNodes(nodes: VNode[], direction: Direction) {
     const ranges = collectContinualRanges(nodes, _.constant(true), range => {
@@ -357,6 +377,20 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
     function getListItemMiddleLineGap(vnode: VNode) {
         return getMiddleLine(vnode.children[1], direction) - getMiddleLine(vnode.children[0], direction);
     }
+    function getListItemStartLineGap(vnode: VNode) {
+        if (direction === Direction.Row) {
+            return vnode.children[1].bounds.left - vnode.children[0].bounds.left;
+        } else {
+            return vnode.children[1].bounds.top - vnode.children[0].bounds.top;
+        }
+    }
+    function getListItemEndLineGap(vnode: VNode) {
+        if (direction === Direction.Row) {
+            return vnode.children[1].bounds.right - vnode.children[0].bounds.right;
+        } else {
+            return vnode.children[1].bounds.bottom - vnode.children[0].bounds.bottom;
+        }
+    }
 
     let mergeType: 'flexWrap' | 'normal' | false = false;
     function compareList(a: VNode, b: VNode) {
@@ -377,7 +411,10 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
         if (!mergeType || mergeType == 'normal') {
             if (
                 a.children.length === b.children.length &&
-                numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b))
+                (
+                    numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b)) ||
+                    (direction === Direction.Row && numEq(getListItemStartLineGap(a), getListItemStartLineGap(b)))
+                )
             ) {
                 mergeType = 'normal';
                 return mergeType;
@@ -458,6 +495,9 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
         if (checkListInvalid(otherNodes, fakeListNode)) {
             return false;
         }
+        if (checkListItemUnnecessary(listItems.map(n => n.children[0]))) {
+            return false;
+        }
         return true;
     });
 
@@ -492,7 +532,8 @@ function buildListNodes(vnode: VNode) {
         _.each(addPlainListNodes, list => {
             // 文本节点大概率重复, 如果只有俩个则忽略
             if (
-                (isTextNode(list.children[0]) && list.children.length === 2) ||
+                list.children.length === 2 ||
+                _.every(list.children, isTextNode) || // 单节点列表如果都是文本，则没必要
                 checkListInvalid(otherNodes, list)
             ) {
                 removeEle(addListNodes, list);
@@ -533,7 +574,8 @@ function buildListNodes(vnode: VNode) {
         _.each(addPlainListNodes, list => {
             // 文本节点大概率重复, 如果只有俩个则忽略
             if (
-                (isTextNode(list.children[0]) && list.children.length === 2) ||
+                list.children.length === 2 ||
+                _.every(list.children, isTextNode) || // 单节点列表如果都是文本，则没必要
                 checkListInvalid(otherNodes, list)
             ) {
                 removeEle(addListNodes, list);
@@ -723,6 +765,7 @@ function mergeUnnessaryFlexBox(parent: VNode) {
 
     // 子盒子可以扩大
     if (
+        child.direction &&
         child.heightSpec !== SizeSpec.Fixed &&
         child.widthSpec !== SizeSpec.Fixed &&
         isGhostNode(child)
@@ -1153,10 +1196,15 @@ function measureFlexJustify(parent: VNode) {
     parent.classList = getClassList(parent);
     const specifiedSide = parent.classList.find(className => className.startsWith('justify-'));
     if (specifiedSide) {
+        // if (specifiedSide === 'justify-center' && numEq(startGap, 0)) {
+        //     console.warn('父容器指定我居中显示，但实际我需要justify-between');
+        //     removeEle(parent.classList, specifiedSide);
+        // } else {
         removeEle(parent.classList, specifiedSide);
         justifySide = specifiedSide.split('justify-')[1];
         sideJustify();
         return;
+        // }
     }
 
     if (parent[justifySpec] === SizeSpec.Auto) {
@@ -1304,9 +1352,19 @@ function measureFlexListLayout(parent: VNode) {
     if (isListXContainer(parent)) {
         const xGap = secondChild.bounds.left - firstChild.bounds.right;
         parent.classList.push(R`space-x-${xGap}`);
+
+        // 如果有一个列表元素高度固定，则所有元素高度都固定，避免不能对齐
+        if (_.some(parent.children, child => child.heightSpec === SizeSpec.Fixed)) {
+            _.each(parent.children, child => child.heightSpec === SizeSpec.Fixed);
+        }
     } else if (isListYContainer(parent)) {
         const yGap = secondChild.bounds.top - firstChild.bounds.bottom;
         parent.classList.push(R`space-y-${yGap}`);
+
+        // 如果有一个列表元素宽度固定，则所有元素宽度都固定，避免不能对齐
+        if (_.some(parent.children, child => child.widthSpec === SizeSpec.Fixed)) {
+            _.each(parent.children, child => child.widthSpec === SizeSpec.Fixed);
+        }
     }
 }
 
@@ -1460,7 +1518,9 @@ export function postprocess(vnode: VNode) {
             _.each(vnode.children, collectVNodes);
             vnode.children = vnodes;
         })();
-        removeGhostNodes(vnode);
+        if (defaultConfig.removeGhostNodes) {
+            removeGhostNodes(vnode);
+        }
     }
 
     if (debug.buildToStage >= BuildStage.Tree) {

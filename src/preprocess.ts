@@ -271,7 +271,7 @@ function stylishText(node: Node, vnode: VNode) {
             (
                 (vnode.bounds.width / Number(node.text.styles![0].font.size)) -
                 calculateCharacterWidth(vnode.textContent)
-            ) > 2
+            ) > 1
         ) {
             console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
             vnode.widthSpec = SizeSpec.Fixed;

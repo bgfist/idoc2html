@@ -140,6 +140,10 @@ export function isTextNode(vnode: VNode) {
     return !!vnode.textContent;
 }
 
+export function isTextRight(vnode: VNode) {
+    return _.includes(getClassList(vnode), 'text-right');
+}
+
 export function isGhostNode(vnode: VNode) {
     return _.isEmpty(vnode.classList);
 }

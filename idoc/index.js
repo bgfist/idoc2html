@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const pageJson = require('./demo5.json');
+const pageJson = require('./demo7.json');
 const { iDocJson2Html, debug, BuildStage } = require('../dist/index');
 
 debug.showId = true;
@@ -21,6 +21,7 @@ const page = iDocJson2Html(pageJson, {
     ],
     leafNodes: [
         'DC4F5548-0CE4-4F84-B496-6B17C84B63CE'
-    ]
+    ],
+    removeGhostNodes: true
 });
 fs.writeFileSync(path.join(__filename, '../../dist/demo.html'), page);
