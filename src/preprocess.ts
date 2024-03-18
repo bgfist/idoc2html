@@ -17,10 +17,10 @@ function opacity2ColorAlpha(node: Node) {
     }
 
     function setColor(color: Color) {
-        if (color.type === "normal") {
+        if (color.type === 'normal') {
             color.value.a = color.value.a * opacity;
-        } else if (color.type === "linearGradient") {
-            _.each(color.value.colorStops, (stop) => {
+        } else if (color.type === 'linearGradient') {
+            _.each(color.value.colorStops, stop => {
                 stop.color.a = stop.color.a * opacity;
             });
         }
@@ -40,9 +40,7 @@ function opacity2ColorAlpha(node: Node) {
     }
 }
 
-function checkNearlyInvisible(node: Node) {
-
-}
+function checkNearlyInvisible(node: Node) {}
 
 function getNormalColor(rgba: RGBA): string {
     if (!rgba.a) {
@@ -114,7 +112,7 @@ function getLinearColor(vnode: VNode, color: LinearColor) {
         } else {
             return `${percent}%`;
         }
-    }
+    };
 
     // 起点和终点的颜色
     const [start, ...stops] = colorStops;
@@ -166,7 +164,7 @@ function stylishSlice(node: Node, vnode: VNode) {
         node.children = [];
     }
     // TODO: 处理切图尺寸和实际不一致的问题？
-    vnode.classList.push(`bg-cover bg-[url(https://idoc.mucang.cn${(node.slice.bitmapURL)})]`);
+    vnode.classList.push(`bg-cover bg-[url(https://idoc.mucang.cn${node.slice.bitmapURL})]`);
     // (vnode.style??={}).backgroundImage = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
@@ -185,18 +183,20 @@ function stylishImage(node: Node, vnode: VNode) {
     // vnode.classList.push('bg-cover');
     // (vnode.style ??= {}).backgroundImage = "url()";
     // img元素不能有子节点，可以尝试包一层
-    vnode.attachNodes = [newVNode({
-        tagName: 'img',
-        bounds: {
-            ...vnode.bounds
-        },
-        widthSpec: SizeSpec.Constrained,
-        heightSpec: SizeSpec.Constrained,
-        classList: ['block object-cover w-full h-full'],
-        attributes: {
-            src: ''
-        }
-    })];
+    vnode.attachNodes = [
+        newVNode({
+            tagName: 'img',
+            bounds: {
+                ...vnode.bounds
+            },
+            widthSpec: SizeSpec.Constrained,
+            heightSpec: SizeSpec.Constrained,
+            classList: ['block object-cover w-full h-full'],
+            attributes: {
+                src: ''
+            }
+        })
+    ];
     // 防止被当作幽灵节点删除
     vnode.classList = ['$ghost'];
     vnode.widthSpec = SizeSpec.Fixed;
@@ -212,17 +212,17 @@ function stylishText(node: Node, vnode: VNode) {
     // 2. 多行文本高度不固定，如果文本框高度大于其子文本中任意一个文本，则为多行文本
     // 3. 如果文本节点是父节点中唯一的一个节点，且父节点不是切图，则父节点宽度不固定，适用于按钮。除非两个相邻按钮宽度一致
 
-    const textNodes = _.map(node.text.styles, (text) => {
+    const textNodes = _.map(node.text.styles, text => {
         const textNode = newVNode({
             tagName: 'span',
             bounds: {
                 ...vnode.bounds
-            },
+            }
         });
         textNode.textContent = text.value.replace('\n', ' '); // 换行符用空格代替
-        if (text.font.color.type === "normal") {
+        if (text.font.color.type === 'normal') {
             textNode.classList.push(`text-${getNormalColor(text.font.color.value)}`);
-        } else if (text.font.color.type === "linearGradient") {
+        } else if (text.font.color.type === 'linearGradient') {
             console.warn('text节点不支持线性渐变,用第一个渐变色代替');
             textNode.classList.push(`text-${getNormalColor(text.font.color.value.colorStops[0].color)}`);
         }
@@ -230,8 +230,9 @@ function stylishText(node: Node, vnode: VNode) {
         if (text.space.letterSpacing) {
             textNode.classList.push(R`tracking-${text.space.letterSpacing}`);
         }
-        const isBoldFont = text.font.family.indexOf('AlibabaPuHuiTiM') !== -1 ||
-            text.font.family.indexOf('PingFangSC') !== -1 && text.font.weight === 'Medium';
+        const isBoldFont =
+            text.font.family.indexOf('AlibabaPuHuiTiM') !== -1 ||
+            (text.font.family.indexOf('PingFangSC') !== -1 && text.font.weight === 'Medium');
         if (text.fontStyles.bold || isBoldFont) {
             textNode.classList.push('font-bold');
         }
@@ -251,7 +252,7 @@ function stylishText(node: Node, vnode: VNode) {
     });
     if (textNodes.length === 1) {
         _.assign(vnode, textNodes[0], {
-            tagName: 'div',
+            tagName: 'div'
         });
     } else {
         vnode.textContent = textNodes;
@@ -259,7 +260,9 @@ function stylishText(node: Node, vnode: VNode) {
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        vnode.widthSpec = defaultConfig.allocSpaceForAuto.multiLineTextFixedWidth ? SizeSpec.Fixed : SizeSpec.Auto;
+        vnode.widthSpec = defaultConfig.allocSpaceForAuto.multiLineTextFixedWidth
+            ? SizeSpec.Fixed
+            : SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
     } else {
@@ -268,10 +271,9 @@ function stylishText(node: Node, vnode: VNode) {
         // 有的文本框跟文字本身宽度并不一致，会多出一些空间，这时候应该视作Fixed尺寸，简单判断下，数字和字母为半个字宽
         if (
             _.isString(vnode.textContent) &&
-            (
-                (vnode.bounds.width / Number(node.text.styles![0].font.size)) -
-                calculateCharacterWidth(vnode.textContent)
-            ) > 1
+            vnode.bounds.width / Number(node.text.styles![0].font.size) -
+                calculateCharacterWidth(vnode.textContent) >
+                1
         ) {
             console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
             vnode.widthSpec = SizeSpec.Fixed;
@@ -301,14 +303,17 @@ function stylishBox(node: Node, vnode: VNode) {
     if (node.stroke && node.stroke.radius) {
         const [tl, tr, br, bl] = node.stroke.radius;
         const r1 = {
-            tl, tr, br, bl
+            tl,
+            tr,
+            br,
+            bl
         };
         const t = tl === tr && ['tl', 'tr'];
         const r = tr === br && ['tr', 'br'];
         const b = br === bl && ['br', 'bl'];
         const l = bl === tl && ['bl', 'tl'];
         const addClasses = (key: string, value: number, exclude?: string[]) => {
-            const calcV = (v: number) => v >= Math.min(node.bounds.width, node.bounds.height) ? 'full' : v;
+            const calcV = (v: number) => (v >= Math.min(node.bounds.width, node.bounds.height) ? 'full' : v);
             vnode.classList.push(R`rounded-${key}${calcV(value)}`);
             if (exclude) {
                 _.each(_.omit(r1, exclude), (v, k) => {
@@ -344,20 +349,20 @@ function stylishBox(node: Node, vnode: VNode) {
         } else {
             vnode.classList.push(R`border-${border.strokeWidth}`);
         }
-        if (border.color.type === "normal") {
+        if (border.color.type === 'normal') {
             vnode.classList.push(`border-${getNormalColor(border.color.value)}`);
-        } else if (border.color.type === "linearGradient") {
+        } else if (border.color.type === 'linearGradient') {
             console.warn('border不支持线性渐变,用第一个渐变色代替');
             vnode.classList.push(`border-${getNormalColor(border.color.value.colorStops[0].color)}`);
         }
     }
     if (node.effect && node.effect.shadows && node.effect.shadows.length) {
-        const styles = _.map(node.effect.shadows, (shadow) => {
+        const styles = _.map(node.effect.shadows, shadow => {
             let color!: RGBA;
-            if (shadow.color.type === "linearGradient") {
+            if (shadow.color.type === 'linearGradient') {
                 console.warn('shadow不支持线性渐变,用第一个渐变色代替');
                 color = shadow.color.value.colorStops[0].color;
-            } else if (shadow.color.type === "normal") {
+            } else if (shadow.color.type === 'normal') {
                 color = shadow.color.value;
             }
             return `${shadow.type === 'inside' ? 'inset ' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px rgba(${color.r},${color.g},${color.b},${color.a})`;
@@ -390,8 +395,8 @@ export function preprocess(node: Node, level: number): VNode | null {
         bounds: {
             ...node.bounds,
             right: node.bounds.left + node.bounds.width,
-            bottom: node.bounds.top + node.bounds.height,
-        },
+            bottom: node.bounds.top + node.bounds.height
+        }
     });
 
     // 根节点决定设计尺寸
@@ -406,7 +411,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     else if (node.slice.bitmapURL) {
         stylishSlice(node, vnode);
     }
-    // 占位图 
+    // 占位图
     else if (node.basic.type === 'image' && node.basic.realType === 'Image') {
         stylishImage(node, vnode);
     }
@@ -416,12 +421,11 @@ export function preprocess(node: Node, level: number): VNode | null {
     }
     // 容器
     else if (
-        node.basic.type === 'group' && node.basic.realType === 'Group' ||
-        node.basic.type === 'rect' && node.basic.realType === 'ShapePath' ||
-        node.basic.type === 'path' && node.basic.realType === 'ShapePath' ||
-        node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance'
+        (node.basic.type === 'group' && node.basic.realType === 'Group') ||
+        (node.basic.type === 'rect' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'path' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance')
     ) {
-
     }
     // 其他不识别的节点全部清掉
     // 如果没有子节点也没有样式，清掉该节点
@@ -438,9 +442,12 @@ export function preprocess(node: Node, level: number): VNode | null {
 
     if (!debug.buildAllNodes) {
         // 目前先这样处理，有slice节点，则删掉其他兄弟节点
-        const sliceChild = _.find(node.children, (node) => node.basic.type === 'shape' && node.basic.realType === 'Slice');
+        const sliceChild = _.find(
+            node.children,
+            node => node.basic.type === 'shape' && node.basic.realType === 'Slice'
+        );
         if (sliceChild) {
-            node.children = _.filter(node.children, (node) => !!node.slice.bitmapURL);
+            node.children = _.filter(node.children, node => !!node.slice.bitmapURL);
             if (node.children.length > 1) {
                 console.warn('切图可能重复');
             }
@@ -464,11 +471,14 @@ export function preprocess(node: Node, level: number): VNode | null {
 
     if (defaultConfig.codeGenOptions.experimentalZIndex) {
         const [hasRight, noRight] = _.partition(node.children, n => 'right' in n.bounds);
-        node.children = hasRight.reverse().map((n, i) => {
-            // @ts-ignore
-            n._index = i + 1;
-            return n;
-        }).concat(noRight);
+        node.children = hasRight
+            .reverse()
+            .map((n, i) => {
+                // @ts-ignore
+                n._index = i + 1;
+                return n;
+            })
+            .concat(noRight);
 
         // @ts-ignore
         if (node._index) {

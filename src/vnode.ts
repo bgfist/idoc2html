@@ -5,19 +5,32 @@ export enum SizeSpec {
     /** 由子节点撑开 */
     Auto = 'Auto',
     /** 由父节点分配，如flex1 */
-    Constrained = 'Constrained',
-};
+    Constrained = 'Constrained'
+}
 
 /** flex方向 */
 export enum Direction {
     /** 横向的flex盒子 */
     Row = 'Row',
     /** 竖向的flex盒子 */
-    Column = 'Column',
-};
+    Column = 'Column'
+}
 
 /** 节点用途 */
-export type Role = '' | 'page' | 'border' | 'divider' | 'list-x' | 'list-y' | 'list-wrap' | 'list-item' | 'scroller' | 'btn' | 'tab' | 'dialog' | 'table-body';
+export type Role =
+    | ''
+    | 'page'
+    | 'border'
+    | 'divider'
+    | 'list-x'
+    | 'list-y'
+    | 'list-wrap'
+    | 'list-item'
+    | 'scroller'
+    | 'btn'
+    | 'tab'
+    | 'dialog'
+    | 'table-body';
 
 /** 可渲染的虚拟节点 */
 export interface VNode {
@@ -49,7 +62,7 @@ export interface VNode {
 
 /** 节点遍历上下文 */
 export const context = {
-    index: 0,
+    index: 0
 } as {
     index: number;
     root: VNode;

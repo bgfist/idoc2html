@@ -31,7 +31,7 @@ export interface Basic {
      * shape: ["Slice", "Shape"]
      * symbol: ["SymbolInstance"]
      * image: ["Image"] -> 占位图，由程序动态赋值图片
-     * 
+     *
      * [
      *  [ 'group', 'Artboard' ],
      *  [ 'group', 'Group' ],
@@ -47,8 +47,8 @@ export interface Basic {
      *  [ 'symbol', 'SymbolInstance' ]
      * ]
      */
-    type: "group" | "text" | "rect" | "path" | "shape" | "symbol" | "image";
-    realType: "Artboard" | "Group" | "Text" | "ShapePath" | "Slice" | "Shape" | "SymbolInstance" | "Image";
+    type: 'group' | 'text' | 'rect' | 'path' | 'shape' | 'symbol' | 'image';
+    realType: 'Artboard' | 'Group' | 'Text' | 'ShapePath' | 'Slice' | 'Shape' | 'SymbolInstance' | 'Image';
     opacity: number;
     imageID: string;
 }
@@ -83,7 +83,7 @@ export interface Slice {
 }
 
 export interface Shadow {
-    type: "outside" | "inside";
+    type: 'outside' | 'inside';
     offsetX: number;
     offsetY: number;
     blur: number;
@@ -107,13 +107,13 @@ export interface RGBA {
 }
 
 export interface NormalColor {
-    type: "normal";
+    type: 'normal';
     value: RGBA;
     name?: string;
 }
 
 export interface LinearColor {
-    type: "linearGradient";
+    type: 'linearGradient';
     value: {
         fromX: number;
         fromY: number;
@@ -145,11 +145,11 @@ export interface TextStyle {
         bold: boolean;
         italic: boolean;
     };
-    align: "left" | "center";
+    align: 'left' | 'center';
 }
 
 export interface Border {
-    type: "center" | "inside";
+    type: 'center' | 'inside';
     strokeWidth: number;
     color: Color;
 }

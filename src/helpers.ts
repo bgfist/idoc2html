@@ -1,11 +1,13 @@
-import * as _ from "lodash";
-import { Direction, Role, VNode } from "./vnode";
-import { numEq, numGte, numLte, numLt, numGt, removeEle, assert } from "./utils";
+import * as _ from 'lodash';
+import { Direction, Role, VNode } from './vnode';
+import { numEq, numGte, numLte, numLt, numGt, removeEle, assert } from './utils';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** 仅便于调试 */
-export function newVNode(vnode: OptionalKeys<VNode, 'children' | 'classList' | 'attributes' | 'style' | 'role' | 'attachNodes'>): VNode {
+export function newVNode(
+    vnode: OptionalKeys<VNode, 'children' | 'classList' | 'attributes' | 'style' | 'role' | 'attachNodes'>
+): VNode {
     return {
         classList: [],
         children: [],
@@ -37,22 +39,25 @@ export function removeRole(vnode: VNode, role: Role) {
     removeEle(vnode.role, role);
 }
 
-/** 
+/**
  * 规范className
- * 
+ *
  * 将className中的负号前移
  * @param removeZero 是否去掉带0值的className
  */
 export function normalizeClassName(className: string, removeZero: boolean) {
-    return className.replace(/(\s?)(\S+?-)(-?\d+)(\s|$)/g, function (substring: string, ...[$0, $1, $2, $3]: any[]) {
-        if ($2[0] === '-') {
-            $2 = $2.substring(1);
-            $1 = '-' + $1;
-        } else if (removeZero && $2[0] == 0) {
-            return $3;
+    return className.replace(
+        /(\s?)(\S+?-)(-?\d+)(\s|$)/g,
+        function (substring: string, ...[$0, $1, $2, $3]: any[]) {
+            if ($2[0] === '-') {
+                $2 = $2.substring(1);
+                $1 = '-' + $1;
+            } else if (removeZero && $2[0] == 0) {
+                return $3;
+            }
+            return $0 + $1 + $2 + $3;
         }
-        return $0 + $1 + $2 + $3;
-    });
+    );
 }
 
 export function R(strings: TemplateStringsArray, ...values: any[]) {
@@ -115,12 +120,15 @@ export function isOverlappingY(child: VNode, parent: VNode) {
 }
 
 /** 处理元素之间的重叠关系 */
-export function isOverlapping(child: VNode, parent: VNode,) {
+export function isOverlapping(child: VNode, parent: VNode) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
 export function getIntersectionArea(a: VNode, b: VNode) {
-    return (Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left)) * (Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top));
+    return (
+        (Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left)) *
+        (Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top))
+    );
 }
 
 export function getMiddleLine(vnode: VNode, direction: Direction) {
@@ -163,8 +171,8 @@ export function getBounds(nodes: VNode[]) {
         right: maxRight,
         bottom: maxBottom,
         width: maxRight - minLeft,
-        height: maxBottom - minTop,
-    }
+        height: maxBottom - minTop
+    };
 }
 
 /** flex盒子方向一横一竖 */

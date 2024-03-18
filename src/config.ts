@@ -15,7 +15,7 @@ export enum AllocSpaceStrategy {
     /** 多行元素宽度固定，其他自动撑开 */
     Strict = 1,
     Symmetric = 2,
-    Intelligent = 3,
+    Intelligent = 3
 }
 
 /** 调试配置 */
@@ -39,7 +39,7 @@ export const defaultConfig = {
         /** 生成role属性 */
         role: true,
         /** 生成层级z-index */
-        experimentalZIndex: false,
+        experimentalZIndex: false
     },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
     removeGhostNodes: false,
@@ -55,7 +55,9 @@ export const defaultConfig = {
     leafNodes: [] as string[]
 };
 
-type DeepPartial<T> = T extends object ? {
-    [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+type DeepPartial<T> = T extends object
+    ? {
+          [P in keyof T]?: DeepPartial<T[P]>;
+      }
+    : T;
 export type Config = DeepPartial<typeof defaultConfig>;

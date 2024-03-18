@@ -21,14 +21,18 @@ export function second<T>(x: [unknown, T]) {
 }
 
 export function removeEle<T>(arr: T[], ele: T) {
-    _.remove(arr, (item) => item === ele);
+    _.remove(arr, item => item === ele);
 }
 
 export function removeEles<T>(arr: T[], ele: T[]) {
-    _.remove(arr, (item) => ele.indexOf(item) >= 0);
+    _.remove(arr, item => ele.indexOf(item) >= 0);
 }
 
-export function groupByWith<T, K>(arr: T[], iteratee: (item: T) => K, compare: (current: K, before: K) => boolean) {
+export function groupByWith<T, K>(
+    arr: T[],
+    iteratee: (item: T) => K,
+    compare: (current: K, before: K) => boolean
+) {
     return arr.reduce((map, item) => {
         const key = iteratee(item);
         let found = false;
@@ -81,7 +85,8 @@ export function calculateCharacterWidth(str: string) {
     let width = 0;
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
-        if (char >= 0x00 && char <= 0x7F) { // 半角字符
+        if (char >= 0x00 && char <= 0x7f) {
+            // 半角字符
             width += 0.5;
         } else {
             width += 1;
@@ -97,7 +102,11 @@ export interface Range<T> {
 }
 
 /** 寻找重复序列 */
-export function collectRepeatRanges<T>(arr: T[], compareFn: (a: T, b: T) => boolean, isValidRange: (range: Range<number>) => boolean) {
+export function collectRepeatRanges<T>(
+    arr: T[],
+    compareFn: (a: T, b: T) => boolean,
+    isValidRange: (range: Range<number>) => boolean
+) {
     // number表示序列包含几个元素
     const ranges: Range<number>[] = [];
 
@@ -184,7 +193,11 @@ export function collectRepeatRanges<T>(arr: T[], compareFn: (a: T, b: T) => bool
 // ];
 
 /** 寻找同值的连续序列 */
-export function collectContinualRanges<T, K>(arr: T[], compareFn: (a: T, b: T) => K | boolean, isValidRange: (range: Range<K>) => boolean) {
+export function collectContinualRanges<T, K>(
+    arr: T[],
+    compareFn: (a: T, b: T) => K | boolean,
+    isValidRange: (range: Range<K>) => boolean
+) {
     const ranges: Range<K>[] = [];
 
     let ele: K | boolean = false;
@@ -195,7 +208,9 @@ export function collectContinualRanges<T, K>(arr: T[], compareFn: (a: T, b: T) =
             do {
                 i++;
                 compareIndex++;
-            } while (i < arr.length && compareFn(arr[compareIndex], arr[i])) { }
+            } while (i < arr.length && compareFn(arr[compareIndex], arr[i]));
+            {
+            }
             for (; i > start + 1; i--, compareIndex--) {
                 const range = {
                     ele: ele as K,
@@ -253,7 +268,7 @@ export function combineAndIterate<T>(arrays: T[][], callback: (combination: T[])
     const used = arrays.map(array => new Set<number>());
     for (let iteration = 0; iteration < maxIterations; iteration++) {
         const eleUsed = used.some((set, arrayIndex) => {
-            return set.has(indices[arrayIndex])
+            return set.has(indices[arrayIndex]);
         });
         if (!eleUsed) {
             // 创建当前组合
@@ -262,7 +277,7 @@ export function combineAndIterate<T>(arrays: T[][], callback: (combination: T[])
             const isValid = callback(combination.filter(Boolean));
             if (isValid) {
                 used.forEach((set, arrayIndex) => {
-                    set.add(indices[arrayIndex])
+                    set.add(indices[arrayIndex]);
                 });
             }
         }

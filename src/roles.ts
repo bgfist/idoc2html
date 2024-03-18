@@ -1,7 +1,7 @@
-import * as _ from "lodash";
-import { addRole, getBounds, getClassName, getItemGaps, isEqualBox, isTextNode, newVNode } from "./helpers";
-import { allNumsEqual, collectContinualRanges, numEq } from "./utils";
-import { Direction, SizeSpec, VNode, context } from "./vnode";
+import * as _ from 'lodash';
+import { addRole, getBounds, getClassName, getItemGaps, isEqualBox, isTextNode, newVNode } from './helpers';
+import { allNumsEqual, collectContinualRanges, numEq } from './utils';
+import { Direction, SizeSpec, VNode, context } from './vnode';
 
 /** 判断节点是不是分隔线 */
 export function maybeDivider(vnode: VNode) {
@@ -22,7 +22,8 @@ export function maybeDivider(vnode: VNode) {
 /** 判断节点是不是边框 */
 export function maybeBorder(child: VNode, parent: VNode) {
     if (numEq(child.bounds.width, 1)) {
-        const attachLeftOrRight = numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
+        const attachLeftOrRight =
+            numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
 
         if (attachLeftOrRight) {
             addRole(child, 'border');
@@ -31,7 +32,8 @@ export function maybeBorder(child: VNode, parent: VNode) {
             return true;
         }
     } else if (numEq(child.bounds.height, 1)) {
-        const attachTopOrBottom = numEq(child.bounds.top, parent.bounds.top) || numEq(child.bounds.bottom, parent.bounds.bottom);
+        const attachTopOrBottom =
+            numEq(child.bounds.top, parent.bounds.top) || numEq(child.bounds.bottom, parent.bounds.bottom);
 
         if (attachTopOrBottom) {
             addRole(child, 'border');
@@ -61,29 +63,31 @@ export function maybeInlineButton(vnode: VNode) {
 }
 
 /** 文字下面有下划线，可能是tab下的选中状态 */
-export function maybeTabLine(vnode: VNode) {
-
-}
+export function maybeTabLine(vnode: VNode) {}
 
 /** 弹窗不透明蒙层 */
 export function maybeDialogMask(vnode: VNode) {
-    return (
-        isEqualBox(vnode, context.root) &&
-        getClassName(vnode).indexOf('bg-[hsla(0,0%,0%,0.)') !== -1
-    );
+    return isEqualBox(vnode, context.root) && getClassName(vnode).indexOf('bg-[hsla(0,0%,0%,0.)') !== -1;
 }
 
 export function maybeTable(rows: VNode[][]) {
-    const ranges = collectContinualRanges(rows, (rowA, rowB) => rowA.length === rowB.length, range => {
-        if (rows[range.start].length >= 3 && range.end - range.start >= 3 && range.end === rows.length) {
-            const tableRows = rows.slice(range.start, range.end);
-            const gaps = getItemGaps(tableRows.map(row => _.first(row)!), Direction.Column);
-            if (allNumsEqual(gaps) && Math.abs(gaps[0]) < 6) {
-                return true;
+    const ranges = collectContinualRanges(
+        rows,
+        (rowA, rowB) => rowA.length === rowB.length,
+        range => {
+            if (rows[range.start].length >= 3 && range.end - range.start >= 3 && range.end === rows.length) {
+                const tableRows = rows.slice(range.start, range.end);
+                const gaps = getItemGaps(
+                    tableRows.map(row => _.first(row)!),
+                    Direction.Column
+                );
+                if (allNumsEqual(gaps) && Math.abs(gaps[0]) < 6) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    });
+    );
 
     return ranges.map(range => {
         console.debug('找到表格');
@@ -104,6 +108,6 @@ export function maybeTable(rows: VNode[][]) {
                 direction: Direction.Column,
                 heightSpec: SizeSpec.Auto
             })
-        }
+        };
     });
 }

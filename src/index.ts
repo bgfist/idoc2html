@@ -1,10 +1,10 @@
-import { BuildStage, Config, debug, defaultConfig } from "./config";
-import { getClassName, isRole } from "./helpers";
-import { Page } from "./page";
-import { postprocess } from "./postprocess";
-import { preprocess } from "./preprocess";
-import { assert } from "./utils";
-import { SizeSpec, VNode } from "./vnode";
+import { BuildStage, Config, debug, defaultConfig } from './config';
+import { getClassName, isRole } from './helpers';
+import { Page } from './page';
+import { postprocess } from './postprocess';
+import { preprocess } from './preprocess';
+import { assert } from './utils';
+import { VNode } from './vnode';
 import * as _ from 'lodash';
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
@@ -17,27 +17,38 @@ function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
                 ...vnode.attributes
             };
         }
-        vnode.classList.push(`${vnode.tagName === 'span' ? '' : 'absolute'} left-[${left}px] top-[${top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+        vnode.classList.push(
+            `${vnode.tagName === 'span' ? '' : 'absolute'} left-[${left}px] top-[${top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
+        );
     } else {
         vnode.classList.push(`relative w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
     }
     _.each(vnode.children, child => makeAbsolute(child, vnode));
     _.each(vnode.attachNodes, child => makeAbsolute(child, vnode, true));
-};
+}
 
 const TAB = '  ';
 
 /**
  * 根据vnode信息生成html代码
- * 
- * @param vnode 
- * @param level 
+ *
+ * @param vnode
+ * @param level
  * @param recursive 是否递归生成
- * @returns 
+ * @returns
  */
 function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     const tab = TAB.repeat(level);
-    let { tagName = 'div', classList, style, attributes, children, attachNodes, textContent = '', role = '' } = vnode;
+    let {
+        tagName = 'div',
+        classList,
+        style,
+        attributes,
+        children,
+        attachNodes,
+        textContent = '',
+        role = ''
+    } = vnode;
     const prependAttrs: Record<string, string> = {};
     if (debug.showId) {
         prependAttrs['id'] = vnode.id || '';
@@ -51,18 +62,26 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     }
     attributes = {
         ...prependAttrs,
-        ...attributes,
+        ...attributes
     };
 
     classList.length && Object.assign(attributes, { class: getClassName(vnode) });
-    style && Object.assign(attributes, { style: Object.entries(style).map(([key, value]) => `${_.kebabCase(key)}: ${value}`).join(';') });
+    if (style) {
+        Object.assign(attributes, {
+            style: Object.entries(style)
+                .map(([key, value]) => `${_.kebabCase(key)}: ${value}`)
+                .join(';')
+        });
+    }
     attributes = _.omitBy(attributes, v => _.isNil(v) || v === '');
-    const attributesString = Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join(' ');
+    const attributesString = Object.entries(attributes)
+        .map(([key, value]) => `${key}="${value}"`)
+        .join(' ');
 
     children = _.concat(children || [], attachNodes || []);
 
     if (_.isArray(textContent)) {
-        textContent = `\n${_.map(textContent, n => (VNode2Code(n, level + 1, recursive))).join('\n')}\n${tab}`;
+        textContent = `\n${_.map(textContent, n => VNode2Code(n, level + 1, recursive)).join('\n')}\n${tab}`;
     }
 
     if (children && children.length && recursive) {
@@ -77,9 +96,9 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
 
 export * from './config';
 
-/** 
- * 将幕客设计稿json转成html代码 
- * 
+/**
+ * 将幕客设计稿json转成html代码
+ *
  * @param page 幕客设计稿json
  * @param config 生成配置
  * @returns 可用的html代码，样式用tailwind.css实现
@@ -97,7 +116,9 @@ export function iDocJson2Html(page: Page, config?: Config) {
         if (!debug.keepOriginalTree) {
             const vnodes: VNode[] = [];
             const collectVNodes = (vnode: VNode) => {
-                vnode.classList.push(`${isRole(vnode, 'page') ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
+                vnode.classList.push(
+                    `${isRole(vnode, 'page') ? 'relative' : vnode.tagName === 'span' ? '' : 'absolute'} left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
+                );
                 vnodes.push(vnode);
                 _.each(vnode.children, collectVNodes);
             };
