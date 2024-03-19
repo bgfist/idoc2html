@@ -7,6 +7,7 @@ import { assert } from './utils';
 import { VNode, getClassName, isRole } from './vnode';
 
 export * from './config';
+export { Page };
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
     if (parent) {

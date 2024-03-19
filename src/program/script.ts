@@ -1,5 +1,11 @@
 import { Page } from '../page';
-import { debug, iDocJson2Html } from '..';
+import * as iDocJson2HtmlModule from '..';
+
+declare global {
+    interface Window {
+        iDocJson2HtmlModule: typeof iDocJson2HtmlModule;
+    }
+}
 
 main();
 
@@ -214,6 +220,12 @@ function createPanelUI(props: { onGenerateClick(): void }) {
 }
 
 function main() {
+    if (!!window.iDocJson2HtmlModule) {
+        window.iDocJson2HtmlModule = iDocJson2HtmlModule;
+        return;
+    }
+    window.iDocJson2HtmlModule = iDocJson2HtmlModule;
+
     let currentPage: Page;
 
     const panel = createPanelUI({
@@ -224,10 +236,10 @@ function main() {
             } else if (!location.href.match(/develop\/design\//)) {
                 alert('当前不在开发模式');
             }
-            debug.showId = true;
-            debug.showDirection = true;
-            debug.showSizeSpec = true;
-            const html = iDocJson2Html(currentPage);
+            window.iDocJson2HtmlModule.debug.showId = true;
+            window.iDocJson2HtmlModule.debug.showDirection = true;
+            window.iDocJson2HtmlModule.debug.showSizeSpec = true;
+            const html = window.iDocJson2HtmlModule.iDocJson2Html(currentPage);
             navigator.clipboard.writeText(html).then(
                 () => {
                     alert('html代码已复制到剪贴板中');

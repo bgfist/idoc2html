@@ -7,7 +7,7 @@
         "sourceMap": true,
         "outDir": "dist",
         "declaration": true,
-        "declarationDir": "dist"
+        "declarationDir": "dist-types"
     },
     "include": [
         "src"

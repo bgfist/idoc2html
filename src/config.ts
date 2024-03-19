@@ -44,7 +44,7 @@ export const defaultConfig = {
         experimentalZIndex: false
     },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
-    removeGhostNodes: true,
+    removeGhostNodes: false,
     /** 为auto元素分配更多空间，指定分配策略 */
     allocSpaceForAuto: {
         flexWrapItemFixedWidth: true,

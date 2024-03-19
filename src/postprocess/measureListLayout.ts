@@ -34,6 +34,13 @@ export function measureFlexListLayout(parent: VNode) {
         if (_.some(parent.children, child => child.heightSpec === SizeSpec.Fixed)) {
             _.each(parent.children, child => child.heightSpec === SizeSpec.Fixed);
         }
+        if (parent.heightSpec === SizeSpec.Constrained) {
+            _.each(parent.children, child => {
+                if (child.heightSpec !== SizeSpec.Fixed) {
+                    child.heightSpec = SizeSpec.Constrained;
+                }
+            });
+        }
     } else if (isListYContainer(parent)) {
         const yGap = secondChild.bounds.top - firstChild.bounds.bottom;
         parent.classList.push(R`space-y-${yGap}`);
@@ -41,6 +48,13 @@ export function measureFlexListLayout(parent: VNode) {
         // 如果有一个列表元素宽度固定，则所有元素宽度都固定，避免不能对齐
         if (_.some(parent.children, child => child.widthSpec === SizeSpec.Fixed)) {
             _.each(parent.children, child => child.widthSpec === SizeSpec.Fixed);
+        }
+        if (parent.widthSpec === SizeSpec.Constrained) {
+            _.each(parent.children, child => {
+                if (child.widthSpec !== SizeSpec.Fixed) {
+                    child.widthSpec = SizeSpec.Constrained;
+                }
+            });
         }
     }
 }
