@@ -57,6 +57,9 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     if (defaultConfig.codeGenOptions.role) {
         prependAttrs['role'] = _.uniq(role).join(',');
     }
+    if (debug.showDirection) {
+        prependAttrs['d'] = vnode.direction || '';
+    }
     if (debug.showSizeSpec) {
         prependAttrs['w'] = vnode.widthSpec || '';
         prependAttrs['h'] = vnode.heightSpec || '';

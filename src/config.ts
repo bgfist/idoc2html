@@ -24,6 +24,8 @@ export const debug = {
     showId: false,
     /** 是否生成尺寸类型 */
     showSizeSpec: false,
+    /** 是否生成方向 */
+    showDirection: false,
     /** 生成到哪一步 */
     buildToStage: BuildStage.Measure,
     /** 是否生成所有节点，包括Shape形状等可能无效的UI元素 */
@@ -42,7 +44,7 @@ export const defaultConfig = {
         experimentalZIndex: false
     },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
-    removeGhostNodes: false,
+    removeGhostNodes: true,
     /** 为auto元素分配更多空间，指定分配策略 */
     allocSpaceForAuto: {
         flexWrapItemFixedWidth: true,

@@ -278,3 +278,54 @@ export function combineAndIterate<T>(arrays: T[][], callback: (combination: T[])
         }
     }
 }
+
+/** 组合算法，从数组中依次取4个，取3个... */
+export function pickCombination<T>(arr: T[], callback: (items: T[]) => boolean) {
+    function pickCount(n: number, callback: (items: T[]) => boolean) {
+        const path: T[] = []; //每次组合的集合
+
+        function backTracking(startIndex: number) {
+            //递归
+            if (path.length == n) {
+                //选出n个数，结束递归
+                return callback([...path]);
+            }
+            //单次递归逻辑
+            for (let i = startIndex; i < arr.length; i++) {
+                path.push(arr[i]);
+                if (backTracking(i + 1)) {
+                    return true;
+                }
+                path.pop(); //回溯
+            }
+        }
+
+        return backTracking(0);
+    }
+
+    for (let i = arr.length; i >= 2; i--) {
+        if (pickCount(i, callback)) {
+            return;
+        }
+    }
+}
+
+// function test() {
+//     const lists = [{ id: 1, type: 'a' }, { id: 2, type: 'a' }, { id: 3, type: 'b' }, { id: 4, type: 'a' }, { id: 5, type: "b" }, { id: 6, type: 'a' }];
+//     let continueMerge = false;
+//     do {
+//         continueMerge = false;
+//         pickCombination(lists, (toMergeLists) => {
+//             console.log(toMergeLists.map(a => a.id));
+//             const combinedListNode = _.uniqBy(toMergeLists, list => list.type).length === 1;
+//             if (combinedListNode) {
+//                 console.log('merged', toMergeLists);
+//                 removeEles(lists, toMergeLists);
+//                 continueMerge = true;
+//             }
+//             return !!combinedListNode;
+//         });
+//     } while (continueMerge);
+// }
+
+// test();

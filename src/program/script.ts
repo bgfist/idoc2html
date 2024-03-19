@@ -1,5 +1,5 @@
 import { Page } from '../page';
-import { iDocJson2Html } from '..';
+import { debug, iDocJson2Html } from '..';
 
 main();
 
@@ -55,6 +55,13 @@ function interceptIDocJsonRequest(callback: (page: Page) => void) {
 }
 
 function createPanelUI(props: { onGenerateClick(): void }) {
+    const settings = {
+        previewInNewWindow: false,
+        showId: false
+    };
+    const cacheSettings = JSON.parse(localStorage.getItem('iDocJson2HtmlSettings') || '{}');
+    Object.assign(settings, cacheSettings);
+
     const panel = document.createElement('div');
     panel.innerHTML = `
 <div>
@@ -217,6 +224,9 @@ function main() {
             } else if (!location.href.match(/develop\/design\//)) {
                 alert('当前不在开发模式');
             }
+            debug.showId = true;
+            debug.showDirection = true;
+            debug.showSizeSpec = true;
             const html = iDocJson2Html(currentPage);
             navigator.clipboard.writeText(html).then(
                 () => {

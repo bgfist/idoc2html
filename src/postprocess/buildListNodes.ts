@@ -1,11 +1,10 @@
 import * as _ from 'lodash';
 import {
-    Range,
     allNumsEqual,
     collectContinualRanges,
-    combineAndIterate,
     groupWith,
     numEq,
+    pickCombination,
     removeEle,
     removeEles
 } from '../utils';
@@ -146,7 +145,7 @@ function groupListNodes(nodes: VNode[], direction: Direction) {
 }
 
 /** 将多个结构一致的列表合成为一个 */
-function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direction) {
+function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction: Direction) {
     /** 获取列表item之间的间距 */
     function getListItemGap(vnode: VNode) {
         return getItemGap(vnode.children[1], vnode.children[0], direction);
@@ -170,7 +169,7 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
         }
     }
 
-    let mergeType: 'flexWrap' | 'normal' | false = false;
+    let mergeType: 'flexWrap' | 'normal' | 'skip' | false = false;
     function compareList(a: VNode, b: VNode) {
         if (direction === Direction.Row && (!mergeType || mergeType == 'flexWrap')) {
             if (
@@ -180,10 +179,10 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
             ) {
                 if (!mergeType && isTextNode(a.children[0]) && a.children.length === 2) {
                     mergeType = false;
-                    return mergeType;
+                    return false;
                 }
                 mergeType = 'flexWrap';
-                return mergeType;
+                return true;
             }
         }
         if (!mergeType || mergeType == 'normal') {
@@ -194,18 +193,26 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
                         numEq(getListItemStartLineGap(a), getListItemStartLineGap(b))))
             ) {
                 mergeType = 'normal';
-                return mergeType;
+                return true;
             }
         }
         mergeType = false;
         return false;
     }
 
-    function mergeLists(range: Range<'flexWrap' | 'normal'>) {
-        // 开始合并
-        const mergeType = range.ele;
-        const toMergeLists = lists.slice(range.start, range.end);
+    function mergeLists() {
+        const fakeListNode = {
+            bounds: getBounds(toMergeLists),
+            children: _.flatMap(toMergeLists, list => list.children)
+        } as VNode;
+        if (checkListInvalid(otherNodes, fakeListNode)) {
+            return false;
+        }
+        if (checkListItemUnnecessary(toMergeLists.map(n => n.children[0]))) {
+            return false;
+        }
 
+        // 开始合并
         if (mergeType === 'flexWrap') {
             console.debug('找到合并的横向flexWrap列表');
             const children = _.flatMap(toMergeLists, listX => listX.children);
@@ -230,10 +237,7 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
             vnode.bounds.top -= yGap;
             vnode.bounds.height = vnode.bounds.bottom - vnode.bounds.top;
 
-            return {
-                vnode,
-                toMergeLists
-            };
+            return vnode;
         } else {
             console.debug(`找到合并的${direction === Direction.Row ? '横向' : '纵向'}列表`);
             const children = _.map(_.zip(..._.map(toMergeLists, 'children')), vChildren => {
@@ -256,29 +260,16 @@ function tryMergeListNodes(otherNodes: VNode[], lists: VNode[], direction: Direc
                 [direction === Direction.Row ? 'widthSpec' : 'heightSpec']: SizeSpec.Auto
             });
 
-            return {
-                vnode,
-                toMergeLists
-            };
+            return vnode;
         }
     }
 
-    const ranges = collectContinualRanges(lists, compareList, range => {
-        const listItems = lists.slice(range.start, range.end);
-        const fakeListNode = {
-            bounds: getBounds(listItems),
-            children: _.flatMap(listItems, list => list.children)
-        } as VNode;
-        if (checkListInvalid(otherNodes, fakeListNode)) {
+    for (let i = 1; i < toMergeLists.length; i++) {
+        if (!compareList(toMergeLists[i], toMergeLists[i - 1])) {
             return false;
         }
-        if (checkListItemUnnecessary(listItems.map(n => n.children[0]))) {
-            return false;
-        }
-        return true;
-    });
-
-    return ranges.map(range => mergeLists(range));
+    }
+    return mergeLists();
 }
 
 /** 先寻找可能构成列表的节点，这些节点应该作为一个整体 */
@@ -299,22 +290,25 @@ export function buildListNodes(vnode: VNode) {
         });
 
         rows = rows.map(row => groupListNodes(row, Direction.Row));
-        rows = rows.filter(row => row.length);
-        // 现在rows里面只有列表节点
 
-        const removedNodes = _.flatMapDeep(rows, row => row.map(list => list.children));
+        // 现在lists里面都是列表容器
         const addPlainListNodes = _.flatten(rows);
+        const removedNodes = _.flatMap(addPlainListNodes, list => list.children);
         const addCombinedListNodes: VNode[] = [];
 
-        combineAndIterate(rows, combination => {
-            const mergeInfos = tryMergeListNodes(otherNodes, combination, Direction.Row);
-            _.each(mergeInfos, mergeInfo => {
-                const { vnode, toMergeLists } = mergeInfo;
-                removeEles(addPlainListNodes, toMergeLists);
-                addCombinedListNodes.push(vnode);
+        let continueMerge = false;
+        do {
+            continueMerge = false;
+            pickCombination(addPlainListNodes, toMergeLists => {
+                const combinedListNode = tryMergeListNodes(otherNodes, toMergeLists, Direction.Row);
+                if (combinedListNode) {
+                    removeEles(addPlainListNodes, toMergeLists);
+                    addCombinedListNodes.push(combinedListNode);
+                    continueMerge = true;
+                }
+                return !!combinedListNode;
             });
-            return mergeInfos.length > 0;
-        });
+        } while (continueMerge);
 
         const addListNodes = [...addPlainListNodes, ...addCombinedListNodes];
         _.each(addPlainListNodes, list => {
@@ -345,22 +339,25 @@ export function buildListNodes(vnode: VNode) {
             _.sortBy(nodes, node => node.bounds.top)
         );
         cols = cols.map(col => groupListNodes(col, Direction.Column));
-        cols = cols.filter(col => col.length);
-        // 现在cols里面只有列表节点
 
-        const removedNodes = _.flatMapDeep(cols, col => col.map(list => list.children));
+        // 现在lists里面都是列表容器
         const addPlainListNodes = _.flatten(cols);
+        const removedNodes = _.flatMap(addPlainListNodes, list => list.children);
         const addCombinedListNodes: VNode[] = [];
 
-        combineAndIterate(cols, combination => {
-            const mergeInfos = tryMergeListNodes(otherNodes, combination, Direction.Column);
-            _.each(mergeInfos, mergeInfo => {
-                const { vnode, toMergeLists } = mergeInfo;
-                removeEles(addPlainListNodes, toMergeLists);
-                addCombinedListNodes.push(vnode);
+        let continueMerge = false;
+        do {
+            continueMerge = false;
+            pickCombination(addPlainListNodes, toMergeLists => {
+                const combinedListNode = tryMergeListNodes(otherNodes, toMergeLists, Direction.Column);
+                if (combinedListNode) {
+                    removeEles(addPlainListNodes, toMergeLists);
+                    addCombinedListNodes.push(combinedListNode);
+                    continueMerge = true;
+                }
+                return !!combinedListNode;
             });
-            return mergeInfos.length > 0;
-        });
+        } while (continueMerge);
 
         const addListNodes = [...addPlainListNodes, ...addCombinedListNodes];
         _.each(addPlainListNodes, list => {
