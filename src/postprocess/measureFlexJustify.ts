@@ -1,6 +1,15 @@
 import * as _ from 'lodash';
-import { allNumsEqual, numEq, numGt, numLt, removeEle } from '../utils';
-import { Direction, R, SizeSpec, VNode, getClassList, isFlexWrapLike, newVNode } from '../vnode';
+import { allNumsEqual, numEq, numGt, numLte, removeEle } from '../utils';
+import {
+    Direction,
+    R,
+    SizeSpec,
+    VNode,
+    getClassList,
+    isFlexWrapLike,
+    isListContainer,
+    newVNode
+} from '../vnode';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
@@ -24,23 +33,44 @@ export function measureFlexJustify(parent: VNode) {
     const equalMiddleGaps = allNumsEqual(gaps);
     let justifySide =
         numEq(startGap, endGap) && !numEq(startGap, 0) ? 'center'
-        : numLt(startGap, endGap) ? 'start'
+        : numLte(startGap, endGap) ? 'start'
         : 'end';
 
     function maybeInsertFlex1() {
-        if (
-            parent[justifySpec] === SizeSpec.Auto &&
-            !getClassList(parent).some(className => className.startsWith(`min-${justifySpec.slice(0, 1)}-`))
-        ) {
-            // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
+        if (parent[justifySpec] === SizeSpec.Auto) {
+            if (
+                !getClassList(parent).some(className =>
+                    className.startsWith(`min-${justifySpec.slice(0, 1)}-`)
+                )
+            ) {
+                // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
+                return;
+            }
+        } else if (parent[justifySpec] !== SizeSpec.Constrained) {
+            // 只有constrained才需要撑开
             return;
         }
 
-        // 第一个间隙是左边距
-
-        if (gaps.length - 1 < 2) {
-            // 2个及以上元素才能用flex1做弹性拉伸
+        if (gaps.length < 2) {
+            // 2个及以上元素才需要用flex1做弹性拉伸
             return;
+        }
+
+        if (equalMiddleGaps) {
+            // 间距相等的不需要撑开
+            return;
+        }
+
+        let flex1MinSize = parent[justifySpec] === SizeSpec.Auto;
+
+        // 居中布局的话，除非中间有特别大的间距超过两侧的间距，才需要撑开
+        if (justifySide === 'center') {
+            if (numGt(_.max(gaps)!, startGap * 2)) {
+                // 为了保持居中，也得给个最小尺寸
+                flex1MinSize = true;
+            } else {
+                return;
+            }
         }
 
         // 可以通过flex1实现和stretch类似的效果
@@ -51,20 +81,12 @@ export function measureFlexJustify(parent: VNode) {
             return _.lastIndexOf(gaps, maxGap);
         })();
 
-        if (flex1GapIndex === 0) {
-            // 第一个间隙不能撑开
-            return;
-        }
-
-        gaps[flex1GapIndex] = 0;
-        gaps.splice(flex1GapIndex, 0, 0);
-
         const sf = parent.direction === Direction.Row ? 'top' : 'left';
         const ef = parent.direction === Direction.Row ? 'bottom' : 'right';
         const spec1 = parent.direction === Direction.Row ? 'width' : 'height';
         const spec2 = parent.direction === Direction.Row ? 'height' : 'width';
         const pos = Math.round(parent.bounds[sf] + parent.bounds[ef] / 2);
-        const [eefn, ssfn] = ranges[flex1GapIndex];
+        const [eefn, ssfn] = ranges[flex1GapIndex + 1];
 
         const flex1Vnode = newVNode({
             bounds: {
@@ -79,52 +101,36 @@ export function measureFlexJustify(parent: VNode) {
             [`${spec1}Spec`]: SizeSpec.Constrained,
             [`${spec2}Spec`]: SizeSpec.Fixed
         });
-        if (parent[justifySpec] === SizeSpec.Auto) {
+        if (flex1MinSize) {
             flex1Vnode.classList.push(R`min-${spec1.slice(0, 1)}-${flex1Vnode.bounds[spec1]}`);
         }
 
-        children.splice(flex1GapIndex, 0, flex1Vnode);
-    }
-
-    function defaultJustify() {
-        gaps.unshift(startGap);
-
-        maybeInsertFlex1();
-
-        if (justifySide === 'center') {
-            gaps.forEach((g, i) => {
-                if (i < 1) {
-                    return;
-                }
-                children[i].classList.push(R`m${ss}-${g}`);
-            });
-            parent.classList.push(R`p${xy}-${startGap}`);
-        }
-        // 自动撑开就干脆全部往下margin
-        else if (parent[justifySpec] === SizeSpec.Auto || justifySide === 'start') {
-            gaps.push(endGap);
-            gaps.slice(1).forEach((g, i) => {
-                children[i].classList.push(R`m${ee}-${g}`);
-            });
-            parent.classList.push(R`p${ss}-${startGap}`);
-        } else if (justifySide === 'end') {
-            gaps.forEach((g, i) => {
-                children[i].classList.push(R`m${ss}-${g}`);
-            });
-            parent.classList.push(R`p${ee}-${endGap}`);
-        }
+        // 将flex1元素的左右gap设为0
+        gaps.splice(flex1GapIndex, 1, 0, 0);
+        // 插入flex1元素
+        children.splice(flex1GapIndex + 1, 0, flex1Vnode);
     }
 
     function sideJustify() {
+        maybeInsertFlex1();
+
         if (justifySide === 'center') {
             parent.classList.push('justify-center');
+            if (parent[justifySpec] === SizeSpec.Auto) {
+                parent.classList.push(R`p${xy}-${startGap}`);
+            }
         } else if (justifySide === 'start') {
-            //
+            if (parent[justifySpec] === SizeSpec.Auto) {
+                parent.classList.push(R`p${ee}-${endGap}`);
+            }
         } else if (justifySide === 'end') {
             parent.classList.push('justify-end');
+            if (parent[justifySpec] === SizeSpec.Auto) {
+                parent.classList.push(R`p${ss}-${startGap}`);
+            }
         }
 
-        if (equalMiddleGaps && children.length > 1) {
+        if (equalMiddleGaps && (children.length > 2 || isListContainer(parent))) {
             parent.classList.push(R`space-${xy}-${gaps[0]}`);
 
             if (justifySide === 'start') {
@@ -149,6 +155,13 @@ export function measureFlexJustify(parent: VNode) {
                 });
             }
         }
+
+        // 对所有灵活伸缩的元素设置flex1
+        _.each(children, child => {
+            if (child[justifySpec] === SizeSpec.Constrained) {
+                child.classList.push('flex-1');
+            }
+        });
     }
 
     if (justifySpec === 'widthSpec' && parent[justifySpec] === SizeSpec.Auto) {
@@ -176,7 +189,7 @@ export function measureFlexJustify(parent: VNode) {
     }
 
     if (parent[justifySpec] === SizeSpec.Auto) {
-        defaultJustify();
+        sideJustify();
     }
     // 一个子元素, 或者子元素之间紧挨在一起视同为一个元素
     else if (!gaps.length || (equalMiddleGaps && numEq(gaps[0], 0))) {
@@ -196,18 +209,6 @@ export function measureFlexJustify(parent: VNode) {
             sideJustify();
         }
     } else {
-        const maxGap = _.max(gaps)!;
-        if (numGt(maxGap, startGap) && numGt(maxGap, endGap)) {
-            defaultJustify();
-        } else {
-            sideJustify();
-        }
+        sideJustify();
     }
-
-    // 对所有灵活伸缩的元素设置flex1
-    _.each(children, child => {
-        if (child[justifySpec] === SizeSpec.Constrained) {
-            child.classList.push('flex-1');
-        }
-    });
 }

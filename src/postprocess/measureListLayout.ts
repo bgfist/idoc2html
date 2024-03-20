@@ -21,7 +21,10 @@ export function measureFlexWrapLayout(parent: VNode) {
     });
 }
 
-/** 生成列表布局 */
+/**
+ * 生成列表布局
+ * @deprecated 直接用flex量
+ */
 export function measureFlexListLayout(parent: VNode) {
     const firstChild = parent.children[0];
     const secondChild = parent.children[1];
@@ -30,10 +33,6 @@ export function measureFlexListLayout(parent: VNode) {
         const xGap = secondChild.bounds.left - firstChild.bounds.right;
         parent.classList.push(R`space-x-${xGap}`);
 
-        // 如果有一个列表元素高度固定，则所有元素高度都固定，避免不能对齐
-        if (_.some(parent.children, child => child.heightSpec === SizeSpec.Fixed)) {
-            _.each(parent.children, child => child.heightSpec === SizeSpec.Fixed);
-        }
         if (parent.heightSpec === SizeSpec.Constrained) {
             _.each(parent.children, child => {
                 if (child.heightSpec !== SizeSpec.Fixed) {
@@ -45,10 +44,6 @@ export function measureFlexListLayout(parent: VNode) {
         const yGap = secondChild.bounds.top - firstChild.bounds.bottom;
         parent.classList.push(R`space-y-${yGap}`);
 
-        // 如果有一个列表元素宽度固定，则所有元素宽度都固定，避免不能对齐
-        if (_.some(parent.children, child => child.widthSpec === SizeSpec.Fixed)) {
-            _.each(parent.children, child => child.widthSpec === SizeSpec.Fixed);
-        }
         if (parent.widthSpec === SizeSpec.Constrained) {
             _.each(parent.children, child => {
                 if (child.widthSpec !== SizeSpec.Fixed) {

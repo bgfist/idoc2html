@@ -20,7 +20,7 @@ import { buildListNodes } from './buildListNodes';
 import { buildMissingNodes } from './buildMissingNodes';
 import { measureFlexAlign } from './measureFlexAlign';
 import { measureFlexJustify } from './measureFlexJustify';
-import { measureFlexListLayout, measureFlexWrapLayout } from './measureListLayout';
+import { measureFlexWrapLayout } from './measureListLayout';
 import { mergeUnnessaryFlexBox, mergeUnnessaryNodes } from './mergeNodes';
 
 /** 删除幽灵节点，这些节点本身没样式 */
@@ -106,10 +106,10 @@ function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
             parent.widthSpec = SizeSpec.Auto;
         }
         if (!parent.heightSpec) {
-            if (_.some(children, child => child.heightSpec === SizeSpec.Auto)) {
-                parent.heightSpec = SizeSpec.Auto;
-            } else {
+            if (_.every(children, child => child.heightSpec === SizeSpec.Fixed)) {
                 parent.heightSpec = SizeSpec.Fixed;
+            } else {
+                parent.heightSpec = SizeSpec.Auto;
             }
         }
     }
@@ -119,10 +119,10 @@ function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
             parent.heightSpec = SizeSpec.Auto;
         }
         if (!parent.widthSpec) {
-            if (_.some(children, child => child.widthSpec === SizeSpec.Auto)) {
-                parent.widthSpec = SizeSpec.Auto;
-            } else {
+            if (_.every(children, child => child.widthSpec === SizeSpec.Fixed)) {
                 parent.widthSpec = SizeSpec.Fixed;
+            } else {
+                parent.widthSpec = SizeSpec.Auto;
             }
         }
     }
@@ -138,8 +138,6 @@ function measureFlexLayout(parent: VNode) {
 
         if (isListWrapContainer(parent)) {
             measureFlexWrapLayout(parent);
-        } else if (isListXContainer(parent) || isListYContainer(parent)) {
-            measureFlexListLayout(parent);
         } else {
             measureFlexAlign(parent);
             measureFlexJustify(parent);
@@ -242,7 +240,6 @@ function buildTree(vnode: VNode) {
         mergeUnnessaryNodes(vnode);
         buildMissingNodes(vnode);
         buildListNodes(vnode);
-        buildMissingNodes(vnode);
         buildFlexBox(vnode);
     }
     mergeUnnessaryFlexBox(vnode);

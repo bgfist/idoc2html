@@ -178,10 +178,102 @@ export function collectRepeatRanges<T>(
 //     { type: 'd', left: 115, top: 600, width: 60, height: 80, id: 10 },
 // ];
 
+/** 寻找最长重复序列 */
+export function collectLongestRepeatRanges<T>(
+    arr: T[],
+    compareFn: (prev: T, next: T) => boolean,
+    ignoreLast?: boolean
+) {
+    // number表示序列包含几个元素
+    const ranges: Range<number>[] = [];
+
+    function checkRepeated(arr: T[], start: number, end: number) {
+        const totalLen = end - start;
+        const compare = (prevI: number, nextI: number) => {
+            if (ignoreLast && nextI === end - 1) {
+                return true;
+            }
+            return compareFn(arr[prevI], arr[nextI]);
+        };
+
+        findRepeatRange: for (let j = end - 1; j > start; j--) {
+            if (compare(start, j)) {
+                const repeatLength = end - j;
+                if (totalLen % repeatLength === 0) {
+                    for (let i = start + repeatLength; i < end; i++) {
+                        if (!compare(((i - start) % repeatLength) + start, i)) {
+                            continue findRepeatRange;
+                        }
+                    }
+                    return repeatLength;
+                }
+            }
+        }
+    }
+
+    function getRangeLen(arr: T[], length: number, callback: (start: number, end: number) => boolean) {
+        if (length <= 1) {
+            return;
+        }
+        for (let start = 0; start < arr.length; start++) {
+            const end = start + length;
+            if (end > arr.length) {
+                break;
+            }
+            if (callback(start, end)) {
+                return;
+            }
+        }
+        length--;
+        getRangeLen(arr, length, callback);
+    }
+
+    const arrChunks = [
+        {
+            fromIndex: 0,
+            arr
+        }
+    ];
+
+    while (arrChunks.length) {
+        const { arr, fromIndex } = arrChunks.pop()!;
+        getRangeLen(arr, arr.length, (start, end) => {
+            const repeatLength = checkRepeated(arr, start, end);
+            if (repeatLength) {
+                ranges.push({
+                    start: fromIndex + start,
+                    end: fromIndex + end,
+                    ele: repeatLength
+                });
+                if (start > 1) {
+                    arrChunks.push({
+                        arr: arr.slice(0, start),
+                        fromIndex
+                    });
+                }
+                if (end < arr.length - 1) {
+                    arrChunks.push({
+                        arr: arr.slice(end),
+                        fromIndex: fromIndex + end
+                    });
+                }
+                return true;
+            }
+            return false;
+        });
+    }
+
+    return _.sortBy(ranges, range => range.start);
+}
+
+// const arr = [1, 1, 1, 1, 2, 2, 3, 4, 2, 2, 3, 4, 2, 2, 3, 8, 3, 5, 5, 9, 4, 4, NaN];
+// console.log(collectLongestRepeatRanges(arr, (a, b) => a === b, false));
+// console.log(collectLongestRepeatRanges(arr, (a, b) => a === b, true));
+
 /** 寻找同值的连续序列 */
 export function collectContinualRanges<T, K>(
     arr: T[],
-    compareFn: (a: T, b: T) => K | boolean,
+    compareFn: (prev: T, next: T) => K | boolean,
     isValidRange: (range: Range<K>) => boolean
 ) {
     const ranges: Range<K>[] = [];

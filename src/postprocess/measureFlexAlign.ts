@@ -98,7 +98,6 @@ export function measureFlexAlign(parent: VNode) {
                         setFixOrAutoAlign(child, margin);
                         return true;
                     }
-
                     return;
                 }
 
@@ -137,10 +136,10 @@ export function measureFlexAlign(parent: VNode) {
                     // 往两边撑开
                     setAutoContentsAlign(child, 'center');
                 } else if (margin.marginStart < margin.marginEnd) {
-                    // 往右边撑开
+                    // 靠左边撑开
                     setAutoContentsAlign(child, 'start');
                 } else {
-                    // 往左边撑开
+                    // 靠右边撑开
                     setAutoContentsAlign(child, 'end');
                 }
             }
@@ -195,7 +194,7 @@ export function measureFlexAlign(parent: VNode) {
         parent.classList.push(R`min-${alignSpecSize.substring(0, 1)}-${parent.bounds[alignSpecSize]}`);
     }
 
-    // 优先视觉上居中的元素，只要有且不是全部，就不能设置align
+    // 优先视觉上居中的元素，只要有且不是全部，就干脆子元素单独设置align
     if (_.filter(margins, possibleAlignCenter).length !== margins.length) {
         setFlexAlign('stretch');
         return;

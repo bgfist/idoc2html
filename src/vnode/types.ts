@@ -1,8 +1,8 @@
 /** 宽高尺寸类型 */
 export enum SizeSpec {
-    /** 固定 */
+    /** 固定, 如切图 */
     Fixed = 'Fixed',
-    /** 由子节点撑开 */
+    /** 由子节点撑开，如文本 */
     Auto = 'Auto',
     /** 由父节点分配，如flex1 */
     Constrained = 'Constrained'

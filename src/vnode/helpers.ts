@@ -220,3 +220,8 @@ export function isListContainer(vnode: VNode) {
 export function isFlexWrapLike(vnode: VNode) {
     return isListWrapContainer(vnode) || isMultiLineText(vnode);
 }
+
+/** 列表元素是否包了一层盒子 */
+export function isListItemWrapped(listItem: VNode) {
+    return !listItem.id;
+}
