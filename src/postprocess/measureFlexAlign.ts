@@ -10,8 +10,10 @@ import {
     VNode,
     context,
     getClassName,
+    isCrossDirection,
     isFlexBox,
     isFlexWrapLike,
+    isGeneratedGhostNode,
     isListContainer,
     isListWrapContainer,
     isListXContainer,
@@ -64,6 +66,29 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                 child[alignSpec] = SizeSpec.Constrained;
             } else {
                 child[alignSpec] = SizeSpec.Fixed;
+            }
+        }
+    });
+}
+
+/** 扩大我们自己切的虚拟flex盒子 */
+function expandChildrenIfPossible(parent: VNode, alignDimension: Dimension) {
+    _.each(parent.children, child => {
+        if (
+            isGeneratedGhostNode(child) &&
+            // 如果同方向也撑大的话，就没有啥意义
+            isCrossDirection(parent, child) &&
+            // flexWrap撑大没有意义，还会有bug；列表撑开会导致全部滚到边上
+            !isListContainer(child)
+        ) {
+            if (alignDimension === 'width') {
+                child.bounds.left = parent.bounds.left;
+                child.bounds.right = parent.bounds.right;
+                child.bounds.width = parent.bounds.width;
+            } else {
+                child.bounds.top = parent.bounds.top;
+                child.bounds.bottom = parent.bounds.bottom;
+                child.bounds.height = parent.bounds.height;
             }
         }
     });
@@ -197,6 +222,7 @@ export function measureFlexAlign(parent: VNode) {
     const alignSpec = parent.direction === Direction.Row ? 'heightSpec' : 'widthSpec';
     const alignDimension = parent.direction === Direction.Row ? 'height' : 'width';
 
+    expandChildrenIfPossible(parent, alignDimension);
     decideChildrenAlignSpec(parent, alignSpec, alignDimension);
     decideParentMinSize(parent, alignSpec, alignDimension);
 

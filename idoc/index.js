@@ -4,6 +4,7 @@ const pageJson = require('./demo.json');
 const { iDocJson2Html, debug, BuildStage } = require('../dist/index');
 
 debug.showId = true;
+debug.showDirection = true;
 debug.showSizeSpec = true;
 debug.buildToStage = BuildStage.Measure;
 // debug.buildAllNodes = true;
@@ -11,6 +12,9 @@ debug.buildToStage = BuildStage.Measure;
 const page = iDocJson2Html(pageJson, {
     codeGenOptions: {
         experimentalZIndex: true,
+        overflowMargin: true,
+        textClamp: true,
+        listOverflowAuto: true
     },
     blackListNodes: [
         '660D5FA1-8794-4F6F-9FA9-ED3EA8C44D87',
@@ -20,9 +24,7 @@ const page = iDocJson2Html(pageJson, {
         '14DC388F-6AD4-461B-9E98-A2E73C04ADD0',
         'FB0EFA2B-D90F-40C1-A502-35B262B8CCEC'
     ],
-    leafNodes: [
-        'DC4F5548-0CE4-4F84-B496-6B17C84B63CE'
-    ],
-    removeGhostNodes: false
+    leafNodes: ['DC4F5548-0CE4-4F84-B496-6B17C84B63CE'],
+    removeGhostNodes: true
 });
 fs.writeFileSync(path.join(__filename, '../../dist/demo.html'), page);

@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
 import { BuildStage, debug, defaultConfig } from '../config';
-import { Direction, VNode, isGhostNode, isListContainer } from '../vnode';
+import { Direction, VNode, isOriginalGhostNode, isListContainer } from '../vnode';
 import { buildTree } from './build';
 import { measureTree } from './measure';
 
 /** 删除幽灵节点，这些节点本身没样式 */
 function removeGhostNodes(vnode: VNode) {
     if (vnode.children.length) {
-        vnode.children = _.filter(vnode.children, n => !isGhostNode(n));
+        vnode.children = _.filter(vnode.children, n => !isOriginalGhostNode(n));
     }
 }
 
@@ -17,7 +17,7 @@ function expandGhostNodes(parent: VNode) {
         return (
             child.direction &&
             child.direction !== parent.direction &&
-            isGhostNode(child) &&
+            isOriginalGhostNode(child) &&
             !isListContainer(child)
         );
     };

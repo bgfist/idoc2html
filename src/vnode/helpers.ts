@@ -189,8 +189,15 @@ export function isTextRight(vnode: VNode) {
 }
 
 // TODO: 只有背景且背景跟父亲一样的，也属于不可见
-export function isGhostNode(vnode: VNode) {
-    return _.isEmpty(vnode.classList);
+export function isOriginalGhostNode(vnode: VNode) {
+    return Boolean(vnode.id) && _.isEmpty(vnode.classList);
+}
+
+export function isGeneratedGhostNode(vnode: VNode) {
+    if (!vnode.id) {
+        assert(Boolean(vnode.direction), '没有id的元素一定是生成的flex盒子');
+    }
+    return !vnode.id && Boolean(vnode.direction) && _.isEmpty(vnode.classList);
 }
 
 export function isSingleLineText(vnode: VNode) {
