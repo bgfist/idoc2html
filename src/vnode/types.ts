@@ -16,6 +16,10 @@ export enum Direction {
     Column = 'Column'
 }
 
+export type Dimension = 'width' | 'height';
+
+export type DimensionSpec = 'widthSpec' | 'heightSpec';
+
 /** 节点用途 */
 export type Role =
     | ''

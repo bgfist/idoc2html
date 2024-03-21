@@ -1,5 +1,6 @@
 import { Page } from '../page';
 import * as iDocJson2HtmlModule from '..';
+import * as _ from 'lodash';
 
 declare global {
     interface Window {
@@ -220,8 +221,10 @@ function createPanelUI(props: { onGenerateClick(): void }) {
 }
 
 function main() {
-    if (!!window.iDocJson2HtmlModule) {
+    if (!_.isNil(window.iDocJson2HtmlModule)) {
         window.iDocJson2HtmlModule = iDocJson2HtmlModule;
+        const scriptUrl = (document.currentScript as HTMLScriptElement).src;
+        document.querySelector(`script[src="${scriptUrl}"]`)!.remove();
         return;
     }
     window.iDocJson2HtmlModule = iDocJson2HtmlModule;

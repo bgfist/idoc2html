@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { assert, numEq, numGt, numGte, numLt, numLte, removeEle } from '../utils';
-import { Direction, Role, VNode } from './';
+import { Dimension, DimensionSpec, Direction, Role, VNode } from './';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -188,6 +188,7 @@ export function isTextRight(vnode: VNode) {
     return _.includes(getClassList(vnode), 'text-right');
 }
 
+// TODO: 只有背景且背景跟父亲一样的，也属于不可见
 export function isGhostNode(vnode: VNode) {
     return _.isEmpty(vnode.classList);
 }
@@ -224,4 +225,8 @@ export function isFlexWrapLike(vnode: VNode) {
 /** 列表元素是否包了一层盒子 */
 export function isListItemWrapped(listItem: VNode) {
     return !listItem.id;
+}
+
+export function isFlexBox(vnode: VNode) {
+    return Boolean(vnode.direction) && Boolean(vnode.children.length);
 }

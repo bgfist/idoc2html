@@ -77,9 +77,13 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
     }
 
     const child = children[0];
+
+    // 先不处理列表
     if (isListContainer(child)) {
         return;
     }
+
+    // 只需要合并一层
 
     // 子盒子可以扩大
     if (
@@ -90,6 +94,5 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
     ) {
         mergeNode(parent, child);
         parent.children = child.children;
-        mergeUnnessaryFlexBox(parent);
     }
 }

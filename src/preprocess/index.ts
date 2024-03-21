@@ -114,6 +114,7 @@ function stylishImage(node: Node, vnode: VNode) {
 
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
+    // TODO: 幕客给的json不够详细，有的节点不可见却还是放出来了
     if (defaultConfig.blackListNodes.includes(node.basic.id)) {
         return null;
     }

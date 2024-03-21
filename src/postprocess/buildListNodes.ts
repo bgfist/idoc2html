@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import { collectLongestRepeatRanges, groupWith, numEq, pickCombination, removeEles } from '../utils';
 import {
     Direction,
-    SizeSpec,
     VNode,
     addRole,
     getBounds,
@@ -13,8 +12,7 @@ import {
     isTextNode,
     isTextRight,
     maybeTable,
-    newVNode,
-    removeRole
+    newVNode
 } from '../vnode';
 
 /** 两个盒子是否相似 */
@@ -217,8 +215,7 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
                 bounds: getBounds(children),
                 children,
                 role: ['list-wrap'],
-                direction: Direction.Row,
-                heightSpec: SizeSpec.Auto
+                direction: Direction.Row
             });
 
             // flex-wrap应该留出左边的间距
@@ -316,7 +313,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
         console.debug(`找到${direction === Direction.Row ? '横向列表' : '纵向列表'}`);
         _.assign(list, {
             role: [direction === Direction.Row ? 'list-x' : 'list-y'],
-            direction: Direction.Column
+            direction
         });
         _.each(list.children, child => {
             addRole(child, 'list-item');

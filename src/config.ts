@@ -41,7 +41,13 @@ export const defaultConfig = {
         /** 生成role属性 */
         role: true,
         /** 生成层级z-index */
-        experimentalZIndex: false
+        experimentalZIndex: false,
+        /** 是否自动加上文本超出截断 */
+        textClamp: false,
+        /** 是否为列表加上超出滚动 */
+        listOverflowAuto: false,
+        /** 是否为内容超出元素预留一点边距 */
+        overflowMargin: false
     },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
     removeGhostNodes: false,

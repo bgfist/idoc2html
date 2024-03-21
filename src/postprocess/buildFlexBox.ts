@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { assert } from '../utils';
 import { Direction, VNode, getBounds, isContainedWithinX, isContainedWithinY, newVNode } from '../vnode';
+import { mergeUnnessaryFlexBox } from './mergeNodes';
 
 /**
  * 决定盒子的排列方向，算法逻辑是，看哪种划分方式生成的直接子节点数量少就用哪种
@@ -107,5 +108,7 @@ export function buildFlexBox(parent: VNode) {
         // TODO: 单个子节点可能更适合用Row
         parent.direction = Direction.Column;
         groupNodes(parent);
+        // 只有一个子元素
+        mergeUnnessaryFlexBox(parent);
     }
 }
