@@ -107,7 +107,7 @@ function stylishImage(node: Node, vnode: VNode) {
         })
     ];
     // 防止被当作幽灵节点删除
-    vnode.classList = ['$ghost'];
+    vnode.classList = [context.voidElementMarker];
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
 }

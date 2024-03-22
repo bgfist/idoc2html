@@ -3,8 +3,16 @@ import { BuildStage, Config, debug, defaultConfig } from './config';
 import { Page } from './page';
 import { postprocess } from './postprocess';
 import { preprocess } from './preprocess';
-import { assert } from './utils';
-import { VNode, getClassName, isRole } from './vnode';
+import { assert, removeEle } from './utils';
+import {
+    VNode,
+    context,
+    getClassList,
+    getClassName,
+    isRole,
+    isVoidElement,
+    isVoidElementWrapper
+} from './vnode';
 
 export * from './config';
 export { Page };
@@ -29,6 +37,39 @@ function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
     _.each(vnode.attachNodes, child => makeAbsolute(child, vnode, true));
 }
 
+/** 将不必要的空元素包装盒去掉 */
+function mayLiftVoidElement(vnode: VNode) {
+    if (isVoidElementWrapper(vnode) && vnode.children.length === 0 && vnode.attachNodes.length === 1) {
+        removeEle(vnode.classList, context.voidElementMarker);
+        const voidElement = vnode.attachNodes[0];
+        assert(
+            isVoidElement(voidElement) && !voidElement.textContent && !voidElement.children.length,
+            `不是有效的空元素`
+        );
+        if (voidElement.id) {
+            vnode.id = voidElement.id;
+        }
+        vnode.tagName = voidElement.tagName;
+        // 去掉定位和宽高类的class
+        const validClassList = _.filter(
+            getClassList(voidElement),
+            cls =>
+                cls !== 'absolute' &&
+                !cls.startsWith('left-') &&
+                !cls.startsWith('top-') &&
+                !cls.startsWith('right-') &&
+                !cls.startsWith('bottom-') &&
+                !cls.startsWith('w-') &&
+                !cls.startsWith('h-')
+        );
+        vnode.classList = _.union(vnode.classList, validClassList);
+        vnode.style = _.merge(vnode.style, voidElement.style);
+        vnode.attributes = _.merge(vnode.attributes, voidElement.attributes);
+        vnode.role = _.merge(vnode.role, voidElement.role);
+        vnode.attachNodes = [];
+    }
+}
+
 const TAB = '  ';
 
 /**
@@ -40,6 +81,7 @@ const TAB = '  ';
  * @returns
  */
 function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
+    mayLiftVoidElement(vnode);
     const tab = TAB.repeat(level);
     let {
         tagName = 'div',
@@ -70,7 +112,9 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
         ...attributes
     };
 
-    classList.length && Object.assign(attributes, { class: getClassName(vnode) });
+    if (classList.length) {
+        Object.assign(attributes, { class: getClassName(vnode) });
+    }
     if (style) {
         Object.assign(attributes, {
             style: Object.entries(style)

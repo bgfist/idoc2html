@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { assert, numEq, numGt, numGte, numLt, numLte, removeEle } from '../utils';
-import { Dimension, DimensionSpec, Direction, Role, VNode } from './';
+import { Direction, Role, VNode, context } from './';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -188,16 +188,24 @@ export function isTextRight(vnode: VNode) {
     return _.includes(getClassList(vnode), 'text-right');
 }
 
+export function isOriginalNode(vnode: VNode) {
+    return Boolean(vnode.id);
+}
+
+export function isGeneratedNode(vnode: VNode) {
+    return !vnode.id;
+}
+
 // TODO: 只有背景且背景跟父亲一样的，也属于不可见
 export function isOriginalGhostNode(vnode: VNode) {
-    return Boolean(vnode.id) && _.isEmpty(vnode.classList);
+    return isOriginalNode(vnode) && _.isEmpty(vnode.classList);
 }
 
 export function isGeneratedGhostNode(vnode: VNode) {
     if (!vnode.id) {
         assert(Boolean(vnode.direction), '没有id的元素一定是生成的flex盒子');
     }
-    return !vnode.id && Boolean(vnode.direction) && _.isEmpty(vnode.classList);
+    return isGeneratedNode(vnode) && _.isEmpty(vnode.classList);
 }
 
 export function isSingleLineText(vnode: VNode) {
@@ -236,4 +244,27 @@ export function isListItemWrapped(listItem: VNode) {
 
 export function isFlexBox(vnode: VNode) {
     return Boolean(vnode.direction) && Boolean(vnode.children.length);
+}
+
+/** 空元素下面不能有children */
+export function isVoidElement(node: VNode) {
+    // <area>
+    // <base>
+    // <br>
+    // <col>
+    // <embed>
+    // <hr>
+    // <img>
+    // <input>
+    // <link>
+    // <meta>
+    // <param>
+    // <source>
+    // <track>
+    // <wbr>
+    return _.includes(['img', 'input'], node.tagName);
+}
+
+export function isVoidElementWrapper(node: VNode) {
+    return _.includes(node.classList, context.voidElementMarker);
 }

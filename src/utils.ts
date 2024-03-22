@@ -28,6 +28,16 @@ export function removeEles<T>(arr: T[], ele: T[]) {
     _.remove(arr, item => ele.indexOf(item) >= 0);
 }
 
+export function replaceWith<T extends object>(target: T, source: T) {
+    for (const key in target) {
+        if (!(key in source)) {
+            delete target[key];
+        } else {
+            target[key] = source[key];
+        }
+    }
+}
+
 export function groupByWith<T, K>(
     arr: T[],
     iteratee: (item: T) => K,

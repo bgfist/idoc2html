@@ -58,7 +58,7 @@ export function measureFlexJustify(parent: VNode) {
             const maxGap = _.max(gapsWithSide)!;
             // 优先让后面的撑开
             flex1GapIndex = _.lastIndexOf(gapsWithSide, maxGap);
-            if (flex1GapIndex === gaps.length) {
+            if (flex1GapIndex === gaps.length || maxGap === 0) {
                 // 撑开最后面的边距说明边距过大，不需要撑开
                 return;
             }
@@ -67,7 +67,7 @@ export function measureFlexJustify(parent: VNode) {
             const maxGap = _.max(gapsWithSide)!;
             // 优先让前面的撑开
             flex1GapIndex = _.indexOf(gapsWithSide, maxGap);
-            if (flex1GapIndex === 0) {
+            if (flex1GapIndex === 0 || maxGap === 0) {
                 // 撑开最前面的边距说明边距过大，不需要撑开
                 return;
             } else {
@@ -123,23 +123,32 @@ export function measureFlexJustify(parent: VNode) {
             insertFlex1Node();
         }
 
-        if (justifySide === 'center') {
+        if (needFlex1) {
+            // 都flex1了，父节点什么都不用设置
+        } else if (justifySide === 'center') {
             parent.classList.push('justify-center');
-            if (parent[justifySpec] === SizeSpec.Auto || needFlex1) {
+            if (parent[justifySpec] === SizeSpec.Auto) {
                 parent.classList.push(R`p${xy}-${startGap}`);
             }
         } else if (justifySide === 'start') {
-            if (parent[justifySpec] === SizeSpec.Auto || needFlex1) {
+            if (parent[justifySpec] === SizeSpec.Auto) {
                 parent.classList.push(R`p${ee}-${endGap}`);
             }
         } else if (justifySide === 'end') {
             parent.classList.push('justify-end');
-            if (parent[justifySpec] === SizeSpec.Auto || needFlex1) {
+            if (parent[justifySpec] === SizeSpec.Auto) {
                 parent.classList.push(R`p${ss}-${startGap}`);
             }
         }
 
-        if (needEqualGaps) {
+        if (needFlex1) {
+            // flex1全部往左margin
+            gaps.unshift(startGap);
+            _.each(children, (child, i) => {
+                child.classList.push(R`m${ss}-${gaps[i]}`);
+            });
+            children[children.length - 1].classList.push(R`m${ee}-${endGap}`);
+        } else if (needEqualGaps) {
             parent.classList.push(R`space-${xy}-${gaps[0]}`);
 
             if (justifySide === 'start') {
@@ -182,27 +191,21 @@ export function measureFlexJustify(parent: VNode) {
         });
     }
 
-    if (parent[justifySpec] === SizeSpec.Auto) {
-        sideJustify();
-    }
-    // 一个子元素, 或者子元素之间紧挨在一起视同为一个元素
-    else if (!gaps.length || (equalMiddleGaps && numEq(gaps[0], 0))) {
-        // TODO: 单行居中，多行居左?
-        // children.length === 1 && justifySpec === 'widthSpec' && isFlexWrapLike(children[0])
-        sideJustify();
-    }
     // 中间间隔相等
-    else if (equalMiddleGaps) {
+    if (equalMiddleGaps) {
         const sameGap = gaps[0];
-
-        if (numEq(startGap, endGap) && numEq(startGap * 2, gaps[0]) && !numEq(startGap, 0)) {
+        if (
+            !numEq(sameGap, 0) &&
+            !numEq(startGap, 0) &&
+            numEq(startGap, endGap) &&
+            numEq(startGap * 2, sameGap)
+        ) {
             parent.classList.push('justify-around');
-        } else if (numGt(sameGap, startGap) && numGt(sameGap, endGap)) {
+            return;
+        } else if (!numEq(sameGap, 0) && numGt(sameGap, startGap) && numGt(sameGap, endGap)) {
             parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
-        } else {
-            sideJustify();
+            return;
         }
-    } else {
-        sideJustify();
     }
+    sideJustify();
 }

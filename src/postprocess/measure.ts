@@ -6,6 +6,7 @@ import {
     SizeSpec,
     VNode,
     getClassList,
+    isGeneratedNode,
     isListWrapContainer,
     normalizeClassName
 } from '../vnode';
@@ -43,10 +44,10 @@ function measureFlexLayout(parent: VNode) {
         }
     }
 
-    if (parent.widthSpec === SizeSpec.Fixed) {
+    if (parent.widthSpec === SizeSpec.Fixed && !isGeneratedNode(parent)) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
-    if (parent.heightSpec === SizeSpec.Fixed) {
+    if (parent.heightSpec === SizeSpec.Fixed && !isGeneratedNode(parent)) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 }
