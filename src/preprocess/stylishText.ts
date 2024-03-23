@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
-import { defaultConfig } from '../config';
 import { Node } from '../page';
-import { R, SizeSpec, VNode, newVNode } from '../vnode';
+import { R, SizeSpec, VNode, makeSingleLineTextNoWrap, newVNode } from '../vnode';
 import { getNormalColor } from './color';
 
 export function stylishText(node: Node, vnode: VNode) {
@@ -46,9 +45,9 @@ export function stylishText(node: Node, vnode: VNode) {
         if (text.fontStyles.lineThrough) {
             textNode.classList.push('line-through');
         }
-        if (text.align !== 'left') {
-            textNode.classList.push(`text-${text.align}`);
-        }
+        // if (text.align !== 'left') {
+        //     textNode.classList.push(`text-${text.align}`);
+        // }
         return textNode;
     });
     if (textNodes.length === 1) {
@@ -61,13 +60,14 @@ export function stylishText(node: Node, vnode: VNode) {
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
     if (isMultiLine) {
-        vnode.widthSpec =
-            defaultConfig.allocSpaceForAuto.multiLineTextFixedWidth ? SizeSpec.Fixed : SizeSpec.Auto;
+        vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
+        const textAlign = node.text.styles[0].align;
+        if (textAlign !== 'left') {
+            vnode.classList.push(`text-${textAlign}`);
+        }
     } else {
-        vnode.classList.push('whitespace-nowrap');
-
         // 有的文本框跟文字本身宽度并不一致，会多出一些空间，这时候应该视作Fixed尺寸，简单判断下，数字和字母为半个字宽
         if (
             _.isString(vnode.textContent) &&
@@ -77,6 +77,11 @@ export function stylishText(node: Node, vnode: VNode) {
         ) {
             console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
             vnode.widthSpec = SizeSpec.Fixed;
+            makeSingleLineTextNoWrap(vnode);
+            const textAlign = node.text.styles[0].align;
+            if (textAlign !== 'left') {
+                vnode.classList.push(`text-${textAlign}`);
+            }
         } else {
             vnode.widthSpec = SizeSpec.Auto;
         }

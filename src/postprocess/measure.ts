@@ -8,6 +8,8 @@ import {
     getClassList,
     isGeneratedNode,
     isListWrapContainer,
+    isSingleLineText,
+    makeSingleLineTextNoWrap,
     normalizeClassName
 } from '../vnode';
 import { anyElesIn, numEq } from '../utils';
@@ -47,8 +49,29 @@ function measureFlexLayout(parent: VNode) {
     if (parent.widthSpec === SizeSpec.Fixed && !isGeneratedNode(parent)) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
-    if (parent.heightSpec === SizeSpec.Fixed && !isGeneratedNode(parent)) {
+    if (parent.heightSpec === SizeSpec.Fixed && !isGeneratedNode(parent) && !isSingleLineText(parent)) {
         parent.classList.push(R`h-${parent.bounds.height}`);
+    }
+
+    makeSingleLineTextNoWrapIfNeed(parent);
+}
+
+/** 特殊情况需要让单行文本不换行 */
+function makeSingleLineTextNoWrapIfNeed(parent: VNode) {
+    if (parent.widthSpec === SizeSpec.Fixed) {
+        if (
+            parent.direction === Direction.Row &&
+            parent.children.length === 1 &&
+            isSingleLineText(parent.children[0])
+        ) {
+            makeSingleLineTextNoWrap(parent.children[0]);
+        } else if (parent.direction === Direction.Column) {
+            _.each(parent.children, child => {
+                if (isSingleLineText(child)) {
+                    makeSingleLineTextNoWrap(child);
+                }
+            });
+        }
     }
 }
 

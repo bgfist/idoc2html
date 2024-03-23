@@ -198,18 +198,17 @@ export function isGeneratedNode(vnode: VNode) {
 
 // TODO: 只有背景且背景跟父亲一样的，也属于不可见
 export function isOriginalGhostNode(vnode: VNode) {
-    return isOriginalNode(vnode) && _.isEmpty(vnode.classList);
-}
-
-export function isGeneratedGhostNode(vnode: VNode) {
-    if (!vnode.id) {
-        assert(Boolean(vnode.direction), '没有id的元素一定是生成的flex盒子');
-    }
-    return isGeneratedNode(vnode) && _.isEmpty(vnode.classList);
+    return isOriginalNode(vnode) && !vnode.textContent && _.isEmpty(vnode.classList);
 }
 
 export function isSingleLineText(vnode: VNode) {
     return isTextNode(vnode) && !isMultiLineText(vnode);
+}
+
+export function makeSingleLineTextNoWrap(textNode: VNode) {
+    if (!_.includes(textNode.classList, 'whitespace-nowrap')) {
+        textNode.classList.push('whitespace-nowrap');
+    }
 }
 
 export function isMultiLineText(vnode: VNode) {

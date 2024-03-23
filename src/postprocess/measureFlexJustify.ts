@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { allNumsEqual, numEq, numGt, numLte, removeEle } from '../utils';
+import { allNumsEqual, numEq, numGt, numLte } from '../utils';
 import {
     Direction,
     R,
@@ -7,6 +7,7 @@ import {
     VNode,
     getClassList,
     isFlexWrapLike,
+    isGeneratedNode,
     isListContainer,
     newVNode
 } from '../vnode';
@@ -32,7 +33,7 @@ export function measureFlexJustify(parent: VNode) {
     const endGap = gaps.pop()!;
     const equalMiddleGaps = allNumsEqual(gaps);
     let justifySide =
-        numEq(startGap, endGap) && !numEq(startGap, 0) ? 'center'
+        numEq(startGap, endGap) ? 'center'
         : numLte(startGap, endGap) ? 'start'
         : 'end';
 
@@ -53,7 +54,7 @@ export function measureFlexJustify(parent: VNode) {
         let flex1GapIndex: number;
         // TODO: 生成多个flex1
 
-        if (justifySide === 'start' || justifySide === 'start') {
+        if (justifySide === 'start' || justifySide === 'center') {
             const gapsWithSide = [...gaps, endGap];
             const maxGap = _.max(gapsWithSide)!;
             // 优先让后面的撑开
@@ -82,6 +83,16 @@ export function measureFlexJustify(parent: VNode) {
         const pos = Math.round(parent.bounds[sf] + parent.bounds[ef] / 2);
         const [eefn, ssfn] = ranges[flex1GapIndex + 1];
 
+        // 只有两个子节点，中间要不要撑开？
+        if (
+            // isGeneratedNode(parent) &&
+            gaps.length === 1 &&
+            (gaps[0] < children[0].bounds[spec1] || gaps[0] < children[1].bounds[spec1])
+        ) {
+            // 间距比两个元素都大才支持撑开
+            return;
+        }
+
         const flex1Vnode = newVNode({
             bounds: {
                 [sf]: pos,
@@ -103,6 +114,8 @@ export function measureFlexJustify(parent: VNode) {
         gaps.splice(flex1GapIndex, 1, 0, 0);
         // 插入flex1元素
         children.splice(flex1GapIndex + 1, 0, flex1Vnode);
+
+        return true;
     }
 
     function sideJustify() {
@@ -119,16 +132,18 @@ export function measureFlexJustify(parent: VNode) {
             children.length >= 2 &&
             !needEqualGaps;
 
+        let insertedFlex1 = false;
         if (needFlex1) {
-            insertFlex1Node();
+            insertedFlex1 = !!insertFlex1Node();
         }
 
-        if (needFlex1) {
+        if (insertedFlex1) {
             // 都flex1了，父节点什么都不用设置
         } else if (justifySide === 'center') {
-            parent.classList.push('justify-center');
             if (parent[justifySpec] === SizeSpec.Auto) {
                 parent.classList.push(R`p${xy}-${startGap}`);
+            } else {
+                parent.classList.push('justify-center');
             }
         } else if (justifySide === 'start') {
             if (parent[justifySpec] === SizeSpec.Auto) {
@@ -141,7 +156,7 @@ export function measureFlexJustify(parent: VNode) {
             }
         }
 
-        if (needFlex1) {
+        if (insertedFlex1) {
             // flex1全部往左margin
             gaps.unshift(startGap);
             _.each(children, (child, i) => {
@@ -198,13 +213,24 @@ export function measureFlexJustify(parent: VNode) {
             !numEq(sameGap, 0) &&
             !numEq(startGap, 0) &&
             numEq(startGap, endGap) &&
-            numEq(startGap * 2, sameGap)
+            numEq(startGap * 2, sameGap) &&
+            parent[justifySpec] !== SizeSpec.Auto
         ) {
             parent.classList.push('justify-around');
             return;
-        } else if (!numEq(sameGap, 0) && numGt(sameGap, startGap) && numGt(sameGap, endGap)) {
-            parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
-            return;
+        } else if (
+            !numEq(sameGap, 0) &&
+            numGt(sameGap, startGap) &&
+            numGt(sameGap, endGap) &&
+            parent[justifySpec] !== SizeSpec.Auto
+        ) {
+            if (parent[justifySpec] === SizeSpec.Constrained && isGeneratedNode(parent)) {
+                // 这种情况太常见了，很多导致问题
+                // TODO: 还可以优化
+            } else {
+                parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
+                return;
+            }
         }
     }
     sideJustify();

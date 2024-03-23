@@ -13,16 +13,17 @@ import {
     isCrossDirection,
     isFlexBox,
     isFlexWrapLike,
-    isGeneratedGhostNode,
+    isGeneratedNode,
     isListContainer,
     isListWrapContainer,
     isListXContainer,
     isListYContainer,
     isMultiLineText,
     isSingleLineText,
+    makeSingleLineTextNoWrap,
     newVNode
 } from '../vnode';
-import { checkChildSizeOverHalf } from './measureParentSizeSpec';
+import { canChildStretchWithParent } from './measureParentSizeSpec';
 
 interface Margin {
     marginStart: number;
@@ -44,20 +45,31 @@ export function measureFlexAlign(parent: VNode) {
     // 否则，可能还是以前的算法好. 我们这里谨慎使用padding
     const parentAlign = getParentAlign(parent, alignSpec);
     const remainMargins = setCommonPadding(parent, parentAlign, alignSpec);
-    setFlexAlign(parentAlign, parent, alignSpec, remainMargins);
+    // TODO: 父元素尺寸固定且子元素尺寸也都固定且margin都为0，此时不用align
+    const specialStretch =
+        parent[alignSpec] === SizeSpec.Fixed &&
+        _.every(parent.children, child => child[alignSpec] === SizeSpec.Fixed) &&
+        _.every(remainMargins, margin => margin.marginStart === 0 && margin.marginEnd === 0);
+    if (!specialStretch) {
+        setFlexAlign(parentAlign, parent, alignSpec, remainMargins);
+    }
     setAutoPreserveMarginIfNeeded(parent, alignSpec, alignDimension, remainMargins);
 }
 
 /** 扩大我们自己切的虚拟flex盒子 */
 function expandGhostChildrenIfPossible(parent: VNode, alignDimension: Dimension) {
-    _.each(parent.children, child => {
+    _.each(parent.children, (child, i) => {
         if (
-            isGeneratedGhostNode(child) &&
+            isGeneratedNode(child) &&
             // 如果同方向也撑大的话，就没有啥意义
             isCrossDirection(parent, child) &&
             // flexWrap撑大没有意义，还会有bug；列表撑开会导致全部滚到边上
-            !isListContainer(child)
+            !isListContainer(child) &&
+            !isListContainer(parent)
         ) {
+            // TODO: 扩张到左边padding最多的那个，保持左右padding一致，维持居中性质
+            // const margins = getMargins(parent);
+
             if (alignDimension === 'width') {
                 child.bounds.left = parent.bounds.left;
                 child.bounds.right = parent.bounds.right;
@@ -105,7 +117,9 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                         child[alignSpec] = SizeSpec.Fixed;
                     }
                 } else if (
-                    checkChildSizeOverHalf(child, parent, alignDimension) &&
+                    // 列表必须靠一边对齐
+                    !isListContainer(parent) &&
+                    canChildStretchWithParent(child, parent, alignDimension) &&
                     parent[alignSpec] !== SizeSpec.Fixed
                 ) {
                     // 允许auto元素随父节点拉伸
@@ -116,7 +130,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             assert(!child.children.length, '只有裸盒子才没设置尺寸');
             if (parent[alignSpec] === SizeSpec.Fixed) {
                 child[alignSpec] = SizeSpec.Fixed;
-            } else if (checkChildSizeOverHalf(child, parent, alignDimension)) {
+            } else if (canChildStretchWithParent(child, parent, alignDimension)) {
                 child[alignSpec] = SizeSpec.Constrained;
             } else {
                 child[alignSpec] = SizeSpec.Fixed;
@@ -134,63 +148,57 @@ function expandOverflowChildrenIfPossible(
     const margins = getMargins(parent);
 
     _.each(parent.children, (child, i) => {
+        // 单行文本可能宽度固定, 则直接设置ellipsis
+        if (alignSpec === 'widthSpec' && isSingleLineText(child) && child[alignSpec] === SizeSpec.Fixed) {
+            makeSingleLineTextNoWrap(child);
+            child.classList.push('text-ellipsis overflow-hidden');
+            return;
+        }
+
         if (
             // 父元素auto，则子元素没法设置overflow，会一直撑开
             parent[alignSpec] === SizeSpec.Auto ||
             // 单行文本可能宽度固定
-            child[alignSpec] === SizeSpec.Fixed
+            child[alignSpec] !== SizeSpec.Auto
         ) {
             return;
         }
 
         const margin = margins[i];
+        // 如果是随容器扩大的overflow，则必须设置为Constrained, 视情况包一层
+        const getExpandAuto2SizeSpec = () => {
+            assert(child[alignSpec] === SizeSpec.Auto, '只能扩充auto元素');
+            // 父元素尺寸有限，扩充完子元素也是尺寸有限
+            if (parent[alignSpec] === SizeSpec.Fixed) {
+                return SizeSpec.Fixed;
+            }
+            if (parent[alignSpec] === SizeSpec.Constrained) {
+                return SizeSpec.Constrained;
+            }
+            unreachable();
+        };
 
         // 处理auto元素的最大宽度
-        if (alignSpec === 'widthSpec' && isSingleLineText(child)) {
-            // 如果是随容器扩大的overflow，则必须设置为Constrained, 视情况包一层
-            const expandAuto2SizeSpec = (() => {
-                // 已经是Constrained，不需要扩充
-                if (child[alignSpec] === SizeSpec.Constrained) {
-                    return undefined;
-                }
-                assert(child[alignSpec] === SizeSpec.Auto, '只能扩充auto元素');
-                // 父元素尺寸有限，扩充完子元素也是尺寸有限
-                if (parent[alignSpec] === SizeSpec.Fixed) {
-                    return SizeSpec.Fixed;
-                }
-                if (parent[alignSpec] === SizeSpec.Constrained) {
-                    return SizeSpec.Constrained;
-                }
-                unreachable();
-            })();
+        if (
+            (alignSpec === 'widthSpec' && isSingleLineText(child)) ||
+            (alignSpec === 'heightSpec' && isMultiLineText(child))
+        ) {
             defaultConfig.codeGenOptions.textClamp &&
-                setTextClamp(child, parent, alignDimension, margin, expandAuto2SizeSpec);
-        } else if (alignSpec === 'heightSpec' && isMultiLineText(child)) {
-            // 多行文本没法扩充，因为是按行数截断的
-            defaultConfig.codeGenOptions.textClamp && setTextClamp(child, parent, alignDimension, margin);
+                setTextClamp(child, parent, alignSpec, alignDimension, margin, getExpandAuto2SizeSpec());
         } else if (
             (alignSpec === 'widthSpec' && isListXContainer(child)) ||
             (alignSpec === 'heightSpec' && isListYContainer(child)) ||
             (alignSpec === 'heightSpec' && isListWrapContainer(child))
         ) {
-            // 如果是随容器扩大的overflow，则必须设置为Constrained, 视情况包一层
-            const expandAuto2SizeSpec = (() => {
-                // 已经是Constrained，不需要扩充
-                if (child[alignSpec] === SizeSpec.Constrained) {
-                    return undefined;
-                }
-                assert(child[alignSpec] === SizeSpec.Auto, '只能扩充auto元素');
-                // 父元素尺寸有限，扩充完子元素也是尺寸有限
-                if (parent[alignSpec] === SizeSpec.Fixed) {
-                    return SizeSpec.Fixed;
-                }
-                if (parent[alignSpec] === SizeSpec.Constrained) {
-                    return SizeSpec.Constrained;
-                }
-                unreachable();
-            })();
             defaultConfig.codeGenOptions.listOverflowAuto &&
-                setListOverflowAuto(child, parent, alignSpec, alignDimension, margin, expandAuto2SizeSpec);
+                setListOverflowAuto(
+                    child,
+                    parent,
+                    alignSpec,
+                    alignDimension,
+                    margin,
+                    getExpandAuto2SizeSpec()
+                );
         }
     });
 }
@@ -216,6 +224,11 @@ function decideParentAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignDim
 
 /** 获取共同的align作为父节点的align */
 function getParentAlign(parent: VNode, alignSpec: DimensionSpec) {
+    // 列表元素只能靠start边
+    if (isListContainer(parent)) {
+        return 'start';
+    }
+
     const [constrainNodes, otherNodes] = _.partition(
         parent.children,
         child => child[alignSpec] === SizeSpec.Constrained
@@ -232,7 +245,7 @@ function getParentAlign(parent: VNode, alignSpec: DimensionSpec) {
         commonMarginEndCount,
         commonMarginDiffCount
     );
-    if (maxCommonMarginCount <= 1 || maxCommonMarginCount === commonStretchCount) {
+    if (maxCommonMarginCount > 1 && maxCommonMarginCount === commonStretchCount) {
         return 'stretch';
     } else if (maxCommonMarginCount === commonMarginDiffCount) {
         return 'center';
@@ -241,7 +254,7 @@ function getParentAlign(parent: VNode, alignSpec: DimensionSpec) {
     } else if (maxCommonMarginCount === commonMarginEndCount) {
         return 'end';
     } else {
-        unreachable();
+        return 'stretch';
     }
 }
 
@@ -297,14 +310,14 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
     }
 
     function setFixOrAutoAlign(child: VNode, margin: Margin) {
-        if (possibleAlignCenter(margin)) {
+        const selfAlign = getSelfAlign(parent, margin);
+        if (selfAlign === 'center') {
             child.classList.push(mayNeedAlign('center'));
-        } else if (margin.marginStart < margin.marginEnd) {
+        } else if (selfAlign === 'start') {
             child.classList.push(mayNeedAlign('start'));
             child.classList.push(R`m${s}-${margin.marginStart}`);
         } else {
-            if (isFlexWrapLike(child)) {
-                assert(alignSpec === 'heightSpec', '多行元素只有纵向需自动撑开');
+            if (isFlexWrapLike(child) && alignSpec === 'heightSpec') {
                 console.debug('多行元素只能靠上');
                 child.classList.push(mayNeedAlign('start'));
                 child.classList.push(R`m${s}-${margin.marginStart}`);
@@ -339,8 +352,19 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
 }
 
 /** 可能居中 */
-function possibleAlignCenter(margin: Margin) {
-    return numEq(margin.marginStart, margin.marginEnd);
+function getSelfAlign(parent: VNode, margin: Margin) {
+    // 列表元素只能靠start边
+    if (isListContainer(parent)) {
+        return 'start';
+    }
+    if (numEq(margin.marginStart, margin.marginEnd)) {
+        return 'center';
+    }
+    if (margin.marginStart < margin.marginEnd) {
+        return 'start';
+    } else {
+        return 'end';
+    }
 }
 
 /** 获取所有子节点align方向的边距 */
@@ -377,11 +401,16 @@ function getMultiLineTextLineHeight(textVNode: VNode) {
 
 /** 检查是否需要包一层超出容器 */
 function checkNeedOverflowWrapper(
+    child: VNode,
     margin: Margin,
     expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
 ) {
     // 固定宽度不需要包一层
     if (expandAuto2SizeSpec === SizeSpec.Fixed) {
+        return false;
+    }
+    // 无背景的列表直接扩充就行
+    if ((isListXContainer(child) || isListYContainer(child)) && isGeneratedNode(child)) {
         return false;
     }
     // 无边距不需要包一层
@@ -391,78 +420,134 @@ function checkNeedOverflowWrapper(
     return true;
 }
 
+/** 扩充auto尺寸 */
+function expandAutoForOverflow(params: {
+    parent: VNode;
+    child: VNode;
+    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained;
+    alignSpec: DimensionSpec;
+    margin: Margin;
+    marginPreserve: number;
+    expandEndOnly?: boolean;
+    keepOriginalStyle?: boolean;
+}) {
+    const {
+        parent,
+        child,
+        expandAuto2SizeSpec,
+        alignSpec,
+        margin,
+        marginPreserve,
+        expandEndOnly,
+        keepOriginalStyle
+    } = params;
+
+    // 开始扩充容器
+    child.widthSpec = expandAuto2SizeSpec;
+    const originalBounds = _.clone(child.bounds);
+
+    const selfAlign = getSelfAlign(parent, margin);
+    const startMargin =
+        selfAlign === 'center' ? Math.min(marginPreserve, margin.marginStart)
+        : selfAlign === 'start' || expandEndOnly ? margin.marginStart
+        : Math.min(marginPreserve, margin.marginEnd);
+    const endMargin =
+        selfAlign === 'center' ? Math.min(marginPreserve, margin.marginEnd)
+        : selfAlign === 'end' ? margin.marginEnd
+        : Math.min(marginPreserve, margin.marginStart);
+
+    if (alignSpec === 'widthSpec') {
+        child.bounds.left = parent.bounds.left + startMargin;
+        child.bounds.right = parent.bounds.right - endMargin;
+        child.bounds.width = child.bounds.right - child.bounds.left;
+    } else {
+        child.bounds.top = parent.bounds.top + startMargin;
+        child.bounds.bottom = parent.bounds.bottom - endMargin;
+        child.bounds.height = child.bounds.bottom - child.bounds.top;
+    }
+
+    // 设置最大溢出尺寸
+    const maxSize =
+        expandAuto2SizeSpec === SizeSpec.Constrained ? 'full'
+        : alignSpec === 'widthSpec' ? child.bounds.width
+        : child.bounds.height;
+
+    let wrapperNode: VNode | null = null;
+    // 检查是否需要包一层
+    if (checkNeedOverflowWrapper(child, margin, expandAuto2SizeSpec)) {
+        // 文本居中会由wrapperNode以justify-center的方式实现
+        wrapperNode = newVNode({
+            bounds: _.clone(child.bounds),
+            widthSpec: child.widthSpec,
+            heightSpec: child.heightSpec,
+            direction: alignSpec === 'widthSpec' ? Direction.Row : Direction.Column
+        });
+        // 保留容器的背景样式
+        if (keepOriginalStyle) {
+            const classList = child.classList;
+            child.classList = [];
+            wrapperNode.classList = classList;
+            const style = child.style;
+            child.style = {};
+            wrapperNode.style = style;
+        }
+        child.bounds = originalBounds;
+        child.widthSpec = SizeSpec.Auto;
+        wrapperNode.children = [_.clone(child)];
+    }
+
+    return { wrapperNode, maxSize };
+}
+
 /** 设置文本超出省略 */
 function setTextClamp(
     child: VNode,
     parent: VNode,
+    alignSpec: DimensionSpec,
     alignDimension: Dimension,
     margin: Margin,
-    expandAuto2SizeSpec?: SizeSpec.Fixed | SizeSpec.Constrained
+    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
 ) {
+    // 多行文本没法扩充，因为是按行数截断的
+
     if (isSingleLineText(child)) {
         assert(alignDimension === 'width', '单行文本超出省略只能是横向');
 
         const marginPreserve = getSingleLinePreserveMargin(child);
-        const parentWidth = parent.bounds.width;
-        let maxWidth: number | string = '';
-
-        if (expandAuto2SizeSpec) {
-            // 开始扩充容器
-            child.widthSpec = expandAuto2SizeSpec;
-            const bothMargin =
-                possibleAlignCenter(margin) ?
-                    Math.min(marginPreserve, margin.marginStart)
-                :   Math.min(marginPreserve, margin.marginStart, margin.marginEnd);
-            child.bounds.left = parent.bounds.left + bothMargin;
-            child.bounds.right = parent.bounds.right - bothMargin;
-            child.bounds.width = child.bounds.right - child.bounds.left;
-
-            // 设置最大溢出尺寸
-            if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-                maxWidth = child.bounds.width;
-            } else {
-                maxWidth = 'full';
-            }
-
-            // 检查是否需要包一层
-            if (checkNeedOverflowWrapper(margin, expandAuto2SizeSpec)) {
-                // 文本居中会由wrapperNode以justify-center的方式实现
-                const wrapperNode = newVNode({
-                    children: [_.clone(child)],
-                    bounds: _.clone(child.bounds),
-                    widthSpec: child.widthSpec,
-                    heightSpec: child.heightSpec,
-                    direction: Direction.Row
-                });
-                replaceWith(child, wrapperNode);
+        const res = expandAutoForOverflow({
+            parent,
+            child,
+            expandAuto2SizeSpec,
+            alignSpec,
+            margin,
+            marginPreserve
+        });
+        const maxWidth = res.maxSize;
+        // 这里原本的居中属性会由flex管理
+        if (res.wrapperNode) {
+            replaceWith(child, res.wrapperNode);
+            child = res.wrapperNode.children[0];
+        }
+        // 这里原本的居中属性得由text-align管理
+        else {
+            const selfAlign = getSelfAlign(parent, margin);
+            if (selfAlign === 'center') {
+                child.classList.push('text-center');
+            } else if (selfAlign === 'end') {
+                child.classList.push('text-right');
             }
         }
 
-        if (maxWidth) {
-            //
-        } else if (possibleAlignCenter(margin)) {
-            const bothMargin = Math.min(marginPreserve, margin.marginStart);
-            child.classList.push(R`mx-${bothMargin}`);
-            maxWidth = parentWidth - 2 * bothMargin;
-        } else if (margin.marginStart < margin.marginEnd) {
-            const leftMargin = margin.marginStart;
-            const rightMargin = Math.min(marginPreserve, leftMargin);
-            child.classList.push(R`mr-${rightMargin}`);
-            maxWidth = parentWidth - leftMargin - rightMargin;
-        } else {
-            const rightMargin = margin.marginEnd;
-            const leftMargin = Math.min(marginPreserve, rightMargin);
-            child.classList.push(R`ml-${leftMargin}`);
-            maxWidth = parentWidth - leftMargin - rightMargin;
-        }
-        // whitespace-nowrap已经全局设置
-        child.classList.push(R`max-w-${maxWidth} text-ellipsis overflow-hidden`);
+        makeSingleLineTextNoWrap(child);
+        // 固定宽度不需要在这设置
+        const widthLimit = expandAuto2SizeSpec === SizeSpec.Fixed ? '' : `max-w-${maxWidth}`;
+        child.classList.push(R`${widthLimit} text-ellipsis overflow-hidden`);
     } else if (isMultiLineText(child)) {
         assert(alignDimension === 'height', '多行文本超出省略只能是纵向');
         const parentHeight = parent.bounds.height;
         const lineHeight = getMultiLineTextLineHeight(child);
         let topMargin = margin.marginStart;
-        if (possibleAlignCenter(margin)) {
+        if (getSelfAlign(parent, margin) === 'center') {
             topMargin = Math.min(lineHeight, topMargin);
         }
         const bottomMargin = Math.min(lineHeight, margin.marginEnd);
@@ -484,111 +569,58 @@ function setListOverflowAuto(
     alignSpec: DimensionSpec,
     alignDimension: Dimension,
     margin: Margin,
-    expandAuto2SizeSpec?: SizeSpec.Fixed | SizeSpec.Constrained
+    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
 ) {
     const marginPreserve = 10; // 先给10吧
-    let maxSize: number | string = '';
-
-    if (expandAuto2SizeSpec) {
-        // 开始扩充容器尺寸
-        child[alignSpec] = SizeSpec.Constrained;
-        if (isListWrapContainer(child)) {
-            if (possibleAlignCenter(margin)) {
-                const bothMargin = Math.min(marginPreserve, margin.marginStart);
-                child.bounds.top = parent.bounds.top + bothMargin;
-                child.bounds.bottom = parent.bounds.bottom - bothMargin;
-            } else {
-                const bottomMargin = Math.min(marginPreserve, margin.marginEnd);
-                child.bounds.bottom = parent.bounds.bottom - bottomMargin;
-            }
-            child.bounds.height = child.bounds.bottom - child.bounds.top;
-        } else {
-            const bothMargin =
-                possibleAlignCenter(margin) ?
-                    Math.min(marginPreserve, margin.marginStart)
-                :   Math.min(marginPreserve, margin.marginStart, margin.marginEnd);
-
-            if (alignSpec === 'widthSpec') {
-                child.bounds.left = parent.bounds.left + bothMargin;
-                child.bounds.right = parent.bounds.right - bothMargin;
-                child.bounds.width = child.bounds.right - child.bounds.left;
-            } else {
-                child.bounds.top = parent.bounds.top + bothMargin;
-                child.bounds.bottom = parent.bounds.bottom - bothMargin;
-                child.bounds.height = child.bounds.bottom - child.bounds.top;
-            }
-        }
-
-        // 设置最大溢出尺寸
-        if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-            maxSize = alignSpec === 'widthSpec' ? child.bounds.width : child.bounds.height;
-        } else {
-            maxSize = 'full';
-        }
-
-        // 检查是否需要包一层
-        if (checkNeedOverflowWrapper(margin, expandAuto2SizeSpec)) {
-            // 保留容器的背景样式
-            const classList = child.classList;
-            child.classList = [];
-            const style = child.style;
-            child.style = {};
-
-            const wrapperNode = newVNode({
-                classList,
-                style,
-                children: [_.clone(child)],
-                bounds: _.clone(child.bounds),
-                widthSpec: child.widthSpec,
-                heightSpec: child.heightSpec,
-                direction: isListWrapContainer(child) ? Direction.Column : child.direction
-            });
-            replaceWith(child, wrapperNode);
-        }
-    }
 
     if (isListXContainer(child) || isListYContainer(child)) {
-        const parentSize = parent.bounds[alignDimension];
         if (isListXContainer(child)) {
             assert(alignDimension === 'width', '横向列表超出滚动只能是横向');
         } else {
             assert(alignDimension === 'height', '纵向列表超出滚动只能是纵向');
         }
-        if (possibleAlignCenter(margin)) {
-            const bothMargin = Math.min(marginPreserve, margin.marginStart);
-            child.classList.push(R`m${alignDimension === 'width' ? 'x' : 'y'}-${bothMargin}`);
-            maxSize = parentSize - 2 * bothMargin;
-        } else if (margin.marginStart < margin.marginEnd) {
-            const startMargin = margin.marginStart;
-            const endMargin = Math.min(marginPreserve, startMargin);
-            child.classList.push(R`m${alignDimension === 'width' ? 'r' : 'b'}-${endMargin}`);
-            maxSize = parentSize - startMargin - endMargin;
-        } else {
-            const endMargin = margin.marginEnd;
-            const startMargin = Math.min(marginPreserve, endMargin);
-            child.classList.push(R`m${alignDimension === 'width' ? 'l' : 't'}-${startMargin}`);
-            maxSize = parentSize - startMargin - endMargin;
+
+        const res = expandAutoForOverflow({
+            parent,
+            child,
+            expandAuto2SizeSpec,
+            alignSpec,
+            margin,
+            marginPreserve,
+            keepOriginalStyle: true
+        });
+        if (res.wrapperNode) {
+            replaceWith(child, res.wrapperNode);
+            child = res.wrapperNode.children[0];
+            child.classList.push(`max-${alignDimension === 'width' ? 'w' : 'h'}-full`);
+            return;
         }
-        // whitespace-nowrap已经全局设置
-        child.classList.push(
-            R`max-${alignDimension.slice(0, 1)}-${maxSize} overflow-${alignDimension === 'width' ? 'x' : 'y'}-auto`
-        );
+
+        child.classList.push(R`overflow-${alignDimension === 'width' ? 'x' : 'y'}-auto`);
         // TODO: 是否可以给一个utility-class，child:shrink-0
         _.each(child.children, son => {
             son.classList.push('shrink-0');
         });
     } else {
         assert(isListWrapContainer(child) && alignDimension === 'height', 'flexWrap只有纵向才能超出滚动');
-        const parentHeight = child.bounds.height;
-        const bottomMargin = Math.min(marginPreserve, margin.marginEnd);
-        child.classList.push(R`mb-${bottomMargin}`);
-        let topMargin = margin.marginStart;
-        if (possibleAlignCenter(margin)) {
-            topMargin = Math.min(marginPreserve, topMargin);
-            child.classList.push(R`mt-${topMargin}`);
+
+        const res = expandAutoForOverflow({
+            parent,
+            child,
+            expandAuto2SizeSpec,
+            alignSpec,
+            margin,
+            marginPreserve,
+            keepOriginalStyle: true,
+            expandEndOnly: true
+        });
+        if (res.wrapperNode) {
+            replaceWith(child, res.wrapperNode);
+            child = res.wrapperNode.children[0];
+            child.classList.push('max-h-full');
+            return;
         }
-        maxSize = parentHeight - topMargin - bottomMargin;
-        child.classList.push(R`max-h-${maxSize} overflow-y-auto`);
+        child.classList.push('overflow-y-auto');
     }
 }
 
@@ -600,8 +632,13 @@ function setAutoPreserveMarginIfNeeded(
     margins: Margin[]
 ) {
     _.each(parent.children, (child, i) => {
+        const parentCanMargin =
+            // 单行文本可以换行
+            isSingleLineText(child) ?
+                parent[alignSpec] === SizeSpec.Auto || parent[alignSpec] === SizeSpec.Constrained
+            :   parent[alignSpec] === SizeSpec.Auto;
         const needPreserveMargin =
-            parent[alignSpec] === SizeSpec.Auto &&
+            parentCanMargin &&
             child[alignSpec] === SizeSpec.Auto &&
             defaultConfig.codeGenOptions.overflowMargin;
         if (!needPreserveMargin) {
@@ -613,10 +650,11 @@ function setAutoPreserveMarginIfNeeded(
         if (isSingleLineText(child)) {
             assert(alignDimension === 'width', '单行文本预留空间只能是横向');
             const marginPreserve = getSingleLinePreserveMargin(child);
-            if (possibleAlignCenter(margin)) {
+            const selfAlign = getSelfAlign(parent, margin);
+            if (selfAlign === 'center') {
                 const bothMargin = Math.min(marginPreserve, margin.marginStart);
                 child.classList.push(R`mx-${bothMargin}`);
-            } else if (margin.marginStart < margin.marginEnd) {
+            } else if (selfAlign === 'start') {
                 const leftMargin = margin.marginStart;
                 const rightMargin = Math.min(marginPreserve, leftMargin);
                 child.classList.push(R`mr-${rightMargin}`);
@@ -630,7 +668,7 @@ function setAutoPreserveMarginIfNeeded(
             const lineHeight = getMultiLineTextLineHeight(child);
             const bottomMargin = Math.min(lineHeight, margin.marginEnd);
             child.classList.push(R`mb-${bottomMargin}`);
-            if (possibleAlignCenter(margin)) {
+            if (getSelfAlign(parent, margin) === 'center') {
                 const topMargin = Math.min(lineHeight, margin.marginStart);
                 child.classList.push(R`mt-${topMargin}`);
             }
@@ -639,17 +677,18 @@ function setAutoPreserveMarginIfNeeded(
             const marginPreserve = 10; // 先给10吧
             const bottomMargin = Math.min(marginPreserve, margin.marginEnd);
             child.classList.push(R`mb-${bottomMargin}`);
-            if (possibleAlignCenter(margin)) {
+            if (getSelfAlign(parent, margin) === 'center') {
                 const topMargin = Math.min(marginPreserve, margin.marginStart);
                 child.classList.push(R`mt-${topMargin}`);
             }
         } else {
             assert(isFlexBox(child), '只有flex盒子才能预留空间');
             const marginPreserve = 10; // 先给10吧
-            if (possibleAlignCenter(margin)) {
+            const selfAlign = getSelfAlign(parent, margin);
+            if (selfAlign === 'center') {
                 const bothMargin = Math.min(marginPreserve, margin.marginStart);
                 child.classList.push(R`m${alignDimension === 'width' ? 'x' : 'y'}-${bothMargin}`);
-            } else if (margin.marginStart < margin.marginEnd) {
+            } else if (selfAlign === 'start') {
                 const startMargin = margin.marginStart;
                 const endMargin = Math.min(marginPreserve, startMargin);
                 child.classList.push(R`m${alignDimension === 'width' ? 'r' : 'b'}-${endMargin}`);

@@ -51,12 +51,8 @@ export const defaultConfig = {
     },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
     removeGhostNodes: false,
-    /** 为auto元素分配更多空间，指定分配策略 */
-    allocSpaceForAuto: {
-        flexWrapItemFixedWidth: true,
-        multiLineTextFixedWidth: false,
-        listXStrategy: AllocSpaceStrategy.None
-    },
+    /** 为列表元素指定同样的固定高度/宽度 */
+    listItemSizeFixed: false,
     /** 黑名单节点id，将删掉这些节点 */
     blackListNodes: [] as string[],
     /** 这些节点只能做叶子节点，防止错乱的层级 */

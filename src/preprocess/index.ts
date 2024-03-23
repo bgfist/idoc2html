@@ -74,7 +74,7 @@ function stylishSlice(node: Node, vnode: VNode) {
     }
     // TODO: 处理切图尺寸和实际不一致的问题？
     vnode.classList.push(`bg-cover bg-[url(https://idoc.mucang.cn${node.slice.bitmapURL})]`);
-    // (vnode.style??={}).backgroundImage = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
+    // vnode.style['background-image'] = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
 }
@@ -90,7 +90,7 @@ function stylishImage(node: Node, vnode: VNode) {
     }
 
     // vnode.classList.push('bg-cover');
-    // (vnode.style ??= {}).backgroundImage = "url()";
+    // vnode.style['background-image'] = "url()";
     // img元素不能有子节点，可以尝试包一层
     vnode.attachNodes = [
         newVNode({
@@ -213,21 +213,29 @@ export function preprocess(node: Node, level: number): VNode | null {
 
     if (defaultConfig.codeGenOptions.experimentalZIndex) {
         const [hasRight, noRight] = _.partition(node.children, n => 'right' in n.bounds);
-        node.children = hasRight
-            .reverse()
-            .map((n, i) => {
-                // @ts-ignore
-                n._index = i + 1;
-                return n;
-            })
-            .concat(noRight);
 
+        if (hasRight.length) {
+            node.children = hasRight
+                .reverse()
+                .map((n, i) => {
+                    // @ts-ignore
+                    n._index = i + 1;
+                    return n;
+                })
+                .concat(
+                    noRight.map(n => {
+                        if (node.basic.type === 'text' && node.basic.realType === 'Text') {
+                            // @ts-ignore
+                            n._index = 10;
+                        }
+                        return n;
+                    })
+                );
+        }
         // @ts-ignore
         if (node._index) {
             // @ts-ignore
             vnode.classList.push(`z-${node._index}`);
-        } else if (vnode.textContent) {
-            vnode.classList.push('z-10');
         }
     }
 

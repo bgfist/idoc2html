@@ -118,7 +118,7 @@ function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
     if (style) {
         Object.assign(attributes, {
             style: Object.entries(style)
-                .map(([key, value]) => `${_.kebabCase(key)}: ${value}`)
+                .map(([key, value]) => `${key}: ${value}`)
                 .join(';')
         });
     }

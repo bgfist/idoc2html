@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { SizeSpec, VNode, isEqualBox, isListContainer, isTextNode, isGeneratedGhostNode } from '../vnode';
+import { SizeSpec, VNode, isEqualBox, isGeneratedNode, isListWrapContainer, isTextNode } from '../vnode';
 
 /** 合并节点 */
 export function mergeNode(dest: VNode, src: VNode) {
@@ -78,8 +78,8 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
 
     const child = children[0];
 
-    // 先不处理列表
-    if (isListContainer(child)) {
+    // 先不处理多行列表，margin有问题
+    if (isListWrapContainer(child)) {
         return;
     }
 
@@ -90,7 +90,7 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
         child.direction &&
         child.heightSpec !== SizeSpec.Fixed &&
         child.widthSpec !== SizeSpec.Fixed &&
-        isGeneratedGhostNode(child)
+        isGeneratedNode(child)
     ) {
         mergeNode(parent, child);
         parent.children = child.children;

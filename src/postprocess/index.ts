@@ -1,13 +1,18 @@
 import * as _ from 'lodash';
 import { BuildStage, debug, defaultConfig } from '../config';
-import { Direction, VNode, isOriginalGhostNode, isListContainer } from '../vnode';
+import { Direction, VNode, isOriginalGhostNode, isListContainer, isTextNode } from '../vnode';
 import { buildTree } from './build';
 import { measureTree } from './measure';
 
 /** 删除幽灵节点，这些节点本身没样式 */
 function removeGhostNodes(vnode: VNode) {
     if (vnode.children.length) {
-        vnode.children = _.filter(vnode.children, n => !isOriginalGhostNode(n));
+        vnode.children = _.filter(vnode.children, n => {
+            if (isOriginalGhostNode(n) && ghostNodeCanRemove(n)) {
+                return false;
+            }
+            return true;
+        });
     }
 }
 
@@ -45,6 +50,14 @@ function expandGhostNodes(parent: VNode) {
     }
 }
 
+function ghostNodeCanRemove(vnode: VNode) {
+    // 只要有一个文本节点，则最好不要拆解这个幽灵节点
+    if (_.some(vnode.children, child => isTextNode(child))) {
+        return false;
+    }
+    return true;
+}
+
 /** 对节点树进行重建/重组/布局 */
 export function postprocess(vnode: VNode) {
     if (!debug.keepOriginalTree) {
@@ -52,6 +65,15 @@ export function postprocess(vnode: VNode) {
             const vnodes: VNode[] = [];
             const collectVNodes = (vnode: VNode) => {
                 vnodes.push(vnode);
+
+                if (
+                    defaultConfig.removeGhostNodes &&
+                    isOriginalGhostNode(vnode) &&
+                    !ghostNodeCanRemove(vnode)
+                ) {
+                    return;
+                }
+
                 _.each(vnode.children, collectVNodes);
                 vnode.children = [];
             };

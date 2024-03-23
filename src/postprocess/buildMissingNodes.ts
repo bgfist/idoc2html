@@ -89,7 +89,10 @@ export function buildMissingNodes(parent: VNode) {
     const grouped = groupWith(nodes, (a, b) => isContainedWithin(a, b) && isContainedWithin(b, a));
     nodes = _.map(Array.from(grouped.values()), nodes => {
         const [node, ...leftover] = nodes;
-        _.each(leftover, child => mergeNode(node, child));
+        _.each(leftover, child => {
+            mergeNode(node, child);
+            node.children = _.concat(node.children, child.children);
+        });
         return node;
     });
 

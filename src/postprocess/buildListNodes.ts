@@ -2,18 +2,23 @@ import * as _ from 'lodash';
 import { collectLongestRepeatRanges, groupWith, numEq, pickCombination, removeEles } from '../utils';
 import {
     Direction,
+    SizeSpec,
     VNode,
     addRole,
     getBounds,
     getMiddleLine,
     isContainedWithin,
     isListItemWrapped,
+    isListWrapContainer,
+    isListXContainer,
+    isListYContainer,
     isOverlapping,
     isTextNode,
     isTextRight,
     maybeTable,
     newVNode
 } from '../vnode';
+import { defaultConfig } from '../config';
 
 /** 两个盒子是否相似 */
 function isSimilarBoxX(a: VNode, b: VNode) {
@@ -107,6 +112,21 @@ function checkListItemUnnecessary(itemNodes: VNode[]) {
 
     if (textHeight.length === 1 && textHeight[0] !== 0) {
         return true;
+    }
+}
+
+/** 给列表元素设置固定的宽度/高度，可以优化布局方式 */
+function setFixedSizeIfConfigured(vnode: VNode) {
+    if (defaultConfig.listItemSizeFixed) {
+        if (isListXContainer(vnode) || isListWrapContainer(vnode)) {
+            _.each(vnode.children, item => {
+                item.heightSpec = SizeSpec.Fixed;
+            });
+        } else if (isListYContainer(vnode)) {
+            _.each(vnode.children, item => {
+                item.widthSpec = SizeSpec.Fixed;
+            });
+        }
     }
 }
 
@@ -217,6 +237,7 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
                 role: ['list-wrap'],
                 direction: Direction.Row
             });
+            setFixedSizeIfConfigured(vnode);
 
             // flex-wrap应该留出左边的间距
             const xGap = toMergeLists[0].children[1].bounds.left - toMergeLists[0].children[0].bounds.right;
@@ -249,6 +270,7 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
                 role: [direction === Direction.Row ? 'list-x' : 'list-y'],
                 direction
             });
+            setFixedSizeIfConfigured(vnode);
 
             return vnode;
         }
@@ -263,7 +285,6 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
 }
 
 function buildListDirection(vnode: VNode, direction: Direction) {
-    const otherNodes = vnode.children;
     const isSimilarFn = direction === Direction.Row ? isSimilarBoxX : isSimilarBoxY;
     const lineAlign = direction === Direction.Row ? 'top' : 'left';
     const lineOrder = direction === Direction.Row ? 'left' : 'top';
@@ -277,6 +298,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
         const tables = maybeTable(lines);
         tables.forEach(table => {
             removeEles(lines, table.tableRows);
+            removeEles(vnode.children, _.flatten(table.tableRows));
             vnode.children.push(table.tableBody);
         });
     }
@@ -291,7 +313,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
     do {
         continueMerge = false;
         pickCombination(addPlainListNodes, toMergeLists => {
-            const combinedListNode = tryMergeListNodes(otherNodes, toMergeLists, direction);
+            const combinedListNode = tryMergeListNodes(vnode.children, toMergeLists, direction);
             if (combinedListNode) {
                 removeEles(addPlainListNodes, toMergeLists);
                 addCombinedListNodes.push(combinedListNode);
@@ -305,7 +327,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
         return (
             (!isListItemWrapped(list.children[0]) && list.children.length === 2) ||
             _.every(list.children, isTextNode) || // 单节点列表如果都是文本，则没必要
-            checkListInvalid(otherNodes, list)
+            checkListInvalid(vnode.children, list)
         );
     });
 
@@ -315,6 +337,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
             role: [direction === Direction.Row ? 'list-x' : 'list-y'],
             direction
         });
+        setFixedSizeIfConfigured(vnode);
         _.each(list.children, child => {
             addRole(child, 'list-item');
         });

@@ -12,7 +12,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
         }
 
         if (!parent.widthSpec) {
-            if (checkChildSizeOverHalf(parent, grandParent, 'width')) {
+            if (canChildStretchWithParent(parent, grandParent, 'width')) {
                 parent.widthSpec = SizeSpec.Constrained;
             } else {
                 parent.widthSpec = SizeSpec.Fixed;
@@ -20,7 +20,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
         }
 
         if (!parent.heightSpec) {
-            if (checkChildSizeOverHalf(parent, grandParent, 'height')) {
+            if (canChildStretchWithParent(parent, grandParent, 'height')) {
                 parent.heightSpec = SizeSpec.Constrained;
             } else {
                 parent.heightSpec = SizeSpec.Fixed;
@@ -72,9 +72,15 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
     }
 }
 
-/** 检查子节点的尺寸是否超过父节点一半 */
-export function checkChildSizeOverHalf(child: VNode, parent: VNode, dimension: Dimension) {
-    return child.bounds[dimension] * 2 > parent.bounds[dimension];
+/** 子节点是否能随父亲拉伸 */
+export function canChildStretchWithParent(child: VNode, parent: VNode, dimension: Dimension) {
+    const anotherDimension = dimension === 'width' ? 'height' : 'width';
+    return (
+        // 简单判断？超过一半宽就拉伸
+        child.bounds[dimension] * 2 > parent.bounds[dimension]
+        // 如果是横着的长方形，则认为可以拉伸
+        // child.bounds[dimension] > child.bounds[anotherDimension]
+    );
 }
 
 /** 尽可能将父亲的尺寸类型设得更受限 */

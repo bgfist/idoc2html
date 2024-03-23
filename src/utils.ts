@@ -30,12 +30,9 @@ export function removeEles<T>(arr: T[], ele: T[]) {
 
 export function replaceWith<T extends object>(target: T, source: T) {
     for (const key in target) {
-        if (!(key in source)) {
-            delete target[key];
-        } else {
-            target[key] = source[key];
-        }
+        delete target[key];
     }
+    _.assign(target, source);
 }
 
 export function groupByWith<T, K>(
