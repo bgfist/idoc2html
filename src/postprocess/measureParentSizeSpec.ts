@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { VNode, SizeSpec, Direction, isRole, Dimension } from '../vnode';
+import { VNode, SizeSpec, Direction, isRole, Dimension, DimensionSpec } from '../vnode';
 import { assert } from '../utils';
 
 /** 根据子元素确定父盒子的尺寸类型 */
@@ -32,7 +32,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
 
     if (parent.direction === Direction.Row) {
         if (!parent.widthSpec) {
-            parent.widthSpec = SizeSpec.Auto;
+            limitParentJustifyAsPossible(parent, 'widthSpec');
         }
         // 针对align方向
         if (!parent.heightSpec) {
@@ -45,7 +45,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
         }
     } else if (parent.direction === Direction.Column) {
         if (!parent.heightSpec) {
-            parent.heightSpec = SizeSpec.Auto;
+            limitParentJustifyAsPossible(parent, 'heightSpec');
         }
         // 针对align方向
         if (!parent.widthSpec) {
@@ -57,6 +57,8 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
         if (!parent.widthSpec || !parent.heightSpec) {
             console.debug('遇到裸盒子', parent.id, parent.role);
         }
+
+        // 裸盒子将justifySpec设置为Fixed，alignSpec待定，由父亲去算
 
         if (!parent.widthSpec) {
             if (grandParent.direction === Direction.Row) {
@@ -83,8 +85,19 @@ export function canChildStretchWithParent(child: VNode, parent: VNode, dimension
     );
 }
 
-/** 尽可能将父亲的尺寸类型设得更受限 */
-function limitParentAlignAsPossible(parent: VNode, alignSpec: 'widthSpec' | 'heightSpec') {
+/** 尽可能将父亲的justify尺寸类型设得更受限 */
+function limitParentJustifyAsPossible(parent: VNode, justifySpec: DimensionSpec) {
+    // if (_.every(parent.children, child => child[justifySpec] === SizeSpec.Fixed)) {
+    //     // TODO: 并且所有元素之间overlap产生了负间距。说明它们实际上是一个整体
+    //     parent[justifySpec] = SizeSpec.Fixed;
+    //     return;
+    // }
+
+    parent[justifySpec] = SizeSpec.Auto;
+}
+
+/** 尽可能将父亲的align尺寸类型设得更受限 */
+function limitParentAlignAsPossible(parent: VNode, alignSpec: DimensionSpec) {
     // 只要有一个子节点需要自动撑开，则父节点必须由着它一起撑开
     if (_.some(parent.children, child => child[alignSpec] === SizeSpec.Auto)) {
         parent[alignSpec] = SizeSpec.Auto;

@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { collectLongestRepeatRanges, groupWith, numEq, pickCombination, removeEles } from '../utils';
 import {
     Direction,
+    Side,
     SizeSpec,
     VNode,
     addRole,
@@ -12,11 +13,16 @@ import {
     isListWrapContainer,
     isListXContainer,
     isListYContainer,
+    isMultiLineText,
     isOverlapping,
+    isSingleLineText,
+    isTableBody,
+    isTableRow,
     isTextNode,
     isTextRight,
     maybeTable,
-    newVNode
+    newVNode,
+    refreshBoxBounds
 } from '../vnode';
 import { defaultConfig } from '../config';
 
@@ -130,6 +136,57 @@ function setFixedSizeIfConfigured(vnode: VNode) {
     }
 }
 
+/** 给合成的list-item设置同样的尺寸大小和同样的间距 */
+function setListItemSameSizeAndGap(
+    toMergeLists: VNode[],
+    vnode: VNode,
+    direction: Direction,
+    mergeAlign: Side
+) {
+    if (direction === Direction.Row) {
+        // 高度固定
+        const multiTextLists = _.filter(toMergeLists, item => isMultiLineText(item.children[0]));
+        _.each(multiTextLists, multiTextList => {
+            const maxHeight = _.max(multiTextList.children.map(item => item.bounds.height))!;
+            _.each(multiTextList.children, item => {
+                item.bounds.height = maxHeight;
+                item.bounds.bottom = item.bounds.top + maxHeight;
+                item.heightSpec = SizeSpec.Fixed;
+            });
+        });
+        const maxWidth = _.max(vnode.children.map(item => item.bounds.width))!;
+        _.each(vnode.children, item => {
+            item.bounds.width = maxWidth;
+            if (mergeAlign === 'center') {
+                item.bounds.left -= Math.round((maxWidth - item.bounds.width) / 2);
+                item.bounds.right = item.bounds.left + maxWidth;
+            } else if (mergeAlign === 'start') {
+                item.bounds.right = item.bounds.left + maxWidth;
+            } else if (mergeAlign === 'end') {
+                item.bounds.left -= item.bounds.right - maxWidth;
+            }
+            refreshBoxBounds(item);
+        });
+        refreshBoxBounds(vnode);
+    } else if (direction === Direction.Column) {
+        const singleTextLists = _.filter(toMergeLists, item => isSingleLineText(item.children[0]));
+
+        _.each(singleTextLists, singleTextList => {
+            const maxWidth = _.max(singleTextList.children.map(item => item.bounds.width))!;
+            _.each(singleTextList.children, item => {
+                item.bounds.width = maxWidth;
+                item.bounds.right = item.bounds.left + maxWidth;
+                item.widthSpec = SizeSpec.Fixed;
+                // makeSingleLineTextNoWrap(item);
+            });
+        });
+        _.each(vnode.children, item => {
+            refreshBoxBounds(item);
+        });
+        refreshBoxBounds(vnode);
+    }
+}
+
 /** 寻找重复节点，将其归成列表 */
 function groupListNodes(nodes: VNode[], direction: Direction) {
     const gaps = nodes.slice(1).map((item, index) => getItemGap(item, nodes[index], direction));
@@ -184,6 +241,7 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
     }
 
     let mergeType: 'flexWrap' | 'normal' | 'skip' | false = false;
+    let mergeAlign: Side = 'center';
     function compareList(a: VNode, b: VNode) {
         if (direction === Direction.Row && (!mergeType || mergeType == 'flexWrap')) {
             if (
@@ -200,12 +258,23 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
             }
         }
         if (!mergeType || mergeType == 'normal') {
-            if (
-                a.children.length === b.children.length &&
-                (numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b)) ||
-                    (direction === Direction.Row &&
-                        numEq(getListItemStartLineGap(a), getListItemStartLineGap(b))))
-            ) {
+            if (a.children.length === b.children.length) {
+                if (numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b))) {
+                    mergeAlign = 'center';
+                } else if (
+                    direction === Direction.Row &&
+                    numEq(getListItemStartLineGap(a), getListItemStartLineGap(b))
+                ) {
+                    mergeAlign = 'start';
+                } else if (
+                    direction === Direction.Row &&
+                    numEq(getListItemEndLineGap(a), getListItemEndLineGap(b))
+                ) {
+                    mergeAlign = 'end';
+                } else {
+                    mergeType = false;
+                    return false;
+                }
                 mergeType = 'normal';
                 return true;
             }
@@ -270,6 +339,7 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
                 role: [direction === Direction.Row ? 'list-x' : 'list-y'],
                 direction
             });
+            setListItemSameSizeAndGap(toMergeLists, vnode, direction, mergeAlign);
             setFixedSizeIfConfigured(vnode);
 
             return vnode;
@@ -350,6 +420,10 @@ function buildListDirection(vnode: VNode, direction: Direction) {
 
 /** 先寻找可能构成列表的节点，这些节点应该作为一个整体 */
 export function buildListNodes(vnode: VNode) {
+    if (isTableBody(vnode) || isTableRow(vnode)) {
+        return;
+    }
+
     // 先找横向列表，横向的可能有flexWrap
     buildListDirection(vnode, Direction.Row);
 

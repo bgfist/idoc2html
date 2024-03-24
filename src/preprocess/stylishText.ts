@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Node } from '../page';
-import { R, SizeSpec, VNode, makeSingleLineTextNoWrap, newVNode } from '../vnode';
+import { R, SizeSpec, VNode, newVNode } from '../vnode';
 import { getNormalColor } from './color';
 
 export function stylishText(node: Node, vnode: VNode) {
@@ -56,6 +56,8 @@ export function stylishText(node: Node, vnode: VNode) {
         });
     } else {
         vnode.textContent = textNodes;
+        // 防止span之间有空格
+        vnode.classList.push('text-0');
     }
 
     const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
@@ -77,7 +79,7 @@ export function stylishText(node: Node, vnode: VNode) {
         ) {
             console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
             vnode.widthSpec = SizeSpec.Fixed;
-            makeSingleLineTextNoWrap(vnode);
+            // makeSingleLineTextNoWrap(vnode);
             const textAlign = node.text.styles[0].align;
             if (textAlign !== 'left') {
                 vnode.classList.push(`text-${textAlign}`);

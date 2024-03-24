@@ -1,11 +1,12 @@
 import * as _ from 'lodash';
 import { SizeSpec, VNode, isEqualBox, isGeneratedNode, isListWrapContainer, isTextNode } from '../vnode';
+import { removeEle } from '../utils';
 
 /** 合并节点 */
 export function mergeNode(dest: VNode, src: VNode) {
     if (isTextNode(dest)) {
         console.warn('其他节点往文本节点合并，只能当作依附元素');
-        (dest.attachNodes ??= []).push(src);
+        dest.attachNodes.push(src);
         return;
     }
 
@@ -15,10 +16,10 @@ export function mergeNode(dest: VNode, src: VNode) {
         dest.textMultiLine = src.textMultiLine;
 
         if (dest.children) {
-            _.remove(dest.children, src);
+            removeEle(dest.children, src);
             if (dest.children.length) {
                 console.warn('其他节点只能当作依附元素');
-                (dest.attachNodes ??= []).push(...(src.attachNodes || []).slice());
+                dest.attachNodes.push(...src.attachNodes.slice());
                 dest.children.length = 0;
             }
         }

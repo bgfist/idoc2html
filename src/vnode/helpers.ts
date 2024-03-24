@@ -211,8 +211,32 @@ export function makeSingleLineTextNoWrap(textNode: VNode) {
     }
 }
 
+export function makeSingleLineTextEllipsis(textNode: VNode) {
+    makeSingleLineTextNoWrap(textNode);
+    textNode.classList.push('text-ellipsis overflow-hidden');
+}
+
 export function isMultiLineText(vnode: VNode) {
     return !!vnode.textMultiLine;
+}
+
+/** 获取多行文本行高 */
+export function getMultiLineTextLineHeight(textVNode: VNode) {
+    const firstSpan = (textVNode.textContent as VNode[])[0];
+    const match = getClassName(firstSpan).match(/text-\d+\/(\d+)/);
+    assert(!_.isNull(match), '多行元素找不到行高');
+    const lineHeight = _.toNumber(match![1]);
+    return lineHeight;
+}
+
+export function makeMultiLineTextClamp(textNode: VNode) {
+    const maxLineCount = Math.floor(textNode.bounds.height / getMultiLineTextLineHeight(textNode));
+    _.assign(textNode.style, {
+        display: '-webkit-box',
+        '-webkit-box-orient': 'vertical',
+        overflow: 'hidden',
+        '-webkit-line-clamp': maxLineCount
+    });
 }
 
 export function isListWrapContainer(vnode: VNode) {
@@ -266,4 +290,17 @@ export function isVoidElement(node: VNode) {
 
 export function isVoidElementWrapper(node: VNode) {
     return _.includes(node.classList, context.voidElementMarker);
+}
+
+export function isTableBody(vnode: VNode) {
+    return isRole(vnode, 'table-body');
+}
+
+export function isTableRow(vnode: VNode) {
+    return isRole(vnode, 'table-row');
+}
+
+export function refreshBoxBounds(vnode: VNode) {
+    assert(isGeneratedNode(vnode), 'refreshBoxBounds: 非生成节点');
+    vnode.bounds = getBounds(vnode.children);
 }

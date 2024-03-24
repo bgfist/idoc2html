@@ -95,7 +95,7 @@ export function maybeTable(rows: VNode[][]) {
         const tableRows = rows.slice(range.start, range.end);
         const listItems = tableRows.map(tableRow => {
             return newVNode({
-                role: ['list-item'],
+                role: ['table-row'],
                 children: tableRow,
                 bounds: getBounds(tableRow)
             });
@@ -103,7 +103,7 @@ export function maybeTable(rows: VNode[][]) {
         return {
             tableRows,
             tableBody: newVNode({
-                role: ['list-y', 'table-body'],
+                role: ['table-body'],
                 children: listItems,
                 bounds: getBounds(listItems),
                 direction: Direction.Column,

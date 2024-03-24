@@ -20,6 +20,8 @@ export type Dimension = 'width' | 'height';
 
 export type DimensionSpec = 'widthSpec' | 'heightSpec';
 
+export type Side = 'start' | 'end' | 'center';
+
 /** 节点用途 */
 export type Role =
     | ''
@@ -34,7 +36,8 @@ export type Role =
     | 'btn'
     | 'tab'
     | 'dialog'
-    | 'table-body';
+    | 'table-body'
+    | 'table-row';
 
 /** 可渲染的虚拟节点 */
 export interface VNode {

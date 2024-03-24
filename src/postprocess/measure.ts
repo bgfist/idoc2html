@@ -8,13 +8,17 @@ import {
     getClassList,
     isGeneratedNode,
     isListWrapContainer,
+    isMultiLineText,
     isSingleLineText,
+    makeMultiLineTextClamp,
+    makeSingleLineTextEllipsis,
     makeSingleLineTextNoWrap,
     normalizeClassName
 } from '../vnode';
 import { anyElesIn, numEq } from '../utils';
 import { measureFlexAlign } from './measureFlexAlign';
 import { measureFlexJustify } from './measureFlexJustify';
+import { defaultConfig } from '../config';
 
 /** 计算flexbox布局 */
 export function measureTree(vnode: VNode) {
@@ -53,19 +57,36 @@ function measureFlexLayout(parent: VNode) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 
+    setFixSizeTextClampIfConfigured(parent);
     makeSingleLineTextNoWrapIfNeed(parent);
+}
+
+/** 设置尺寸固定的文本的超出省略 */
+function setFixSizeTextClampIfConfigured(textNode: VNode) {
+    if (!defaultConfig.codeGenOptions.textClamp) {
+        return;
+    }
+
+    if (isSingleLineText(textNode) && textNode.widthSpec === SizeSpec.Fixed) {
+        makeSingleLineTextEllipsis(textNode);
+    } else if (isMultiLineText(textNode) && textNode.heightSpec === SizeSpec.Fixed) {
+        makeMultiLineTextClamp(textNode);
+    }
 }
 
 /** 特殊情况需要让单行文本不换行 */
 function makeSingleLineTextNoWrapIfNeed(parent: VNode) {
     if (parent.widthSpec === SizeSpec.Fixed) {
+        // 固定宽度的按钮
         if (
             parent.direction === Direction.Row &&
             parent.children.length === 1 &&
             isSingleLineText(parent.children[0])
         ) {
             makeSingleLineTextNoWrap(parent.children[0]);
-        } else if (parent.direction === Direction.Column) {
+        }
+        // 固定宽度的纵向容器
+        else if (parent.direction === Direction.Column) {
             _.each(parent.children, child => {
                 if (isSingleLineText(child)) {
                     makeSingleLineTextNoWrap(child);
