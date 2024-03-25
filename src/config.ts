@@ -31,7 +31,7 @@ export const defaultConfig = {
         /** 生成role属性 */
         role: true,
         /** 生成层级z-index */
-        experimentalZIndex: false,
+        experimentalZIndex: true,
         /** 是否自动加上文本超出截断 */
         textClamp: false,
         /** 是否为列表加上超出滚动 */

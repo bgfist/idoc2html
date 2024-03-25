@@ -16,19 +16,6 @@ function cleanDtsPlugin() {
 /** @type {import('rollup').RollupOptions[]} */
 module.exports = [
     {
-        input: 'src/program/script.ts',
-        output: {
-            file: 'dist/script.js',
-            format: 'umd',
-            sourcemap: true
-        },
-        plugins: [
-            typescript(), // 使用 TypeScript 插件
-            resolve(), // 帮助定位第三方模块
-            commonjs() // 将 CommonJS 转换为 ES6
-        ]
-    },
-    {
         input: 'src/index.ts',
         output: {
             file: 'dist/index.js',
