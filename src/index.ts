@@ -6,6 +6,7 @@ import { postprocess } from './postprocess';
 import { preprocess } from './preprocess';
 import { assert } from './utils';
 import { VNode, isRole } from './vnode';
+import { getProcessedImageUrl } from './generator/image';
 
 export * from './config';
 export { Page };
@@ -86,4 +87,33 @@ export function iDocJson2Html(page: Page, config?: Config) {
     }
 
     return VNode2Code(vnode, 0, true);
+}
+
+export async function replaceHtmlImages(html: string, prefix: string) {
+    const grapImageUrls = html.matchAll(/bg-\[url\((https:\/\/idoc\.mucang\.cn\/.+\/(.+\.png))\)]/);
+    const imageMap: Record<
+        string,
+        {
+            fullPath: string;
+            imageName: string;
+        }
+    > = {};
+    for (const match of grapImageUrls) {
+        imageMap[match[0]] = {
+            fullPath: match[1],
+            imageName: match[2]
+        };
+    }
+
+    if (prefix.endsWith('/')) {
+        prefix = prefix.slice(0, -1);
+    }
+
+    for (const originalClassName in imageMap) {
+        const { fullPath, imageName } = imageMap[originalClassName];
+        await getProcessedImageUrl(fullPath, imageName, 2);
+        html = html.replace(originalClassName, `bg-[url(${prefix}/${imageName})]`);
+    }
+
+    return html;
 }

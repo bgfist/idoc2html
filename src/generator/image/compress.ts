@@ -1,27 +1,9 @@
-function resizeImage(url: string, divideBy: 1 | 2 | 4) {
-    return new Promise<Blob>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width / divideBy;
-            canvas.height = img.height / divideBy;
-            const ctx = canvas.getContext('2d')!;
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(blob => resolve(blob!), 'image/png');
-        };
-        img.onerror = reject;
-        img.src = url;
-    });
-}
-
 export function tinypng(apiKey: string, file: File) {
     const authString = 'Basic ' + btoa(apiKey);
     const formData = new FormData();
     formData.append('file', file); // 将文件添加到 FormData 对象中
 
-    fetch('https://api.tinify.com/shrink', {
+    return fetch('https://api.tinify.com/shrink', {
         method: 'POST',
         body: formData,
         headers: {
@@ -44,7 +26,7 @@ export function tinypng(apiKey: string, file: File) {
                 // ...
 
                 // 保存压缩后的文件
-                fetch(body.output.url, {
+                return fetch(body.output.url, {
                     headers: {
                         Authorization: authString
                     }
@@ -54,17 +36,6 @@ export function tinypng(apiKey: string, file: File) {
                             throw new Error('Failed to fetch compressed image');
                         }
                         return response.blob();
-                    })
-                    .then(blob => {
-                        // 创建一个下载链接并触发下载
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = file.name; // 你可以根据需要修改文件名
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
                     })
                     .catch(error => {
                         console.error('Error saving file:', error);
@@ -77,3 +48,18 @@ export function tinypng(apiKey: string, file: File) {
             console.error('Error during fetch:', error);
         });
 }
+
+// const pica = require('pica')();
+
+// // 假设 `inputImage` 是一个HTMLImageElement，`outputCanvas` 是一个HTMLCanvasElement
+// pica.resize(inputImage, outputCanvas, {
+//   // 这里可以设置插值算法，例如 'lanczos3'
+//   // 如果不设置，pica会默认使用一个高质量的算法
+//   interpolation: 'lanczos3'
+// })
+// .then(() => {
+//   console.log('Image resized successfully.');
+// })
+// .catch((err) => {
+//   console.error('Error resizing image:', err);
+// });
