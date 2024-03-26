@@ -3,6 +3,7 @@ import { Node, RGBA } from '../page';
 import { numEq } from '../utils';
 import { R, VNode, getClassName } from '../vnode';
 import { getLinearColor, getNormalColor } from './color';
+import { float2Fixed, float2Int } from './helpers';
 
 export function stylishBox(node: Node, vnode: VNode) {
     if (node.fill && node.fill.colors && node.fill.colors.length) {
@@ -32,7 +33,8 @@ export function stylishBox(node: Node, vnode: VNode) {
         const b = br === bl && ['br', 'bl'];
         const l = bl === tl && ['bl', 'tl'];
         const addClasses = (key: string, value: number, exclude?: string[]) => {
-            const calcV = (v: number) => (v >= Math.min(node.bounds.width, node.bounds.height) ? 'full' : v);
+            const calcV = (v: number) =>
+                v >= Math.min(node.bounds.width, node.bounds.height) ? 'full' : float2Int(v);
             vnode.classList.push(R`rounded-${key}${calcV(value)}`);
             if (exclude) {
                 _.each(_.omit(r1, exclude), (v, k) => {
@@ -66,7 +68,7 @@ export function stylishBox(node: Node, vnode: VNode) {
         if (numEq(border.strokeWidth, 1)) {
             vnode.classList.push('border');
         } else {
-            vnode.classList.push(R`border-${border.strokeWidth}`);
+            vnode.classList.push(R`border-${float2Int(border.strokeWidth)}`);
         }
         if (border.color.type === 'normal') {
             vnode.classList.push(`border-${getNormalColor(border.color.value)}`);
@@ -84,7 +86,8 @@ export function stylishBox(node: Node, vnode: VNode) {
             } else if (shadow.color.type === 'normal') {
                 color = shadow.color.value;
             }
-            return `${shadow.type === 'inside' ? 'inset ' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px rgba(${color.r},${color.g},${color.b},${color.a})`;
+            const shadowColor = `rgba(${color.r},${color.g},${color.b},${float2Fixed(color.a)})`;
+            return `${shadow.type === 'inside' ? 'inset ' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px ${shadowColor}`;
         });
         vnode.style['box-shadow'] = styles.join(',');
     }

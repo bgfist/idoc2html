@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { Node } from '../page';
 import { R, SizeSpec, VNode, newVNode } from '../vnode';
 import { getNormalColor } from './color';
+import { float2Int } from './helpers';
 
 export function stylishText(node: Node, vnode: VNode) {
     // TODO: 如何处理其他样式
@@ -19,7 +20,7 @@ export function stylishText(node: Node, vnode: VNode) {
                 ...vnode.bounds
             }
         });
-        textNode.textContent = text.value.replace('\n', ' '); // 换行符用空格代替
+        textNode.textContent = text.value.replace(/\n/g, '<br/>'); // 换行符用<br/>代替
         if (text.font.color.type === 'normal') {
             textNode.classList.push(`text-${getNormalColor(text.font.color.value)}`);
         } else if (text.font.color.type === 'linearGradient') {
@@ -28,7 +29,7 @@ export function stylishText(node: Node, vnode: VNode) {
         }
         textNode.classList.push(`text-${text.font.size}/${text.space.lineHeight}`);
         if (text.space.letterSpacing) {
-            textNode.classList.push(R`tracking-${text.space.letterSpacing}`);
+            textNode.classList.push(R`tracking-${float2Int(text.space.letterSpacing)}`);
         }
         const isBoldFont =
             text.font.family.indexOf('AlibabaPuHuiTiM') !== -1 ||

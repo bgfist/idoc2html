@@ -24,10 +24,10 @@
     }
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="fixed left-0 right-0 top-0 bottom-0 bg-[hsla(0,0%,0%,0.6)] flex justify-center pt-63 items-start">
     <div class="bg-white rounded-16 p-20 pb-60 flex flex-col w-650 relative">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <i
             class="mp-icon iconfont icon-a-18_close_normal mp-icon-solid-disableHoverColor absolute top-10 right-10"
             style="color:#333;font-size:22px;line-height:36px;width:40px;height:36px;"
@@ -35,7 +35,7 @@
         ></i>
 
         <h1 class="text-center mt-0 mb-8 text-26">选项配置</h1>
-        <h2 class="mb-8">基本</h2>
+        <h2 class="mb-8">基本选项</h2>
         <label class="cursor-pointer flex items-center w-200">
             <input type="checkbox" class="w-15 h-15" bind:checked={settings.previewInNewWindow} />
             <span class="text-16/30 ml-6">在新窗口中预览</span>

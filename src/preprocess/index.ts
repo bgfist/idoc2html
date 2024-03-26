@@ -5,10 +5,7 @@ import { filterEmpty } from '../utils';
 import { SizeSpec, VNode, addRole, context, isEqualBox, newVNode } from '../vnode';
 import { stylishBox } from './stylishBox';
 import { stylishText } from './stylishText';
-
-function floats2Int(node: Node) {
-    node.bounds = _.mapValues(node.bounds, n => Math.round(n));
-}
+import { float2Int, isImageNode, isSymbolNode, isTextNode } from './helpers';
 
 function opacity2ColorAlpha(node: Node) {
     const opacity = node.basic.opacity;
@@ -146,7 +143,7 @@ export function preprocess(node: Node, level: number): VNode | null {
         stylishRoot(node, vnode);
     }
     // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
-    else if (level === 1 && node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance') {
+    else if (level === 1 && isSymbolNode(node)) {
         // stylishSymbol(node, vnode);
     }
     // 将切图的children清空，切图只保留本身图片
@@ -154,11 +151,11 @@ export function preprocess(node: Node, level: number): VNode | null {
         stylishSlice(node, vnode);
     }
     // 占位图
-    else if (node.basic.type === 'image' && node.basic.realType === 'Image') {
+    else if (isImageNode(node)) {
         stylishImage(node, vnode);
     }
     // 文本节点
-    else if (node.basic.type === 'text' && node.basic.realType === 'Text') {
+    else if (isTextNode(node)) {
         stylishText(node, vnode);
     }
     // 容器
@@ -178,7 +175,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     }
 
     // 处理外观样式
-    if (!vnode.textContent) {
+    if (!isTextNode(node)) {
         stylishBox(node, vnode);
     }
 
@@ -202,12 +199,10 @@ export function preprocess(node: Node, level: number): VNode | null {
         const left = Math.max(child.bounds.left, node.bounds.left);
         const bottom = Math.min(child.bounds.top + child.bounds.height, node.bounds.top + node.bounds.height);
         const right = Math.min(child.bounds.left + child.bounds.width, node.bounds.left + node.bounds.width);
-        child.bounds.top = top;
-        child.bounds.left = left;
-        child.bounds.width = right - left;
-        child.bounds.height = bottom - top;
-        // 去掉小数
-        floats2Int(child);
+        child.bounds.top = float2Int(top);
+        child.bounds.left = float2Int(left);
+        child.bounds.width = float2Int(right - left);
+        child.bounds.height = float2Int(bottom - top);
         return child;
     });
 
@@ -224,7 +219,7 @@ export function preprocess(node: Node, level: number): VNode | null {
                 })
                 .concat(
                     noRight.map(n => {
-                        if (node.basic.type === 'text' && node.basic.realType === 'Text') {
+                        if (isTextNode(n)) {
                             // @ts-ignore
                             n._index = 10;
                         }

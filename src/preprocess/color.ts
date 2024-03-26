@@ -1,6 +1,7 @@
 import { LinearColor, RGBA } from '../page';
 import { assert } from '../utils';
 import { VNode } from '../vnode';
+import { float2Fixed } from './helpers';
 
 export function getNormalColor(rgba: RGBA): string {
     if (!rgba.a) {
@@ -10,7 +11,7 @@ export function getNormalColor(rgba: RGBA): string {
     let r = rgba.r / 255;
     let g = rgba.g / 255;
     let b = rgba.b / 255;
-    let a = rgba.a;
+    let a = float2Fixed(rgba.a);
     let max = Math.max(r, g, b);
     let min = Math.min(r, g, b);
     let l = (max + min) / 2;

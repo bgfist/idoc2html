@@ -2,3 +2,8 @@
 2. 单行文本换行可能会挤压旁边的盒子，需要设置flex: 1 0 0;
 3. 背景透明的不加bg-transparent
 4. 文本行高小于字体的话，展示上会被截断
+5. 如果文本是行盒子的子节点且上下居中，则可以不要它的lineHeight属性（如果lineHeight被截断的话）
+6. 如果节点高度小于等于边框高度的话，则可以不指定高度
+7. 优化多span的文本节点，合并共同样式
+8. measureAlign如果只有两个子节点，可以优化parentAlign
+9. measureJustify中的auto节点需要做下撑开限制

@@ -6,7 +6,7 @@ import { postprocess } from './postprocess';
 import { preprocess } from './preprocess';
 import { assert } from './utils';
 import { VNode, isRole } from './vnode';
-import { getProcessedImageUrl } from './generator/image';
+import { getProcessedImageUrl } from './generator';
 
 export * from './config';
 export { Page };
@@ -105,6 +105,13 @@ export async function replaceHtmlImages(html: string, prefix: string) {
         };
     }
 
+    if (_.isEmpty(imageMap)) {
+        return {
+            code: html,
+            noImages: true
+        };
+    }
+
     if (prefix.endsWith('/')) {
         prefix = prefix.slice(0, -1);
     }
@@ -115,5 +122,8 @@ export async function replaceHtmlImages(html: string, prefix: string) {
         html = html.replace(originalClassName, `bg-[url(${prefix}/${imageName})]`);
     }
 
-    return html;
+    return {
+        code: html,
+        noImages: false
+    };
 }
