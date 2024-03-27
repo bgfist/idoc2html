@@ -1,5 +1,14 @@
 import * as _ from 'lodash';
-import { VNode, SizeSpec, Direction, isRole, Dimension, DimensionSpec } from '../vnode';
+import {
+    VNode,
+    SizeSpec,
+    Direction,
+    isRole,
+    Dimension,
+    DimensionSpec,
+    isFlexWrapLike,
+    isListWrapContainer
+} from '../vnode';
 import { assert } from '../utils';
 
 /** 根据子元素确定父盒子的尺寸类型 */
@@ -100,11 +109,15 @@ function limitParentJustifyAsPossible(parent: VNode, justifySpec: DimensionSpec)
 function limitParentAlignAsPossible(parent: VNode, alignSpec: DimensionSpec) {
     // 只要有一个子节点需要自动撑开，则父节点必须由着它一起撑开
     if (_.some(parent.children, child => child[alignSpec] === SizeSpec.Auto)) {
+        // if (alignSpec === 'widthSpec' && _.some(parent.children, child => child.widthSpec === SizeSpec.Auto && isListWrapContainer(child))) {
+        //     parent[alignSpec] = SizeSpec.Constrained;
+        // } else {
         parent[alignSpec] = SizeSpec.Auto;
+        // }
     }
-    // 如果都由父亲分配尺寸，那父亲也由祖父分配尺寸
+    // 如果都由父亲分配尺寸，则父亲给个最小尺寸即可
     else if (_.every(parent.children, child => child[alignSpec] === SizeSpec.Constrained)) {
-        parent[alignSpec] = SizeSpec.Constrained;
+        parent[alignSpec] = SizeSpec.Auto;
     }
     // 剩下的情况就是Fixed和Constrained，必有Fixed，则Constrained已经可以撑开了，直接固定父亲的尺寸
     else {

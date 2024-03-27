@@ -122,8 +122,8 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                         child[alignSpec] = SizeSpec.Fixed;
                     }
                 } else if (
-                    canChildStretchWithParent(child, parent, alignDimension) &&
-                    parent[alignSpec] !== SizeSpec.Fixed
+                    parent[alignSpec] === SizeSpec.Constrained &&
+                    canChildStretchWithParent(child, parent, alignDimension)
                 ) {
                     // 允许auto元素随父节点拉伸
                     child[alignSpec] = SizeSpec.Constrained;
@@ -133,7 +133,10 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             assert(!child.children.length, '只有裸盒子才没设置尺寸');
             if (parent[alignSpec] === SizeSpec.Fixed) {
                 child[alignSpec] = SizeSpec.Fixed;
-            } else if (canChildStretchWithParent(child, parent, alignDimension)) {
+            } else if (
+                parent[alignSpec] === SizeSpec.Constrained &&
+                canChildStretchWithParent(child, parent, alignDimension)
+            ) {
                 child[alignSpec] = SizeSpec.Constrained;
             } else {
                 child[alignSpec] = SizeSpec.Fixed;

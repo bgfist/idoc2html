@@ -50,7 +50,7 @@ function measureFlexLayout(parent: VNode) {
         }
     }
 
-    if (parent.widthSpec === SizeSpec.Fixed && !isGeneratedNode(parent)) {
+    if (parent.widthSpec === SizeSpec.Fixed && (!isGeneratedNode(parent) || isListWrapContainer(parent))) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
     if (parent.heightSpec === SizeSpec.Fixed && !isGeneratedNode(parent) && !isSingleLineText(parent)) {
@@ -177,7 +177,7 @@ function measureFlexWrapLayout(parent: VNode) {
     const yGap = firstWrapChild.bounds.top - firstChild.bounds.bottom;
 
     _.each(parent.children, child => {
-        child.classList.push(R`ml-${xGap} mt-${yGap}`);
+        child.classList.push(R`mr-${xGap} mb-${yGap}`);
     });
 }
 

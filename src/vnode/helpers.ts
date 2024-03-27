@@ -222,7 +222,7 @@ export function isMultiLineText(vnode: VNode) {
 
 /** 获取多行文本行高 */
 export function getMultiLineTextLineHeight(textVNode: VNode) {
-    const firstSpan = (textVNode.textContent as VNode[])[0];
+    const firstSpan = _.isArray(textVNode.textContent) ? textVNode.textContent[0] : textVNode;
     const match = getClassName(firstSpan).match(/text-\d+\/(\d+)/);
     assert(!_.isNull(match), '多行元素找不到行高');
     const lineHeight = _.toNumber(match![1]);
@@ -258,6 +258,10 @@ export function isListContainer(vnode: VNode) {
 /** 多行元素 */
 export function isFlexWrapLike(vnode: VNode) {
     return isListWrapContainer(vnode) || isMultiLineText(vnode);
+}
+
+export function isListItem(vnode: VNode) {
+    return isRole(vnode, 'list-item');
 }
 
 /** 列表元素是否包了一层盒子 */

@@ -1,5 +1,13 @@
 import * as _ from 'lodash';
-import { collectLongestRepeatRanges, groupWith, numEq, pickCombination, removeEles } from '../utils';
+import {
+    collectLongestRepeatRanges,
+    groupWith,
+    numEq,
+    pickCombination,
+    removeEle,
+    removeEles,
+    unreachable
+} from '../utils';
 import {
     Direction,
     Side,
@@ -73,22 +81,22 @@ function isSimilarBoxY(a: VNode, b: VNode) {
 }
 
 /** 两个盒子是否相似 */
-function isSimilarBoxWrap(a: VNode, b: VNode) {
+function isSimilarBoxWrap(prev: VNode, next: VNode, yGap?: number) {
     if (
-        isTextNode(a) &&
-        isTextNode(b) &&
-        numEq(a.bounds.left, b.bounds.left) &&
-        numEq(a.bounds.height, b.bounds.height)
+        isTextNode(prev) &&
+        isTextNode(next) &&
+        numEq(prev.bounds.left, next.bounds.left) &&
+        numEq(prev.bounds.height, next.bounds.height)
     ) {
-        return true;
+        return _.isNil(yGap) ? true : numEq(yGap, next.bounds.top - prev.bounds.bottom);
     }
     if (
-        !isTextNode(a) &&
-        !isTextNode(b) &&
-        numEq(a.bounds.left, b.bounds.left) &&
-        numEq(a.bounds.height, b.bounds.height)
+        !isTextNode(prev) &&
+        !isTextNode(next) &&
+        numEq(prev.bounds.left, next.bounds.left) &&
+        numEq(prev.bounds.height, next.bounds.height)
     ) {
-        return true;
+        return _.isNil(yGap) ? true : numEq(yGap, next.bounds.top - prev.bounds.bottom);
     }
     return false;
 }
@@ -122,17 +130,27 @@ function checkListItemUnnecessary(itemNodes: VNode[]) {
 }
 
 /** 给列表元素设置固定的宽度/高度，可以优化布局方式 */
-function setFixedSizeIfConfigured(vnode: VNode) {
-    if (defaultConfig.listItemSizeFixed) {
-        if (isListXContainer(vnode) || isListWrapContainer(vnode)) {
-            _.each(vnode.children, item => {
+function setListItemSizeSpec(vnode: VNode) {
+    const targetSizeSpec = defaultConfig.listItemSizeFixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+
+    if (isListXContainer(vnode)) {
+        _.each(vnode.children, item => {
+            if (!item.heightSpec) {
+                item.heightSpec = targetSizeSpec;
+            }
+        });
+    } else if (isListYContainer(vnode)) {
+        _.each(vnode.children, item => {
+            if (!item.widthSpec) {
+                item.widthSpec = targetSizeSpec;
+            }
+        });
+    } else if (isListWrapContainer(vnode)) {
+        _.each(vnode.children, item => {
+            if (!item.heightSpec && defaultConfig.listItemSizeFixed) {
                 item.heightSpec = SizeSpec.Fixed;
-            });
-        } else if (isListYContainer(vnode)) {
-            _.each(vnode.children, item => {
-                item.widthSpec = SizeSpec.Fixed;
-            });
-        }
+            }
+        });
     }
 }
 
@@ -216,7 +234,7 @@ function groupListNodes(nodes: VNode[], direction: Direction) {
 }
 
 /** 将多个结构一致的列表合成为一个 */
-function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction: Direction) {
+function tryMergeListNodes(parent: VNode, toMergeLists: VNode[], direction: Direction) {
     /** 获取列表item之间的间距 */
     function getListItemGap(vnode: VNode) {
         return getItemGap(vnode.children[1], vnode.children[0], direction);
@@ -240,55 +258,75 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
         }
     }
 
-    let mergeType: 'flexWrap' | 'normal' | 'skip' | false = false;
-    let mergeAlign: Side = 'center';
-    function compareList(a: VNode, b: VNode) {
-        if (direction === Direction.Row && (!mergeType || mergeType == 'flexWrap')) {
+    let mergeInfo:
+        | {
+              type: 'flexWrap';
+              yGap: number;
+          }
+        | {
+              type: 'normal';
+              align: Side;
+          }
+        | undefined = undefined;
+    function compareList(prev: VNode, next: VNode) {
+        if (direction === Direction.Row && (!mergeInfo || mergeInfo.type == 'flexWrap')) {
             if (
-                isSimilarBoxWrap(a.children[0], b.children[0]) &&
-                numEq(getListItemGap(a), getListItemGap(b)) &&
-                numEq(a.children[0].bounds.left, b.children[0].bounds.left)
+                isSimilarBoxWrap(prev.children[0], next.children[0], mergeInfo?.yGap) &&
+                numEq(getListItemGap(prev), getListItemGap(next)) &&
+                numEq(prev.children[0].bounds.left, next.children[0].bounds.left)
             ) {
-                if (!mergeType && isTextNode(a.children[0]) && a.children.length === 2) {
-                    mergeType = false;
+                if (mergeInfo && isTextNode(prev.children[0]) && prev.children.length === 2) {
                     return false;
                 }
-                mergeType = 'flexWrap';
+
+                if (!mergeInfo) {
+                    const yGap = next.children[0].bounds.top - prev.children[0].bounds.bottom;
+                    mergeInfo = {
+                        type: 'flexWrap',
+                        yGap
+                    };
+                }
                 return true;
             }
         }
-        if (!mergeType || mergeType == 'normal') {
-            if (a.children.length === b.children.length) {
-                if (numEq(getListItemMiddleLineGap(a), getListItemMiddleLineGap(b))) {
+        if (!mergeInfo || mergeInfo.type == 'normal') {
+            if (prev.children.length === next.children.length) {
+                let mergeAlign: Side;
+                if (numEq(getListItemMiddleLineGap(prev), getListItemMiddleLineGap(next))) {
                     mergeAlign = 'center';
                 } else if (
                     direction === Direction.Row &&
-                    numEq(getListItemStartLineGap(a), getListItemStartLineGap(b))
+                    numEq(getListItemStartLineGap(prev), getListItemStartLineGap(next))
                 ) {
                     mergeAlign = 'start';
                 } else if (
                     direction === Direction.Row &&
-                    numEq(getListItemEndLineGap(a), getListItemEndLineGap(b))
+                    numEq(getListItemEndLineGap(prev), getListItemEndLineGap(next))
                 ) {
                     mergeAlign = 'end';
                 } else {
-                    mergeType = false;
                     return false;
                 }
-                mergeType = 'normal';
+                mergeInfo = {
+                    type: 'normal',
+                    align: mergeAlign
+                };
                 return true;
             }
         }
-        mergeType = false;
         return false;
     }
 
     function mergeLists() {
+        if (!mergeInfo) {
+            unreachable();
+        }
+
         const fakeListNode = {
             bounds: getBounds(toMergeLists),
             children: _.flatMap(toMergeLists, list => list.children)
         } as VNode;
-        if (checkListInvalid(otherNodes, fakeListNode)) {
+        if (checkListInvalid(parent.children, fakeListNode)) {
             return false;
         }
         if (checkListItemUnnecessary(toMergeLists.map(n => n.children[0]))) {
@@ -296,27 +334,47 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
         }
 
         // 开始合并
-        if (mergeType === 'flexWrap') {
+        if (mergeInfo.type === 'flexWrap') {
             console.debug('找到合并的横向flexWrap列表');
             const children = _.flatMap(toMergeLists, listX => listX.children);
 
-            const vnode = newVNode({
+            let vnode = newVNode({
                 bounds: getBounds(children),
                 children,
                 role: ['list-wrap'],
                 direction: Direction.Row
             });
-            setFixedSizeIfConfigured(vnode);
 
-            // flex-wrap应该留出左边的间距
+            const yGap = mergeInfo.yGap;
+            const topNode = _.first(_.last(toMergeLists)!.children)!;
+            // 尝试多加一个元素，有的掉车尾的单个元素在最下面
+            const lonelyChild = _.find(_.difference(parent.children, children), child =>
+                isSimilarBoxWrap(topNode, child, yGap)
+            );
+            if (lonelyChild) {
+                const children2 = [...children, lonelyChild];
+                const vnode2 = newVNode({
+                    bounds: getBounds(children2),
+                    children: children2,
+                    role: ['list-wrap'],
+                    direction: Direction.Row
+                });
+
+                if (!checkListInvalid(parent.children, vnode2)) {
+                    console.debug('找到掉车尾的flexWrap子节点');
+                    vnode = vnode2;
+                    removeEle(parent.children, lonelyChild);
+                }
+            }
+
+            setListItemSizeSpec(vnode);
+
             const xGap = toMergeLists[0].children[1].bounds.left - toMergeLists[0].children[0].bounds.right;
-            vnode.bounds.left -= xGap;
-            // 右边也多留两像素保持换行与设计稿一致
-            vnode.bounds.right += 2;
+            // flex-wrap应该留出右边的间距，多留两像素保持换行与设计稿一致
+            vnode.bounds.right += xGap + 2;
             vnode.bounds.width = vnode.bounds.right - vnode.bounds.left;
-            // 上面也要留出margin
-            const yGap = toMergeLists[1].children[0].bounds.top - toMergeLists[0].children[0].bounds.bottom;
-            vnode.bounds.top -= yGap;
+            // 下面也要留出margin
+            vnode.bounds.bottom += yGap;
             vnode.bounds.height = vnode.bounds.bottom - vnode.bounds.top;
 
             return vnode;
@@ -339,15 +397,15 @@ function tryMergeListNodes(otherNodes: VNode[], toMergeLists: VNode[], direction
                 role: [direction === Direction.Row ? 'list-x' : 'list-y'],
                 direction
             });
-            setListItemSameSizeAndGap(toMergeLists, vnode, direction, mergeAlign);
-            setFixedSizeIfConfigured(vnode);
+            setListItemSameSizeAndGap(toMergeLists, vnode, direction, mergeInfo.align);
+            setListItemSizeSpec(vnode);
 
             return vnode;
         }
     }
 
     for (let i = 1; i < toMergeLists.length; i++) {
-        if (!compareList(toMergeLists[i], toMergeLists[i - 1])) {
+        if (!compareList(toMergeLists[i - 1], toMergeLists[i])) {
             return false;
         }
     }
@@ -383,7 +441,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
     do {
         continueMerge = false;
         pickCombination(addPlainListNodes, toMergeLists => {
-            const combinedListNode = tryMergeListNodes(vnode.children, toMergeLists, direction);
+            const combinedListNode = tryMergeListNodes(vnode, toMergeLists, direction);
             if (combinedListNode) {
                 removeEles(addPlainListNodes, toMergeLists);
                 addCombinedListNodes.push(combinedListNode);
@@ -407,7 +465,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
             role: [direction === Direction.Row ? 'list-x' : 'list-y'],
             direction
         });
-        setFixedSizeIfConfigured(vnode);
+        setListItemSizeSpec(vnode);
         _.each(list.children, child => {
             addRole(child, 'list-item');
         });
