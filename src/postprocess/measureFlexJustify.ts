@@ -21,7 +21,14 @@ export function measureFlexJustify(parent: VNode) {
 
     const { startGap, endGap, gaps, equalMiddleGaps, justifySide, ranges } = getGapsAndSide(parent);
 
+    const hasConstrainedChilds = _.some(
+        parent.children,
+        child => child[justifySpec] === SizeSpec.Constrained
+    );
+
     if (
+        // Constained元素需要设置margin
+        !hasConstrainedChilds &&
         // 中间间隔相等
         equalMiddleGaps &&
         // 列表容器只能靠边分配
@@ -31,6 +38,8 @@ export function measureFlexJustify(parent: VNode) {
         return;
     }
 
+    // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
+    // TODO: 这种情况下，高度可能不够，到底是撑开间隙，还是撑开某个元素
     const isParentAutoMinSize =
         parent[justifySpec] === SizeSpec.Auto &&
         getClassList(parent).some(className => className.startsWith(`min-${justifySpec.slice(0, 1)}-`));
@@ -40,23 +49,35 @@ export function measureFlexJustify(parent: VNode) {
         // 2个以上元素才需要用flex1做弹性拉伸;
         // 2个元素的话，如果中间间距很大就会走justify-between；间距过小则不应被撑开
         parent.children.length > 2 &&
-        !needEqualGaps;
+        !needEqualGaps &&
+        // 已经有constained子元素，让它撑开即可
+        !hasConstrainedChilds;
 
-    const insertedFlex1 =
-        needFlex1 && maybeInsertFlex1Node(parent, justifySpec, justifySide, startGap, endGap, gaps, ranges);
+    if (needFlex1) {
+        maybeInsertFlex1Node(parent, isParentAutoMinSize, justifySide, startGap, endGap, gaps, ranges);
+    }
 
-    sideJustify(parent, justifySpec, justifySide, startGap, endGap, gaps, needEqualGaps, insertedFlex1);
+    sideJustify(parent, justifySpec, justifySide, startGap, endGap, gaps, needEqualGaps);
 }
 
 /** 重新决定子元素的尺寸 */
 function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec) {
-    if (justifySpec === 'widthSpec' && parent[justifySpec] === SizeSpec.Auto) {
-        // 对多行元素需要设置固定尺寸
-        _.each(parent.children, child => {
-            if (isFlexWrapLike(child) && child[justifySpec] === SizeSpec.Auto) {
-                child[justifySpec] = SizeSpec.Fixed;
-            }
-        });
+    if (justifySpec === 'widthSpec') {
+        if (parent.widthSpec === SizeSpec.Auto || parent.widthSpec === SizeSpec.Fixed) {
+            // 对多行元素需要设置固定尺寸
+            _.each(parent.children, child => {
+                if (isFlexWrapLike(child) && child.widthSpec === SizeSpec.Auto) {
+                    child.widthSpec = SizeSpec.Fixed;
+                }
+            });
+        } else if (parent.widthSpec === SizeSpec.Constrained) {
+            // 对多行元素需要设置一个伸缩属性
+            _.each(parent.children, child => {
+                if (isFlexWrapLike(child) && child.widthSpec === SizeSpec.Auto) {
+                    child.widthSpec = SizeSpec.Constrained;
+                }
+            });
+        }
     }
 }
 
@@ -134,25 +155,16 @@ function maybeSpaceJustify(
 /** 尝试插入flex1节点 */
 function maybeInsertFlex1Node(
     parent: VNode,
-    justifySpec: DimensionSpec,
+    flex1MinSize: boolean,
     justifySide: 'start' | 'end' | 'center',
     startGap: number,
     endGap: number,
     gaps: number[],
     ranges: [number, number][]
 ) {
-    // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
-    // TODO: 这种情况下，高度可能不够，到底是撑开间隙，还是撑开某个元素
-    let flex1MinSize = parent[justifySpec] === SizeSpec.Auto;
-
     // 居中布局的话，除非中间有特别大的间距超过两侧的间距，才需要撑开
-    if (justifySide === 'center') {
-        if (numGt(_.max(gaps)!, startGap * 2)) {
-            // 为了保持居中，也得给个最小尺寸
-            flex1MinSize = true;
-        } else {
-            return false;
-        }
+    if (justifySide === 'center' && numLte(_.max(gaps)!, startGap * 2)) {
+        return;
     }
 
     // 可以通过flex1实现和stretch类似的效果
@@ -166,7 +178,7 @@ function maybeInsertFlex1Node(
         flex1GapIndex = _.lastIndexOf(gapsWithSide, maxGap);
         if (flex1GapIndex === gaps.length || maxGap === 0) {
             // 撑开最后面的边距说明边距过大，不需要撑开
-            return false;
+            return;
         }
     } else {
         const gapsWithSide = [startGap, ...gaps];
@@ -175,7 +187,7 @@ function maybeInsertFlex1Node(
         flex1GapIndex = _.indexOf(gapsWithSide, maxGap);
         if (flex1GapIndex === 0 || maxGap === 0) {
             // 撑开最前面的边距说明边距过大，不需要撑开
-            return false;
+            return;
         } else {
             flex1GapIndex--;
         }
@@ -196,23 +208,19 @@ function maybeInsertFlex1Node(
             [ef]: pos,
             [ssf]: ssfn,
             [eef]: eefn,
-            [spec1]: eefn - ssfn,
+            // 这里是个trick，如果不需要最小高度，则设置为0
+            [spec1]: flex1MinSize ? eefn - ssfn : 0,
             [spec2]: 0
         } as any,
         classList: [],
         [`${spec1}Spec`]: SizeSpec.Constrained,
         [`${spec2}Spec`]: SizeSpec.Fixed
     });
-    if (flex1MinSize) {
-        flex1Vnode.classList.push(R`min-${spec1.slice(0, 1)}-${flex1Vnode.bounds[spec1]}`);
-    }
 
     // 将flex1元素的左右gap设为0
     gaps.splice(flex1GapIndex, 1, 0, 0);
     // 插入flex1元素
     parent.children.splice(flex1GapIndex + 1, 0, flex1Vnode);
-
-    return true;
 }
 
 /** 靠边布局 */
@@ -223,14 +231,17 @@ function sideJustify(
     startGap: number,
     endGap: number,
     gaps: number[],
-    needEqualGaps: boolean,
-    insertedFlex1: boolean
+    needEqualGaps: boolean
 ) {
     const ss = parent.direction === Direction.Row ? 'l' : 't';
     const ee = parent.direction === Direction.Row ? 'r' : 'b';
     const xy = parent.direction === Direction.Row ? 'x' : 'y';
+    const hasConstrainedChilds = _.some(
+        parent.children,
+        child => child[justifySpec] === SizeSpec.Constrained
+    );
 
-    if (insertedFlex1) {
+    if (hasConstrainedChilds) {
         // 都flex1了，父节点什么都不用设置
     } else if (justifySide === 'center') {
         if (parent[justifySpec] === SizeSpec.Auto) {
@@ -249,7 +260,7 @@ function sideJustify(
         }
     }
 
-    if (insertedFlex1) {
+    if (hasConstrainedChilds) {
         // flex1全部往左margin
         gaps.unshift(startGap);
         _.each(parent.children, (child, i) => {
@@ -285,7 +296,8 @@ function sideJustify(
     // 对所有灵活伸缩的元素设置flex1
     _.each(parent.children, child => {
         if (child[justifySpec] === SizeSpec.Constrained) {
-            child.classList.push('flex-1');
+            const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
+            child.classList.push(R`grow ${justifyDimension.slice(0, 1)}-${child.bounds[justifyDimension]}`);
         }
     });
 }

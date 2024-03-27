@@ -27,7 +27,7 @@ export function stylishText(node: Node, vnode: VNode) {
             console.warn('text节点不支持线性渐变,用第一个渐变色代替');
             textNode.classList.push(`text-${getNormalColor(text.font.color.value.colorStops[0].color)}`);
         }
-        textNode.classList.push(`text-${text.font.size}/${text.space.lineHeight}`);
+        textNode.classList.push(`text-${float2Int(+text.font.size)}/${float2Int(+text.space.lineHeight)}`);
         if (text.space.letterSpacing) {
             textNode.classList.push(R`tracking-${float2Int(text.space.letterSpacing)}`);
         }

@@ -87,7 +87,7 @@ export function stylishBox(node: Node, vnode: VNode) {
                 color = shadow.color.value;
             }
             const shadowColor = `rgba(${color.r},${color.g},${color.b},${float2Fixed(color.a)})`;
-            return `${shadow.type === 'inside' ? 'inset ' : ''}${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px ${shadowColor}`;
+            return `${shadow.type === 'inside' ? 'inset ' : ''}${float2Int(shadow.offsetX)}px ${float2Int(shadow.offsetY)}px ${float2Int(shadow.blur)}px ${float2Int(shadow.spread)}px ${shadowColor}`;
         });
         vnode.style['box-shadow'] = styles.join(',');
     }

@@ -118,7 +118,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                         console.debug(
                             '多行元素想撑开,父元素又是auto或fixed,还得固定多行元素的宽度,不然没法换行'
                         );
-                        // 这里也可以用最大宽度，但是没什么用
+                        // 这里也可以用最小宽度，但是没用；包一层容器也没用
                         child[alignSpec] = SizeSpec.Fixed;
                     }
                 } else if (

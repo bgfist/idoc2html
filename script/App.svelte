@@ -7,7 +7,7 @@
     import Settings from './Settings.svelte';
     import { makeToast } from './utils';
 
-    const previewUrl = 'https://play.tailwindcss.com/uxo6W8G4dq';
+    const previewUrl = 'https://play.tailwindcss.com/Dz6aGsv8WA';
 
     let currentPage: Page;
     let showPreviewDialog = false;
