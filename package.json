@@ -8,8 +8,7 @@
     "build": "rollup -c",
     "start": "npm run build && node idoc/index.js",
     "chat": "node idoc/chat.js",
-    "script": "rollup -c script/rollup.config.js",
-    "prepare": "husky install"
+    "script": "rollup -c script/rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -46,6 +45,6 @@
     "typescript": "^5.4.2"
   },
   "simple-git-hooks": {
-    "pre-commit": "pretty-quick --staged"
+    "pre-commit": "npx pretty-quick --staged"
   }
 }

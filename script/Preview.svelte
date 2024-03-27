@@ -69,6 +69,11 @@
         e.preventDefault();
         isResizing = false;
     }
+
+    window.addEventListener('resize', () => {
+        resizableIframe.style.width = `${window.document.documentElement.clientWidth}px`;
+        resizableIframe.style.height = `${window.document.documentElement.clientHeight}px`;
+    });
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->

@@ -140,6 +140,14 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             }
         }
     });
+
+    // 只有一个auto元素，那基本就是被它撑开
+    if (parent[alignSpec] === SizeSpec.Auto) {
+        const autoChildren = _.filter(parent.children, child => child[alignSpec] === SizeSpec.Auto);
+        if (autoChildren.length === 1) {
+            autoChildren[0][alignSpec] = SizeSpec.Constrained;
+        }
+    }
 }
 
 /** 如果设置了超出滚动，则可能需要扩充auto元素 */
