@@ -1,6 +1,5 @@
-import assert from 'assert';
 import _ from 'lodash';
-import { numEq, removeEle, replaceWith } from '../utils';
+import { assert, numEq, removeEle, replaceWith } from '../utils';
 import {
     VNode,
     getClassName,

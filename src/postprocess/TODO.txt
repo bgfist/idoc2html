@@ -7,3 +7,4 @@
 7. 优化多span的文本节点，合并共同样式
 8. measureAlign如果只有两个子节点，可以优化parentAlign
 9. measureJustify中的auto节点需要做下撑开限制
+10. 检测设计稿文本是否以...结尾，有的话直接设置overflow-ellipsis

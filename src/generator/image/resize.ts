@@ -1,10 +1,12 @@
-export function resizeImage(url: string, divideBy: 1 | 2 | 4) {
+export type ImageResize = 1 | 2 | 4;
+
+export function resizeImage(url: string, imageResize: ImageResize) {
     return new Promise<Blob>((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            canvas.width = img.width / divideBy;
-            canvas.height = img.height / divideBy;
+            canvas.width = img.width / imageResize;
+            canvas.height = img.height / imageResize;
             const ctx = canvas.getContext('2d')!;
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';

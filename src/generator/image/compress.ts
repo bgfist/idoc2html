@@ -1,52 +1,38 @@
-export function tinypng(apiKey: string, file: File) {
+export async function tinypng(apiKey: string, file: File) {
     const authString = 'Basic ' + btoa(apiKey);
     const formData = new FormData();
     formData.append('file', file); // 将文件添加到 FormData 对象中
 
-    return fetch('https://api.tinify.com/shrink', {
+    const response = await fetch('https://api.tinify.com/shrink', {
         method: 'POST',
         body: formData,
         headers: {
             Authorization: authString
         }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(body => {
-            if (body.output && body.output.size < body.input.size) {
-                console.log(
-                    'Panda just saved you ' + (body.input.size - body.output.size) + ' for ' + file.name
-                );
+    });
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
 
-                // 如果需要调整大小，可以在这里添加代码
-                // ...
+    const body = await response.json();
+    if (body.output && body.output.size < body.input.size) {
+        console.log('Panda just saved you ' + (body.input.size - body.output.size) + ' for ' + file.name);
 
-                // 保存压缩后的文件
-                return fetch(body.output.url, {
-                    headers: {
-                        Authorization: authString
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch compressed image');
-                        }
-                        return response.blob();
-                    })
-                    .catch(error => {
-                        console.error('Error saving file:', error);
-                    });
-            } else {
-                console.log('Couldn’t compress ' + file.name + ' any further');
+        // 如果需要调整大小，可以在这里添加代码
+        // ...
+        // 保存压缩后的文件
+        const res = await fetch(body.output.url, {
+            headers: {
+                Authorization: authString
             }
-        })
-        .catch(error => {
-            console.error('Error during fetch:', error);
         });
+        if (!res.ok) {
+            throw new Error('Failed to fetch compressed image');
+        }
+        return res.blob();
+    } else {
+        throw new Error('Couldn’t compress ' + file.name + ' any further');
+    }
 }
 
 // const pica = require('pica')();

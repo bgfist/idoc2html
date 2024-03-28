@@ -10,6 +10,8 @@
         previewInNewWindow: false,
         /** 本地图片文件夹前缀 */
         localImagePrefix: '../images/',
+        /** tinypng api token */
+        tinypngApiKey: '',
         debugOptions: debug,
         configOptions: defaultConfig
     };
@@ -48,6 +50,15 @@
                 bind:value={settings.localImagePrefix}
             />
         </label>
+        <!-- 有跨域问题 -->
+        <!-- <label class="flex items-center my-10 text-16/28">
+            <span class="text-16/30 mr-20 italic">TinyPNG API Key</span>
+            <input
+                type="text"
+                class="flex-1 rounded-6 py-0 px-8 border text-16/28"
+                bind:value={settings.tinypngApiKey}
+            />
+        </label> -->
         <h2 class="mt-20 mb-8">生成选项</h2>
         <div class="flex flex-wrap">
             <label class="cursor-pointer flex items-center w-200">

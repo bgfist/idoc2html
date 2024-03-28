@@ -1,5 +1,6 @@
 <script lang="ts">
     import { iDocJson2Html, type Page } from '../src';
+    import { ImageResize } from '../src/generator';
     import Export from './Export.svelte';
     import { interceptIDocJsonRequest } from './intercepter';
     import Preview from './Preview.svelte';
@@ -15,9 +16,22 @@
     let showExportSettings = false as boolean | 'warn';
     let settingsComp: Settings;
     let generatedHtml: string;
+    let defaultImageResize: ImageResize = 1;
     interceptIDocJsonRequest(page => {
         currentPage = page;
     });
+
+    function calcImageResize() {
+        const { width, height } = currentPage.layers.bounds;
+        if (width === 375 || height === 375) {
+            defaultImageResize = 2;
+        } else if (width === 750 || height === 750) {
+            defaultImageResize = 1;
+        } else if (width > 800 || height > 800) {
+            // PC
+            defaultImageResize = 4;
+        }
+    }
 
     function onGenerateClick() {
         if (!currentPage) {
@@ -27,6 +41,7 @@
             makeToast('当前不在开发模式', { fontSize: '80px', border: 'error' });
         }
         generatedHtml = iDocJson2Html(currentPage, settingsComp.settings.configOptions);
+        calcImageResize();
         navigator.clipboard.writeText(generatedHtml).then(
             () => {
                 makeToast('html代码已复制到剪贴板中', { fontSize: '80px', border: 'success', time: 500 });
@@ -76,6 +91,8 @@
             makeToast('读取剪贴板失败!', { fontSize: '80px', border: 'error' });
             return generatedHtml;
         });
+        // 去掉windows下可能生成了\r\n,我们只要\n
+        code = code.replaceAll(/\r/g, '');
 
         if (code !== generatedHtml) {
             warn = true;
@@ -184,8 +201,11 @@
     </div>
     {#if showExportSettings}
         <Export
-            warn
+            {warn}
             {code}
+            imageResize={defaultImageResize}
+            prefix={settingsComp.settings.localImagePrefix}
+            tinypngApiKey={settingsComp.settings.tinypngApiKey}
             on:close={e => {
                 closeExportSettings();
                 if (e.detail) {

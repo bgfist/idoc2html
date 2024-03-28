@@ -7,6 +7,7 @@ import { preprocess } from './preprocess';
 import { assert } from './utils';
 import { VNode, isRole } from './vnode';
 import { getProcessedImageUrl } from './generator';
+import { md5 } from './utils-md5';
 
 export * from './config';
 export { Page };
@@ -89,20 +90,59 @@ export function iDocJson2Html(page: Page, config?: Config) {
     return VNode2Code(vnode, 0, true);
 }
 
-export async function replaceHtmlImages(html: string, prefix: string) {
-    const grapImageUrls = html.matchAll(/bg-\[url\((https:\/\/idoc\.mucang\.cn\/.+\/(.+\.png))\)]/);
+declare global {
+    interface Window {
+        cacheImageMap: Set<string>;
+    }
+}
+
+export async function replaceHtmlImages(params: {
+    html: string;
+    prefix: string;
+    imageResize: 1 | 2 | 4;
+    uploadImage2Remote: boolean;
+    useTinypngCompress: boolean;
+    tinypngApiKey: string;
+}) {
+    const { prefix, imageResize, uploadImage2Remote, useTinypngCompress, tinypngApiKey } = params;
+    let { html } = params;
+
+    const grapImageUrls = html.matchAll(/bg-\[url\((https:\/\/idoc\.mucang\.cn\/.+\/(.+\.png))\)]/g);
     const imageMap: Record<
         string,
         {
             fullPath: string;
             imageName: string;
+            cacheKey: string;
         }
     > = {};
+    const hashSet = new Set<string>();
     for (const match of grapImageUrls) {
-        imageMap[match[0]] = {
-            fullPath: match[1],
-            imageName: match[2]
-        };
+        if (imageMap[match[0]]) {
+            console.warn('有重复图片', match[0]);
+        } else {
+            const fullPath = match[1];
+            const cacheKey =
+                fullPath + JSON.stringify({ imageResize, uploadImage2Remote, useTinypngCompress });
+
+            const hash = md5(cacheKey);
+            let hashLen = 6;
+            let imageHash = hash.slice(0, hashLen);
+
+            while (hashSet.has(imageHash)) {
+                console.warn('hash冲突');
+                hashLen++;
+                imageHash = hash.slice(0, hashLen);
+            }
+
+            hashSet.add(imageHash);
+            imageMap[match[0]] = {
+                fullPath: match[1],
+                // imageName: match[2]
+                imageName: imageHash + '.png',
+                cacheKey
+            };
+        }
     }
 
     if (_.isEmpty(imageMap)) {
@@ -112,18 +152,32 @@ export async function replaceHtmlImages(html: string, prefix: string) {
         };
     }
 
-    if (prefix.endsWith('/')) {
-        prefix = prefix.slice(0, -1);
-    }
+    const cacheImageMap = window.cacheImageMap || (window.cacheImageMap = new Set());
+
+    let processedBefore = false;
 
     for (const originalClassName in imageMap) {
-        const { fullPath, imageName } = imageMap[originalClassName];
-        await getProcessedImageUrl(fullPath, imageName, 2);
-        html = html.replace(originalClassName, `bg-[url(${prefix}/${imageName})]`);
+        const { fullPath, imageName, cacheKey } = imageMap[originalClassName];
+
+        if (!cacheImageMap.has(cacheKey)) {
+            await getProcessedImageUrl({
+                originalUrl: fullPath,
+                imageName,
+                imageResize,
+                uploadImage2Remote,
+                tinypngApiKey,
+                useTinypngCompress
+            });
+            cacheImageMap.add(cacheKey);
+        } else {
+            processedBefore = true;
+        }
+
+        html = html.replace(originalClassName, `bg-[url(${prefix}${imageName})]`);
     }
 
     return {
         code: html,
-        noImages: false
+        noImages: processedBefore ? ('processedBefore' as const) : false
     };
 }

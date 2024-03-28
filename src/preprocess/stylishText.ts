@@ -3,6 +3,7 @@ import { Node } from '../page';
 import { R, SizeSpec, VNode, newVNode } from '../vnode';
 import { getNormalColor } from './color';
 import { float2Int } from './helpers';
+import { numLt } from '../utils';
 
 export function stylishText(node: Node, vnode: VNode) {
     // TODO: 如何处理其他样式
@@ -61,7 +62,10 @@ export function stylishText(node: Node, vnode: VNode) {
         vnode.classList.push('text-0');
     }
 
-    const isMultiLine = +_.max(_.map(node.text.styles, n => n.space.lineHeight))! < node.bounds.height;
+    const isMultiLine = numLt(
+        +_.max(_.map(node.text.styles, n => n.space.lineHeight))! * 1.5,
+        node.bounds.height
+    );
     if (isMultiLine) {
         vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
