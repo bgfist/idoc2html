@@ -20,6 +20,10 @@ export function second<T>(x: [unknown, T]) {
     return x[1];
 }
 
+export function pairPrevNext<T>(arr: T[]) {
+    return arr.slice(1).map((next, i) => [arr[i], next] as [prev: T, next: T]);
+}
+
 export function removeEle<T>(arr: T[], ele: T) {
     _.remove(arr, item => item === ele);
 }

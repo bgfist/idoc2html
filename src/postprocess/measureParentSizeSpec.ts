@@ -67,19 +67,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
             console.debug('遇到裸盒子', parent.id, parent.role);
         }
 
-        // 裸盒子将justifySpec设置为Fixed，alignSpec待定，由父亲去算
-
-        if (!parent.widthSpec) {
-            if (grandParent.direction === Direction.Row) {
-                parent.widthSpec = SizeSpec.Fixed;
-            }
-        }
-
-        if (!parent.heightSpec) {
-            if (grandParent.direction === Direction.Column) {
-                parent.heightSpec = SizeSpec.Fixed;
-            }
-        }
+        // 裸盒子的justifySpec/alignSpec待定，由父亲去算
     }
 }
 

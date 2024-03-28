@@ -5,8 +5,14 @@ import { removeEle, assert } from '../utils';
 
 /** 将不必要的空元素包装盒去掉 */
 function mayLiftVoidElement(vnode: VNode) {
-    if (isVoidElementWrapper(vnode) && vnode.children.length === 0 && vnode.attachNodes.length === 1) {
+    if (isVoidElementWrapper(vnode)) {
         removeEle(vnode.classList, context.voidElementMarker);
+
+        const canRemoveWrapper = vnode.children.length === 0 && vnode.attachNodes.length === 1;
+        if (!canRemoveWrapper) {
+            return;
+        }
+
         const voidElement = vnode.attachNodes[0];
         assert(
             isVoidElement(voidElement) && !voidElement.textContent && !voidElement.children.length,

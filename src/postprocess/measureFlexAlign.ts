@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { defaultConfig } from '../config';
-import { assert, numEq, numGt, numLt, replaceWith, unreachable } from '../utils';
+import { assert, numEq, numGt, numLt, unreachable } from '../utils';
 import {
     Dimension,
     DimensionSpec,
@@ -10,7 +10,6 @@ import {
     SizeSpec,
     VNode,
     context,
-    getClassName,
     getMultiLineTextLineHeight,
     isCrossDirection,
     isFlexBox,
@@ -18,16 +17,11 @@ import {
     isGeneratedNode,
     isListContainer,
     isListWrapContainer,
-    isListXContainer,
-    isListYContainer,
     isMultiLineText,
-    isSingleLineText,
-    makeMultiLineTextClamp,
-    makeSingleLineTextEllipsis,
-    makeSingleLineTextNoWrap,
-    newVNode
+    isSingleLineText
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
+import { autoMaybeClamp, getSingleLinePreserveMargin, expandOverflowChild } from './measureOverflow';
 
 interface Margin {
     marginStart: number;
@@ -40,7 +34,7 @@ export function measureFlexAlign(parent: VNode) {
     const alignSpec = parent.direction === Direction.Row ? 'heightSpec' : 'widthSpec';
     const alignDimension = parent.direction === Direction.Row ? 'height' : 'width';
 
-    expandGhostChildrenIfPossible(parent, alignDimension);
+    expandGhostChildrenIfPossible(parent, alignSpec);
     decideChildrenAlignSpec(parent, alignSpec, alignDimension);
     expandOverflowChildrenIfPossible(parent, alignSpec, alignDimension);
     decideParentAlignSpec(parent, alignSpec, alignDimension);
@@ -61,7 +55,7 @@ export function measureFlexAlign(parent: VNode) {
 }
 
 /** 扩大我们自己切的虚拟flex盒子 */
-function expandGhostChildrenIfPossible(parent: VNode, alignDimension: Dimension) {
+function expandGhostChildrenIfPossible(parent: VNode, alignSpec: DimensionSpec) {
     _.each(parent.children, (child, i) => {
         if (
             isGeneratedNode(child) &&
@@ -74,29 +68,18 @@ function expandGhostChildrenIfPossible(parent: VNode, alignDimension: Dimension)
             // TODO: 扩张到左边padding最多的那个，保持左右padding一致，维持居中性质
             // const margins = getMargins(parent);
 
-            if (alignDimension === 'width') {
+            if (alignSpec === 'widthSpec') {
                 child.bounds.left = parent.bounds.left;
                 child.bounds.right = parent.bounds.right;
                 child.bounds.width = parent.bounds.width;
-                child.widthSpec = SizeSpec.Constrained;
             } else {
                 child.bounds.top = parent.bounds.top;
                 child.bounds.bottom = parent.bounds.bottom;
                 child.bounds.height = parent.bounds.height;
-                child.heightSpec = SizeSpec.Constrained;
             }
+            child[alignSpec] = SizeSpec.Constrained;
         }
     });
-}
-
-/** auto元素是否能被截断 */
-function autoMaybeClamp(child: VNode, alignSpec: DimensionSpec) {
-    return (
-        (alignSpec === 'widthSpec' && isSingleLineText(child)) ||
-        (alignSpec === 'widthSpec' && isListXContainer(child)) ||
-        (alignSpec === 'heightSpec' && isListYContainer(child)) ||
-        (alignSpec === 'heightSpec' && isFlexWrapLike(child))
-    );
 }
 
 /** 重新决定子元素的尺寸 */
@@ -161,52 +144,27 @@ function expandOverflowChildrenIfPossible(
 ) {
     const margins = getMargins(parent);
 
+    // 父元素auto，则子元素没法设置overflow，会一直撑开
+    if (parent[alignSpec] === SizeSpec.Auto) {
+        return;
+    }
+
     _.each(parent.children, (child, i) => {
-        if (
-            // 父元素auto，则子元素没法设置overflow，会一直撑开
-            parent[alignSpec] === SizeSpec.Auto ||
-            // 只扩充auto子节点
-            child[alignSpec] !== SizeSpec.Auto
-        ) {
+        // 只扩充auto子节点
+        if (child[alignSpec] !== SizeSpec.Auto) {
             return;
         }
 
         const margin = margins[i];
-        // 如果是随容器扩大的overflow，则必须设置为Constrained, 视情况包一层
-        const getExpandAuto2SizeSpec = () => {
-            assert(child[alignSpec] === SizeSpec.Auto, '只能扩充auto元素');
-            // 父元素尺寸有限，扩充完子元素也是尺寸有限
-            if (parent[alignSpec] === SizeSpec.Fixed) {
-                return SizeSpec.Fixed;
-            }
-            if (parent[alignSpec] === SizeSpec.Constrained) {
-                return SizeSpec.Constrained;
-            }
-            unreachable();
-        };
-
-        // 处理auto元素的最大宽度
-        if (
-            (alignSpec === 'widthSpec' && isSingleLineText(child)) ||
-            (alignSpec === 'heightSpec' && isMultiLineText(child))
-        ) {
-            defaultConfig.codeGenOptions.textClamp &&
-                setTextClamp(child, parent, alignSpec, alignDimension, margin, getExpandAuto2SizeSpec());
-        } else if (
-            (alignSpec === 'widthSpec' && isListXContainer(child)) ||
-            (alignSpec === 'heightSpec' && isListYContainer(child)) ||
-            (alignSpec === 'heightSpec' && isListWrapContainer(child))
-        ) {
-            defaultConfig.codeGenOptions.listOverflowAuto &&
-                setListOverflowAuto(
-                    child,
-                    parent,
-                    alignSpec,
-                    alignDimension,
-                    margin,
-                    getExpandAuto2SizeSpec()
-                );
-        }
+        // 父元素尺寸有限，扩充完子元素也是尺寸有限
+        const expandAuto2SizeSpec = parent[alignSpec] as SizeSpec.Fixed | SizeSpec.Constrained;
+        expandOverflowChild({
+            child,
+            spec: alignSpec,
+            dimension: alignDimension,
+            margin,
+            expandAuto2SizeSpec
+        });
     });
 }
 
@@ -381,248 +339,6 @@ function getMargins(parent: VNode, forChildren?: VNode[]) {
             marginDiff
         } as Margin;
     });
-}
-
-/** 单行文本超出，两边最少预留多宽，默认半个字宽 */
-function getSingleLinePreserveMargin(textVNode: VNode) {
-    const fontSizeMatches = getClassName(textVNode).match(/(^|\s)text-(\d+)/)!;
-    return _.round(_.toNumber(fontSizeMatches[2]) / 2);
-}
-
-/** 检查是否需要包一层超出容器 */
-function checkNeedOverflowWrapper(
-    child: VNode,
-    margin: Margin,
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
-) {
-    // 固定宽度不需要包一层
-    if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-        return false;
-    }
-    // 无背景的列表直接扩充就行
-    if ((isListXContainer(child) || isListYContainer(child)) && isGeneratedNode(child)) {
-        return false;
-    }
-    // 多行文本包了也没用
-    if (isMultiLineText(child)) {
-        return false;
-    }
-    // 无边距不需要包一层
-    if (numEq(margin.marginStart, 0) && numEq(margin.marginEnd, 0)) {
-        return false;
-    }
-    return true;
-}
-
-/** 扩充auto尺寸 */
-function expandAutoForOverflow(params: {
-    parent: VNode;
-    child: VNode;
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained;
-    alignSpec: DimensionSpec;
-    margin: Margin;
-    marginPreserve: number;
-    expandEndOnly?: boolean;
-    keepOriginalStyle?: boolean;
-}) {
-    const {
-        parent,
-        child,
-        expandAuto2SizeSpec,
-        alignSpec,
-        margin,
-        marginPreserve,
-        expandEndOnly,
-        keepOriginalStyle
-    } = params;
-
-    // 开始扩充容器
-    child.widthSpec = expandAuto2SizeSpec;
-    const originalBounds = _.clone(child.bounds);
-
-    const selfAlign = getSelfSide(margin);
-    const startMargin =
-        selfAlign === 'center' ? Math.min(marginPreserve, margin.marginStart)
-        : selfAlign === 'start' || expandEndOnly ? margin.marginStart
-        : Math.min(marginPreserve, margin.marginEnd);
-    const endMargin =
-        selfAlign === 'center' ? Math.min(marginPreserve, margin.marginEnd)
-        : selfAlign === 'end' ? margin.marginEnd
-        : Math.min(marginPreserve, margin.marginStart);
-
-    if (alignSpec === 'widthSpec') {
-        child.bounds.left = parent.bounds.left + startMargin;
-        child.bounds.right = parent.bounds.right - endMargin;
-        child.bounds.width = child.bounds.right - child.bounds.left;
-    } else {
-        child.bounds.top = parent.bounds.top + startMargin;
-        child.bounds.bottom = parent.bounds.bottom - endMargin;
-        child.bounds.height = child.bounds.bottom - child.bounds.top;
-    }
-
-    // 设置最大溢出尺寸
-    const maxSize =
-        expandAuto2SizeSpec === SizeSpec.Constrained ? 'full'
-        : alignSpec === 'widthSpec' ? child.bounds.width
-        : child.bounds.height;
-
-    let wrapperNode: VNode | null = null;
-    // 检查是否需要包一层
-    if (checkNeedOverflowWrapper(child, margin, expandAuto2SizeSpec)) {
-        // 文本居中会由wrapperNode以justify-center的方式实现
-        wrapperNode = newVNode({
-            bounds: _.clone(child.bounds),
-            widthSpec: child.widthSpec,
-            heightSpec: child.heightSpec,
-            direction: alignSpec === 'widthSpec' ? Direction.Row : Direction.Column
-        });
-        // 保留容器的背景样式
-        if (keepOriginalStyle) {
-            const classList = child.classList;
-            child.classList = [];
-            wrapperNode.classList = classList;
-            const style = child.style;
-            child.style = {};
-            wrapperNode.style = style;
-        }
-        child.bounds = originalBounds;
-        child.widthSpec = SizeSpec.Auto;
-        wrapperNode.children = [_.clone(child)];
-    }
-
-    return { wrapperNode, maxSize };
-}
-
-/** 设置文本超出省略 */
-function setTextClamp(
-    child: VNode,
-    parent: VNode,
-    alignSpec: DimensionSpec,
-    alignDimension: Dimension,
-    margin: Margin,
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
-) {
-    // 多行文本没法扩充，因为是按行数截断的
-
-    if (isSingleLineText(child)) {
-        assert(alignDimension === 'width', '单行文本超出省略只能是横向');
-
-        const marginPreserve = getSingleLinePreserveMargin(child);
-        const res = expandAutoForOverflow({
-            parent,
-            child,
-            expandAuto2SizeSpec,
-            alignSpec,
-            margin,
-            marginPreserve
-        });
-        const maxWidth = res.maxSize;
-        // 这里原本的居中属性会由flex管理
-        if (res.wrapperNode) {
-            replaceWith(child, res.wrapperNode);
-            child = res.wrapperNode.children[0];
-        }
-        // 这里原本的居中属性得由text-align管理
-        else {
-            const selfAlign = getSelfSide(margin);
-            if (selfAlign === 'center') {
-                child.classList.push('text-center');
-            } else if (selfAlign === 'end') {
-                child.classList.push('text-right');
-            }
-        }
-
-        // 固定宽度会统一设置
-        if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-            return;
-        }
-
-        child.classList.push(R`max-w-${maxWidth}`);
-        makeSingleLineTextEllipsis(child);
-    } else if (isMultiLineText(child)) {
-        assert(alignDimension === 'height', '多行文本超出省略只能是纵向');
-
-        const lineHeight = getMultiLineTextLineHeight(child);
-        // 多行文本超出，下面最少预留多宽，默认一个字宽
-        const marginPreserve = lineHeight;
-        expandAutoForOverflow({
-            parent,
-            child,
-            expandAuto2SizeSpec,
-            alignSpec,
-            margin,
-            marginPreserve
-        });
-
-        // 固定宽度会统一设置
-        if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-            return;
-        }
-
-        makeMultiLineTextClamp(child);
-    }
-}
-
-/** 设置列表元素内容超出滚动 */
-function setListOverflowAuto(
-    child: VNode,
-    parent: VNode,
-    alignSpec: DimensionSpec,
-    alignDimension: Dimension,
-    margin: Margin,
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained
-) {
-    const marginPreserve = 10; // 先给10吧
-
-    if (isListXContainer(child) || isListYContainer(child)) {
-        if (isListXContainer(child)) {
-            assert(alignDimension === 'width', '横向列表超出滚动只能是横向');
-        } else {
-            assert(alignDimension === 'height', '纵向列表超出滚动只能是纵向');
-        }
-
-        const res = expandAutoForOverflow({
-            parent,
-            child,
-            expandAuto2SizeSpec,
-            alignSpec,
-            margin,
-            marginPreserve,
-            keepOriginalStyle: true
-        });
-        if (res.wrapperNode) {
-            replaceWith(child, res.wrapperNode);
-            child = res.wrapperNode.children[0];
-            child.classList.push(`max-${alignDimension === 'width' ? 'w' : 'h'}-full`);
-            return;
-        }
-
-        child.classList.push(R`overflow-${alignDimension === 'width' ? 'x' : 'y'}-auto`);
-        // TODO: 是否可以给一个utility-class，child:shrink-0
-        _.each(child.children, son => {
-            son.classList.push('shrink-0');
-        });
-    } else {
-        assert(isListWrapContainer(child) && alignDimension === 'height', 'flexWrap只有纵向才能超出滚动');
-
-        const res = expandAutoForOverflow({
-            parent,
-            child,
-            expandAuto2SizeSpec,
-            alignSpec,
-            margin,
-            marginPreserve,
-            keepOriginalStyle: true,
-            expandEndOnly: true
-        });
-        if (res.wrapperNode) {
-            replaceWith(child, res.wrapperNode);
-            child = res.wrapperNode.children[0];
-            child.classList.push('max-h-full');
-            return;
-        }
-        child.classList.push('overflow-y-auto');
-    }
 }
 
 /** 为自动撑开的元素预留一点边距，但不会大于本身最小的边距 */

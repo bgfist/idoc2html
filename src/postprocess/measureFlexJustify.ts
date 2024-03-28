@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
-import { allNumsEqual, numEq, numGt, numLte } from '../utils';
+import { allNumsEqual, assert, numEq, numGt, numLte, pairPrevNext } from '../utils';
 import {
+    Dimension,
     DimensionSpec,
     Direction,
     R,
@@ -12,12 +13,16 @@ import {
     isListContainer,
     newVNode
 } from '../vnode';
+import { canChildStretchWithParent } from './measureParentSizeSpec';
+import { autoMaybeClamp, expandOverflowChild } from './measureOverflow';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
     const justifySpec = parent.direction === Direction.Row ? 'widthSpec' : 'heightSpec';
+    const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
 
-    decideChildrenJustifySpec(parent, justifySpec);
+    decideChildrenJustifySpec(parent, justifySpec, justifyDimension);
+    expandOverflowChildrenIfPossible(parent, justifySpec, justifyDimension);
 
     const { startGap, endGap, gaps, equalMiddleGaps, justifySide, ranges } = getGapsAndSide(parent);
 
@@ -61,24 +66,107 @@ export function measureFlexJustify(parent: VNode) {
 }
 
 /** 重新决定子元素的尺寸 */
-function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec) {
-    if (justifySpec === 'widthSpec') {
-        if (parent.widthSpec === SizeSpec.Auto || parent.widthSpec === SizeSpec.Fixed) {
-            // 对多行元素需要设置固定尺寸
-            _.each(parent.children, child => {
-                if (isFlexWrapLike(child) && child.widthSpec === SizeSpec.Auto) {
-                    child.widthSpec = SizeSpec.Fixed;
+function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, justifyDimension: Dimension) {
+    _.each(parent.children, child => {
+        if (child[justifySpec] === SizeSpec.Constrained) {
+            if (parent[justifySpec] === SizeSpec.Fixed) {
+                child[justifySpec] = SizeSpec.Fixed;
+            }
+        } else if (child[justifySpec] === SizeSpec.Auto) {
+            // 注意列表元素的alignSpec都是Fixed或者都是Constrained，表示他们的尺寸是一样的
+            if (!autoMaybeClamp(child, justifySpec)) {
+                if (isFlexWrapLike(child)) {
+                    assert(justifySpec === 'widthSpec', 'flexWrap和多行文本只有横向才能不被截断');
+                    if (parent[justifySpec] === SizeSpec.Constrained) {
+                        // 允许auto元素随父节点拉伸
+                        child[justifySpec] = SizeSpec.Constrained;
+                    } else {
+                        console.debug(
+                            '多行元素想撑开,父元素又是auto或fixed,还得固定多行元素的宽度,不然没法换行'
+                        );
+                        // 这里也可以用最小宽度，但是没用；包一层容器也没用
+                        child[justifySpec] = SizeSpec.Fixed;
+                    }
+                } else if (
+                    parent[justifySpec] === SizeSpec.Constrained &&
+                    canChildStretchWithParent(child, parent, justifyDimension)
+                ) {
+                    // 允许auto元素随父节点拉伸
+                    child[justifySpec] = SizeSpec.Constrained;
                 }
-            });
-        } else if (parent.widthSpec === SizeSpec.Constrained) {
-            // 对多行元素需要设置一个伸缩属性
-            _.each(parent.children, child => {
-                if (isFlexWrapLike(child) && child.widthSpec === SizeSpec.Auto) {
-                    child.widthSpec = SizeSpec.Constrained;
-                }
-            });
+            }
+        } else if (!child[justifySpec]) {
+            assert(!child.children.length, '只有裸盒子才没设置尺寸');
+            if (parent[justifySpec] === SizeSpec.Fixed) {
+                child[justifySpec] = SizeSpec.Fixed;
+            } else if (
+                parent[justifySpec] === SizeSpec.Constrained &&
+                canChildStretchWithParent(child, parent, justifyDimension)
+            ) {
+                child[justifySpec] = SizeSpec.Constrained;
+            } else {
+                child[justifySpec] = SizeSpec.Fixed;
+            }
         }
+    });
+}
+
+/** 如果设置了超出滚动，则可能需要设置auto元素为flex1 */
+function expandOverflowChildrenIfPossible(
+    parent: VNode,
+    justifySpec: DimensionSpec,
+    justifyDimension: Dimension
+) {
+    /** 前面的扩充完会改变后面的margin */
+    function getMargin(i: number) {
+        const { gaps, startGap, endGap } = getGapsAndSide(parent);
+        const margins = pairPrevNext([startGap, ...gaps, endGap]).map(([prev, next]) => {
+            return {
+                marginStart: prev,
+                marginEnd: next
+            };
+        });
+        return margins[i];
     }
+
+    if (parent[justifySpec] !== SizeSpec.Constrained) {
+        return;
+    }
+
+    const maxChild = _.maxBy(
+        _.filter(parent.children, child => autoMaybeClamp(child, justifySpec)),
+        child => child.bounds[justifyDimension]
+    );
+
+    if (!maxChild) {
+        return;
+    } else {
+        // expandOverflowChild({
+        //     child: maxChild,
+        //     spec: justifySpec,
+        //     dimension: justifyDimension,
+        //     margin: getMargin(parent.children.indexOf(maxChild)),
+        //     expandAuto2SizeSpec: SizeSpec.Constrained,
+        //     isJustify: true
+        // });
+        return;
+    }
+
+    _.each(parent.children, (child, i) => {
+        // 只扩充auto子节点
+        if (child[justifySpec] !== SizeSpec.Auto) {
+            return;
+        }
+
+        expandOverflowChild({
+            child,
+            spec: justifySpec,
+            dimension: justifyDimension,
+            margin: getMargin(i),
+            expandAuto2SizeSpec: SizeSpec.Constrained,
+            isJustify: true
+        });
+    });
 }
 
 /** 计算间距信息 */
@@ -298,6 +386,8 @@ function sideJustify(
         if (child[justifySpec] === SizeSpec.Constrained) {
             const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
             child.classList.push(R`grow ${justifyDimension.slice(0, 1)}-${child.bounds[justifyDimension]}`);
+
+            // TODO: 同时有多个Constrained，则可以将其中一个减少一两像素，不然很有可能会导致空间不足
         }
     });
 }

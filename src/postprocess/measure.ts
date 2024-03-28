@@ -8,6 +8,8 @@ import {
     getClassList,
     isGeneratedNode,
     isListWrapContainer,
+    isListXContainer,
+    isListYContainer,
     isMultiLineText,
     isSingleLineText,
     makeMultiLineTextClamp,
@@ -50,10 +52,19 @@ function measureFlexLayout(parent: VNode) {
         }
     }
 
-    if (parent.widthSpec === SizeSpec.Fixed && (!isGeneratedNode(parent) || isListWrapContainer(parent))) {
+    // TODO: 判断一下真正需要加固定宽高的元素
+
+    if (
+        parent.widthSpec === SizeSpec.Fixed &&
+        (!isGeneratedNode(parent) || isListWrapContainer(parent) || isListYContainer(parent))
+    ) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
-    if (parent.heightSpec === SizeSpec.Fixed && !isGeneratedNode(parent) && !isSingleLineText(parent)) {
+    if (
+        parent.heightSpec === SizeSpec.Fixed &&
+        !isSingleLineText(parent) &&
+        (!isGeneratedNode(parent) || isListXContainer(parent))
+    ) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 

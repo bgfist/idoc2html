@@ -3,6 +3,7 @@ import {
     collectLongestRepeatRanges,
     groupWith,
     numEq,
+    pairPrevNext,
     pickCombination,
     removeEle,
     removeEles,
@@ -102,7 +103,7 @@ function isSimilarBoxWrap(prev: VNode, next: VNode, yGap?: number) {
 }
 
 /** 获取两个元素之间direction方向的间距 */
-function getItemGap(nextItem: VNode, prevItem: VNode, direction: Direction) {
+function getItemGap(prevItem: VNode, nextItem: VNode, direction: Direction) {
     if (direction === Direction.Row) {
         return nextItem.bounds.left - prevItem.bounds.right;
     } else {
@@ -131,23 +132,29 @@ function checkListItemUnnecessary(itemNodes: VNode[]) {
 
 /** 给列表元素设置固定的宽度/高度，可以优化布局方式 */
 function setListItemSizeSpec(vnode: VNode) {
-    const targetSizeSpec = defaultConfig.listItemSizeFixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+    let targetSizeSpec = defaultConfig.listItemSizeFixed ? SizeSpec.Fixed : SizeSpec.Constrained;
 
     if (isListXContainer(vnode)) {
+        // 有些列表元素已经固定尺寸了，比如图片
+        if (_.some(vnode.children, child => child.heightSpec === SizeSpec.Fixed)) {
+            targetSizeSpec = SizeSpec.Fixed;
+        }
+
         _.each(vnode.children, item => {
-            if (!item.heightSpec) {
-                item.heightSpec = targetSizeSpec;
-            }
+            item.heightSpec = targetSizeSpec;
         });
     } else if (isListYContainer(vnode)) {
+        // 有些列表元素已经固定尺寸了，比如图片
+        if (_.some(vnode.children, child => child.widthSpec === SizeSpec.Fixed)) {
+            targetSizeSpec = SizeSpec.Fixed;
+        }
+
         _.each(vnode.children, item => {
-            if (!item.widthSpec) {
-                item.widthSpec = targetSizeSpec;
-            }
+            item.widthSpec = targetSizeSpec;
         });
     } else if (isListWrapContainer(vnode)) {
         _.each(vnode.children, item => {
-            if (!item.heightSpec && defaultConfig.listItemSizeFixed) {
+            if (defaultConfig.listItemSizeFixed) {
                 item.heightSpec = SizeSpec.Fixed;
             }
         });
@@ -207,7 +214,7 @@ function setListItemSameSizeAndGap(
 
 /** 寻找重复节点，将其归成列表 */
 function groupListNodes(nodes: VNode[], direction: Direction) {
-    const gaps = nodes.slice(1).map((item, index) => getItemGap(item, nodes[index], direction));
+    const gaps = pairPrevNext(nodes).map(([prev, next]) => getItemGap(prev, next, direction));
     gaps.push(NaN); // 最后多一个gap作为比较
     const ranges = collectLongestRepeatRanges(gaps, numEq, true);
 
@@ -237,7 +244,7 @@ function groupListNodes(nodes: VNode[], direction: Direction) {
 function tryMergeListNodes(parent: VNode, toMergeLists: VNode[], direction: Direction) {
     /** 获取列表item之间的间距 */
     function getListItemGap(vnode: VNode) {
-        return getItemGap(vnode.children[1], vnode.children[0], direction);
+        return getItemGap(vnode.children[0], vnode.children[1], direction);
     }
     /** 获取列表item中线之间的间距 */
     function getListItemMiddleLineGap(vnode: VNode) {
@@ -465,7 +472,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
             role: [direction === Direction.Row ? 'list-x' : 'list-y'],
             direction
         });
-        setListItemSizeSpec(vnode);
+        setListItemSizeSpec(list);
         _.each(list.children, child => {
             addRole(child, 'list-item');
         });

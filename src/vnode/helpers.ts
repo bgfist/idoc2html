@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { assert, numEq, numGt, numGte, numLt, numLte, removeEle } from '../utils';
+import { assert, numEq, numGt, numGte, numLt, numLte, pairPrevNext, removeEle } from '../utils';
 import { Direction, Role, VNode, context } from './';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -141,12 +141,11 @@ export function getMiddleLine(vnode: VNode, direction: Direction) {
 
 export function getItemGaps(vnodes: VNode[], direction: Direction) {
     assert(vnodes.length > 1, '至少两个元素才能计算间距');
-    const gaps = vnodes.slice(1).map((current, index) => {
-        const prev = vnodes[index];
+    const gaps = pairPrevNext(vnodes).map(([prev, next]) => {
         if (direction === Direction.Row) {
-            return current.bounds.left - prev.bounds.right;
+            return next.bounds.left - prev.bounds.right;
         } else {
-            return current.bounds.top - prev.bounds.bottom;
+            return next.bounds.top - prev.bounds.bottom;
         }
     });
     return gaps;
@@ -294,6 +293,10 @@ export function isVoidElement(node: VNode) {
 
 export function isVoidElementWrapper(node: VNode) {
     return _.includes(node.classList, context.voidElementMarker);
+}
+
+export function isOverflowWrapped(node: VNode) {
+    return _.includes(node.classList, context.overflowWrapedMarker);
 }
 
 export function isTableBody(vnode: VNode) {
