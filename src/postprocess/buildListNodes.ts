@@ -33,7 +33,7 @@ import {
     newVNode,
     refreshBoxBounds
 } from '../vnode';
-import { defaultConfig } from '../config';
+import { defaultConfig } from '../main/config';
 
 /** 两个盒子是否相似 */
 function isSimilarBoxX(a: VNode, b: VNode) {

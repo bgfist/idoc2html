@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
-import { Direction, SizeSpec, VNode, context } from '.';
+import { Direction, SizeSpec, VNode } from './types';
 import { allNumsEqual, collectContinualRanges, numEq } from '../utils';
 import { addRole, getBounds, getClassName, getItemGaps, isEqualBox, isTextNode, newVNode } from './helpers';
+import { context } from './context';
 
 /** 判断节点是不是分隔线 */
 export function maybeDivider(vnode: VNode) {

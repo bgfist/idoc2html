@@ -1,4 +1,4 @@
-import { Node } from '../page';
+import { Node } from './page';
 
 export function isTextNode(node: Node) {
     return node.basic.type === 'text' && node.basic.realType === 'Text';

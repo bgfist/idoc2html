@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Node, RGBA } from '../page';
+import { Node, RGBA } from './page';
 import { numEq } from '../utils';
 import { R, VNode, getClassName } from '../vnode';
 import { getLinearColor, getNormalColor } from './color';

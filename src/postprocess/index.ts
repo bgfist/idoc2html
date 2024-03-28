@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { BuildStage, debug, defaultConfig } from '../config';
+import { BuildStage, debug, defaultConfig } from '../main/config';
 import { Direction, VNode, isOriginalGhostNode, isListContainer, isTextNode } from '../vnode';
 import { buildTree } from './build';
 import { measureTree } from './measure';

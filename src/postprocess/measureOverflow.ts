@@ -23,7 +23,7 @@ import {
     context,
     isOverflowWrapped
 } from '../vnode';
-import { defaultConfig } from '../config';
+import { defaultConfig } from '../main/config';
 
 interface Margin {
     marginStart: number;

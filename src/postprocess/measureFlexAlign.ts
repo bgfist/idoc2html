@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { defaultConfig } from '../config';
+import { defaultConfig } from '../main/config';
 import { assert, numEq, numGt, numLt, unreachable } from '../utils';
 import {
     Dimension,

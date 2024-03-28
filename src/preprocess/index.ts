@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import { debug, defaultConfig } from '../config';
-import { Color, Node } from '../page';
+import { debug, defaultConfig } from '../main/config';
+import { Color, Node } from './page';
 import { filterEmpty } from '../utils';
 import { SizeSpec, VNode, addRole, context, isEqualBox, newVNode } from '../vnode';
 import { stylishBox } from './stylishBox';

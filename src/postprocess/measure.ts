@@ -20,7 +20,7 @@ import {
 import { anyElesIn, numEq } from '../utils';
 import { measureFlexAlign } from './measureFlexAlign';
 import { measureFlexJustify } from './measureFlexJustify';
-import { defaultConfig } from '../config';
+import { defaultConfig } from '../main/config';
 
 /** 计算flexbox布局 */
 export function measureTree(vnode: VNode) {

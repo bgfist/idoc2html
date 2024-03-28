@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { iDocJson2Html, type Page } from '../src';
-    import { ImageResize } from '../src/generator';
+    import { iDocJson2Html, type Page, ImageResize } from '../src';
     import Export from './Export.svelte';
     import { interceptIDocJsonRequest } from './intercepter';
     import Preview from './Preview.svelte';
@@ -92,7 +91,7 @@
             return generatedHtml;
         });
         // 去掉windows下可能生成了\r\n,我们只要\n
-        code = code.replaceAll(/\r/g, '');
+        code = code.replace(/\r/g, '');
 
         if (code !== generatedHtml) {
             warn = true;

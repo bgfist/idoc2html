@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { VNode, context, getClassList, getClassName, isVoidElement, isVoidElementWrapper } from '../vnode';
-import { debug, defaultConfig } from '../config';
+import { debug, defaultConfig } from '../main/config';
 import { removeEle, assert } from '../utils';
 
 /** 将不必要的空元素包装盒去掉 */
@@ -63,7 +63,7 @@ export function VNode2Code(vnode: VNode, level: number, recursive: boolean): str
         children,
         attachNodes,
         textContent = '',
-        role = ''
+        role
     } = vnode;
     const prependAttrs: Record<string, string> = {};
     if (debug.showId) {

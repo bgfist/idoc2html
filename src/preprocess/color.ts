@@ -1,4 +1,4 @@
-import { LinearColor, RGBA } from '../page';
+import { LinearColor, RGBA } from './page';
 import { assert } from '../utils';
 import { VNode } from '../vnode';
 import { float2Fixed } from './helpers';

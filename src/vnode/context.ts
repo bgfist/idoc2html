@@ -1,4 +1,4 @@
-import { VNode } from './';
+import { VNode } from './types';
 
 /** 节点遍历上下文 */
 export const context = {

@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Node } from '../page';
+import { Node } from './page';
 import { R, SizeSpec, VNode, newVNode } from '../vnode';
 import { getNormalColor } from './color';
 import { float2Int } from './helpers';
