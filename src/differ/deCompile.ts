@@ -45,16 +45,27 @@ function dom2VNode(dom: Element): VNode {
     let children: VNode[] = [];
     let textContent: string | VNode[] = '';
 
-    if (dom.nodeType === dom.TEXT_NODE) {
-        textContent = dom.textContent!;
-    } else if (_.every(dom.children, child => child.tagName === 'span')) {
+    if (
+        _.every(
+            dom.childNodes,
+            child => child.nodeType === Node.TEXT_NODE || (child as Element).tagName.toLowerCase() === 'br'
+        )
+    ) {
+        textContent = _.map(dom.childNodes, child => {
+            if (child.nodeType === Node.TEXT_NODE) {
+                return child.nodeValue;
+            } else {
+                return '<br/>';
+            }
+        }).join('');
+    } else if (_.every(dom.children, child => child.tagName.toLowerCase() === 'span')) {
         textContent = _.map(dom.children, dom2VNode);
     } else {
         children = _.map(dom.children, dom2VNode);
     }
 
     return newVNode({
-        tagName: dom.tagName,
+        tagName: dom.tagName.toLowerCase(),
         id,
         classList,
         attributes,

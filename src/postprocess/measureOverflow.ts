@@ -21,7 +21,9 @@ import {
     isFlexWrapLike,
     Side,
     context,
-    isOverflowWrapped
+    isOverflowWrapped,
+    makeListOverflowAuto,
+    mayAddClass
 } from '../vnode';
 import { defaultConfig } from '../main/config';
 
@@ -43,33 +45,12 @@ function getMarginSide(margin: Margin): Side {
 }
 
 /** 检查是否需要包一层超出容器 */
-function checkNeedOverflowWrapper(
-    child: VNode,
-    margin: Margin,
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained,
-    isJustify?: boolean
-) {
-    // 固定宽度不需要包一层
-    if (expandAuto2SizeSpec === SizeSpec.Fixed) {
-        return false;
-    }
-    // 无背景的列表直接扩充就行
-    if ((isListXContainer(child) || isListYContainer(child)) && isGeneratedNode(child)) {
-        return false;
-    }
-    // 多行文本包了也没用
-    if (isMultiLineText(child)) {
-        return false;
-    }
-    // justify单行文本必须包
-    if (isJustify && isSingleLineText(child)) {
+function checkNeedOverflowWrapper(child: VNode) {
+    // 有背景的列表, 这里默认不扩充背景
+    if ((isListXContainer(child) || isListYContainer(child)) && !isGeneratedNode(child)) {
         return true;
     }
-    // 无边距不需要包一层
-    if (numEq(margin.marginStart, 0) && numEq(margin.marginEnd, 0)) {
-        return false;
-    }
-    return true;
+    return false;
 }
 
 /** 扩充auto尺寸 */
@@ -80,19 +61,8 @@ function expandAutoForOverflow(params: {
     margin: Margin;
     marginPreserve: number;
     expandEndOnly?: boolean;
-    keepOriginalStyle?: boolean;
-    isJustify?: boolean;
 }) {
-    const {
-        child,
-        expandAuto2SizeSpec,
-        spec,
-        margin,
-        marginPreserve,
-        expandEndOnly,
-        keepOriginalStyle,
-        isJustify
-    } = params;
+    const { child, expandAuto2SizeSpec, spec, margin, marginPreserve, expandEndOnly } = params;
 
     // 开始扩充容器
     child[spec] = expandAuto2SizeSpec;
@@ -126,7 +96,7 @@ function expandAutoForOverflow(params: {
 
     let wrapperNode: VNode | null = null;
     // 检查是否需要包一层
-    if (checkNeedOverflowWrapper(child, margin, expandAuto2SizeSpec, isJustify)) {
+    if (checkNeedOverflowWrapper(child)) {
         // 文本居中会由wrapperNode以justify-center的方式实现
         wrapperNode = newVNode({
             bounds: _.clone(child.bounds),
@@ -134,13 +104,6 @@ function expandAutoForOverflow(params: {
             heightSpec: child.heightSpec,
             direction: spec === 'widthSpec' ? Direction.Row : Direction.Column
         });
-        // 保留容器的背景样式
-        if (keepOriginalStyle) {
-            wrapperNode.classList = _.union(wrapperNode.classList, child.classList);
-            child.classList = [];
-            wrapperNode.style = _.merge(wrapperNode.style, child.style);
-            child.style = {};
-        }
         child.bounds = originalBounds;
         child[spec] = SizeSpec.Auto;
         child.classList.push(context.overflowWrapedMarker);
@@ -156,14 +119,22 @@ function setTextClamp(params: {
     spec: DimensionSpec;
     dimension: Dimension;
     margin: Margin;
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained;
-    isJustify?: boolean;
+    expandAuto2SizeSpec?: SizeSpec.Fixed | SizeSpec.Constrained;
 }) {
-    const { spec, dimension, margin, expandAuto2SizeSpec, isJustify } = params;
+    const { spec, dimension, margin, expandAuto2SizeSpec } = params;
     let { child } = params;
 
     if (isSingleLineText(child)) {
         assert(dimension === 'width', '单行文本超出省略只能是横向');
+
+        const isJustify = !expandAuto2SizeSpec;
+
+        // justify的直接auto撑开，给个overflow-hidden就行
+        if (isJustify) {
+            makeSingleLineTextEllipsis(child);
+            child.classList.push(context.overflowSiblingsNoShrink);
+            return;
+        }
 
         const marginPreserve = getSingleLinePreserveMargin(child);
         const res = expandAutoForOverflow({
@@ -171,8 +142,7 @@ function setTextClamp(params: {
             expandAuto2SizeSpec,
             spec: spec,
             margin,
-            marginPreserve,
-            isJustify
+            marginPreserve
         });
         const maxWidth = res.maxSize;
         // 这里原本的居中属性会由flex管理
@@ -202,6 +172,13 @@ function setTextClamp(params: {
 
         assert(dimension === 'height', '多行文本超出省略只能是纵向');
 
+        const isJustify = !expandAuto2SizeSpec;
+        // justify的直接auto撑开, 相当于固定高度了
+        if (isJustify) {
+            makeMultiLineTextClamp(child);
+            return;
+        }
+
         const lineHeight = getMultiLineTextLineHeight(child);
         // 多行文本超出，下面最少预留多宽，默认一个字宽
         const marginPreserve = lineHeight;
@@ -228,7 +205,7 @@ function setListOverflowAuto(params: {
     spec: DimensionSpec;
     dimension: Dimension;
     margin: Margin;
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained;
+    expandAuto2SizeSpec?: SizeSpec.Fixed | SizeSpec.Constrained;
 }) {
     const { spec, dimension, margin, expandAuto2SizeSpec } = params;
     let { child } = params;
@@ -242,13 +219,19 @@ function setListOverflowAuto(params: {
             assert(dimension === 'height', '纵向列表超出滚动只能是纵向');
         }
 
+        const isJustify = !expandAuto2SizeSpec;
+        // justify的直接auto撑开，给个overflow-auto就行
+        if (isJustify) {
+            makeListOverflowAuto(child, dimension);
+            return;
+        }
+
         const res = expandAutoForOverflow({
             child,
             expandAuto2SizeSpec,
             spec: spec,
             margin,
-            marginPreserve,
-            keepOriginalStyle: true
+            marginPreserve
         });
         if (res.wrapperNode) {
             replaceWith(child, res.wrapperNode);
@@ -257,13 +240,16 @@ function setListOverflowAuto(params: {
             return;
         }
 
-        child.classList.push(R`overflow-${dimension === 'width' ? 'x' : 'y'}-auto`);
-        // TODO: 是否可以给一个utility-class，child:shrink-0
-        _.each(child.children, son => {
-            son.classList.push('shrink-0');
-        });
+        makeListOverflowAuto(child, dimension);
     } else {
         assert(isListWrapContainer(child) && dimension === 'height', 'flexWrap只有纵向才能超出滚动');
+
+        const isJustify = !expandAuto2SizeSpec;
+        // justify的直接auto撑开，给个overflow-auto就行
+        if (isJustify) {
+            child.classList.push('overflow-y-auto');
+            return;
+        }
 
         const res = expandAutoForOverflow({
             child,
@@ -271,7 +257,6 @@ function setListOverflowAuto(params: {
             spec: spec,
             margin,
             marginPreserve,
-            keepOriginalStyle: true,
             expandEndOnly: true
         });
         if (res.wrapperNode) {
@@ -290,10 +275,9 @@ export function expandOverflowChild(params: {
     spec: DimensionSpec;
     dimension: Dimension;
     margin: Margin;
-    expandAuto2SizeSpec: SizeSpec.Fixed | SizeSpec.Constrained;
-    isJustify?: boolean;
+    expandAuto2SizeSpec?: SizeSpec.Fixed | SizeSpec.Constrained;
 }) {
-    const { child, spec, dimension, margin, expandAuto2SizeSpec, isJustify } = params;
+    const { child, spec, dimension, margin, expandAuto2SizeSpec } = params;
 
     // 已经包装过一层了
     if (isOverflowWrapped(child)) {
@@ -312,8 +296,7 @@ export function expandOverflowChild(params: {
                 spec,
                 dimension,
                 margin,
-                expandAuto2SizeSpec,
-                isJustify
+                expandAuto2SizeSpec
             });
     } else if (
         (spec === 'widthSpec' && isListXContainer(child)) ||
@@ -328,6 +311,17 @@ export function expandOverflowChild(params: {
                 margin,
                 expandAuto2SizeSpec
             });
+    }
+}
+
+/** 设置其他兄弟节点不能压缩 */
+export function setSiblingsNoShrink(vnode: VNode) {
+    const [markNodes, noShrinkSiblingNodes] = _.partition(vnode.children, child =>
+        _.includes(child.classList, context.overflowSiblingsNoShrink)
+    );
+    if (markNodes.length) {
+        _.each(markNodes, markNode => removeEle(markNode.classList, context.overflowSiblingsNoShrink));
+        _.each(noShrinkSiblingNodes, child => mayAddClass(child, 'shrink-0'));
     }
 }
 

@@ -14,7 +14,7 @@ import {
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
-import { autoMaybeClamp, expandOverflowChild } from './measureOverflow';
+import { autoMaybeClamp, expandOverflowChild, setSiblingsNoShrink } from './measureOverflow';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
@@ -117,38 +117,7 @@ function expandOverflowChildrenIfPossible(
     justifySpec: DimensionSpec,
     justifyDimension: Dimension
 ) {
-    /** 前面的扩充完会改变后面的margin */
-    function getMargin(i: number) {
-        const { gaps, startGap, endGap } = getGapsAndSide(parent);
-        const margins = pairPrevNext([startGap, ...gaps, endGap]).map(([prev, next]) => {
-            return {
-                marginStart: prev,
-                marginEnd: next
-            };
-        });
-        return margins[i];
-    }
-
     if (parent[justifySpec] !== SizeSpec.Constrained) {
-        return;
-    }
-
-    const maxChild = _.maxBy(
-        _.filter(parent.children, child => autoMaybeClamp(child, justifySpec)),
-        child => child.bounds[justifyDimension]
-    );
-
-    if (!maxChild) {
-        return;
-    } else {
-        // expandOverflowChild({
-        //     child: maxChild,
-        //     spec: justifySpec,
-        //     dimension: justifyDimension,
-        //     margin: getMargin(parent.children.indexOf(maxChild)),
-        //     expandAuto2SizeSpec: SizeSpec.Constrained,
-        //     isJustify: true
-        // });
         return;
     }
 
@@ -162,11 +131,14 @@ function expandOverflowChildrenIfPossible(
             child,
             spec: justifySpec,
             dimension: justifyDimension,
-            margin: getMargin(i),
-            expandAuto2SizeSpec: SizeSpec.Constrained,
-            isJustify: true
+            // 不需要margin
+            margin: {
+                marginStart: 0,
+                marginEnd: 0
+            }
         });
     });
+    setSiblingsNoShrink(parent);
 }
 
 /** 计算间距信息 */

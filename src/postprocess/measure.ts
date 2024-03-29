@@ -1,5 +1,7 @@
 import * as _ from 'lodash';
 import {
+    Dimension,
+    DimensionSpec,
     Direction,
     R,
     R2,
@@ -7,6 +9,7 @@ import {
     VNode,
     getClassList,
     isFixSizeOriginalNode,
+    isImageOrSliceNode,
     isListWrapContainer,
     isListXContainer,
     isListYContainer,
@@ -54,22 +57,49 @@ function measureFlexLayout(parent: VNode) {
 
     // TODO: 判断一下真正需要加固定宽高的元素
 
-    if (
-        parent.widthSpec === SizeSpec.Fixed &&
-        (isFixSizeOriginalNode(parent) || isListWrapContainer(parent) || isListYContainer(parent))
-    ) {
+    if (parent.widthSpec === SizeSpec.Fixed && needSetFixSize(parent, 'widthSpec', 'width')) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
     if (
         parent.heightSpec === SizeSpec.Fixed &&
         !isSingleLineText(parent) &&
-        (isFixSizeOriginalNode(parent) || isListXContainer(parent))
+        needSetFixSize(parent, 'heightSpec', 'height')
     ) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 
     setFixSizeTextClampIfConfigured(parent);
     makeSingleLineTextNoWrapIfNeed(parent);
+}
+
+/** 父节点的固定尺寸很可能完全由子节点撑开，则没必要设置父节点的固定尺寸 */
+function needSetFixSize(parent: VNode, spec: DimensionSpec, dimension: Dimension) {
+    if (!parent.children.length) {
+        return true;
+    }
+
+    // 图片节点即便多余，也要显式设置一下尺寸
+    if (isImageOrSliceNode(parent)) {
+        return true;
+    }
+
+    // justify方向固定，还是要设置的
+    if (
+        (parent.direction === Direction.Row && spec === 'widthSpec') ||
+        (parent.direction === Direction.Column && spec === 'heightSpec')
+    ) {
+        return true;
+    }
+
+    // 所有子节点都是固定尺寸，且至少有一个跟父亲尺寸一样
+    if (
+        _.every(parent.children, child => child[spec] === SizeSpec.Fixed) &&
+        _.some(parent.children, child => numEq(child.bounds[dimension], parent.bounds[dimension]))
+    ) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 /** 设置尺寸固定的文本的超出省略 */

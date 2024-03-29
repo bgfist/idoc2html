@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { assert, numEq, numGt, numGte, numLt, numLte, pairPrevNext, removeEle } from '../utils';
-import { Direction, Role, VNode } from './types';
+import { Dimension, Direction, Role, VNode } from './types';
 import { context } from './context';
 
 type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -26,6 +26,12 @@ export function getClassName(vnode: VNode) {
 
 export function getClassList(vnode: VNode) {
     return vnode.classList.join(' ').split(' ').filter(Boolean);
+}
+
+export function mayAddClass(vnode: VNode, className: string) {
+    if (!_.includes(vnode.classList, className)) {
+        vnode.classList.push(className);
+    }
 }
 
 export function isRole(vnode: VNode, role: Role) {
@@ -206,9 +212,7 @@ export function isSingleLineText(vnode: VNode) {
 }
 
 export function makeSingleLineTextNoWrap(textNode: VNode) {
-    if (!_.includes(textNode.classList, 'whitespace-nowrap')) {
-        textNode.classList.push('whitespace-nowrap');
-    }
+    mayAddClass(textNode, 'whitespace-nowrap');
 }
 
 export function makeSingleLineTextEllipsis(textNode: VNode) {
@@ -271,6 +275,14 @@ export function isListYContainer(vnode: VNode) {
 
 export function isListContainer(vnode: VNode) {
     return isListXContainer(vnode) || isListYContainer(vnode) || isListWrapContainer(vnode);
+}
+
+export function makeListOverflowAuto(vnode: VNode, dimension: Dimension) {
+    vnode.classList.push(R`overflow-${dimension === 'width' ? 'x' : 'y'}-auto`);
+    // TODO: 是否可以给一个utility-class，child:shrink-0
+    _.each(vnode.children, son => {
+        son.classList.push('shrink-0');
+    });
 }
 
 /** 多行元素 */
