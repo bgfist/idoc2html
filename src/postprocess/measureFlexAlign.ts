@@ -18,6 +18,7 @@ import {
     isListContainer,
     isListWrapContainer,
     isMultiLineText,
+    isRootNode,
     isSingleLineText
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
@@ -179,7 +180,7 @@ function decideParentAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignDim
 
     // 这种情况下给个最小尺寸
     if (parent[alignSpec] === SizeSpec.Auto) {
-        if (parent === context.root && alignDimension === 'height') {
+        if (isRootNode(parent) && alignDimension === 'height') {
             // 根节点高度已经有最小尺寸了
         } else {
             parent.classList.push(R`min-${alignDimension.substring(0, 1)}-${parent.bounds[alignDimension]}`);

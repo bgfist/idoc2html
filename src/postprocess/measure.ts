@@ -14,6 +14,7 @@ import {
     isListXContainer,
     isListYContainer,
     isMultiLineText,
+    isRootNode,
     isSingleLineText,
     makeMultiLineTextClamp,
     makeSingleLineTextEllipsis,
@@ -80,6 +81,10 @@ function needSetFixSize(parent: VNode, spec: DimensionSpec, dimension: Dimension
 
     // 图片节点即便多余，也要显式设置一下尺寸
     if (isImageOrSliceNode(parent)) {
+        if (isRootNode(parent)) {
+            // TODO: 页面背景是一整张图怎么办？
+        }
+
         return true;
     }
 

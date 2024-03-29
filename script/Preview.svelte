@@ -5,8 +5,8 @@
     let previousX = 0;
     let previousY = 0;
     let resizableIframe: HTMLIFrameElement;
-    const windowWidth = window.document.documentElement.clientWidth;
-    const windowHeight = window.document.documentElement.clientHeight;
+    let windowWidth = window.document.documentElement.clientWidth;
+    let windowHeight = window.document.documentElement.clientHeight;
 
     function getDragDirection(e: MouseEvent) {
         return (e.currentTarget as HTMLElement).getAttribute('data-direction') as 'w' | 'h';
@@ -73,6 +73,8 @@
     window.addEventListener('resize', () => {
         resizableIframe.style.width = `${window.document.documentElement.clientWidth}px`;
         resizableIframe.style.height = `${window.document.documentElement.clientHeight}px`;
+        windowWidth = window.document.documentElement.clientWidth;
+        windowHeight = window.document.documentElement.clientHeight;
     });
 </script>
 

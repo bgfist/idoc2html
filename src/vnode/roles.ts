@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Direction, SizeSpec, VNode } from './types';
-import { allNumsEqual, collectContinualRanges, numEq } from '../utils';
+import { allNumsEqual, collectContinualRanges, numEq, numGt } from '../utils';
 import {
     addRole,
     getBounds,
@@ -31,7 +31,7 @@ export function maybeDivider(vnode: VNode) {
 
 /** 判断节点是不是边框 */
 export function maybeBorder(child: VNode, parent: VNode) {
-    if (numEq(child.bounds.width, 1)) {
+    if (numEq(child.bounds.width, 1) && numGt(child.bounds.height, 5)) {
         const attachLeftOrRight =
             numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
 
@@ -41,7 +41,7 @@ export function maybeBorder(child: VNode, parent: VNode) {
             child.heightSpec = SizeSpec.Constrained;
             return true;
         }
-    } else if (numEq(child.bounds.height, 1)) {
+    } else if (numEq(child.bounds.height, 1) && numGt(child.bounds.width, 5)) {
         const attachTopOrBottom =
             numEq(child.bounds.top, parent.bounds.top) || numEq(child.bounds.bottom, parent.bounds.bottom);
 

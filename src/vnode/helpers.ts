@@ -131,11 +131,16 @@ export function isOverlapping(child: VNode, parent: VNode) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
+export function getIntersectionX(a: VNode, b: VNode) {
+    return Math.max(0, Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left));
+}
+
+export function getIntersectionY(a: VNode, b: VNode) {
+    return Math.max(0, Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top));
+}
+
 export function getIntersectionArea(a: VNode, b: VNode) {
-    return (
-        (Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left)) *
-        (Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top))
-    );
+    return getIntersectionX(a, b) * getIntersectionY(a, b);
 }
 
 export function getMiddleLine(vnode: VNode, direction: Direction) {
@@ -184,6 +189,11 @@ export function getBounds(nodes: VNode[]) {
 /** flex盒子方向一横一竖 */
 export function isCrossDirection(a: VNode, b: VNode) {
     return a.direction && b.direction && a.direction !== b.direction;
+}
+
+/** 获取另一个方向 */
+export function getCrossDirection(direction: Direction) {
+    return direction === Direction.Row ? Direction.Column : Direction.Row;
 }
 
 export function isTextNode(vnode: VNode) {
@@ -341,4 +351,8 @@ export function isTableRow(vnode: VNode) {
 export function refreshBoxBounds(vnode: VNode) {
     assert(isGeneratedNode(vnode), 'refreshBoxBounds: 非生成节点');
     vnode.bounds = getBounds(vnode.children);
+}
+
+export function isRootNode(vnode: VNode) {
+    return vnode === context.root;
 }

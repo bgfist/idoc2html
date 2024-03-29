@@ -5,15 +5,13 @@ import { buildTree } from './build';
 import { measureTree } from './measure';
 
 /** 删除幽灵节点，这些节点本身没样式 */
-function removeGhostNodes(vnode: VNode) {
-    if (vnode.children.length) {
-        vnode.children = _.filter(vnode.children, n => {
-            if (isOriginalGhostNode(n) && ghostNodeCanRemove(n)) {
-                return false;
-            }
-            return true;
-        });
-    }
+function removeGhostNodes(nodes: VNode[]) {
+    return _.filter(nodes, n => {
+        if (isOriginalGhostNode(n) && ghostNodeCanRemove(n)) {
+            return false;
+        }
+        return true;
+    });
 }
 
 /** 扩大幽灵节点(仅做flex盒子用，本身没样式) */
@@ -50,6 +48,7 @@ function expandGhostNodes(parent: VNode) {
     }
 }
 
+// TODO: 仍可优化
 function ghostNodeCanRemove(vnode: VNode) {
     // 只要有一个文本节点，则最好不要拆解这个幽灵节点
     if (_.some(vnode.children, child => isTextNode(child))) {
@@ -61,7 +60,7 @@ function ghostNodeCanRemove(vnode: VNode) {
 /** 对节点树进行重建/重组/布局 */
 export function postprocess(vnode: VNode) {
     if (!debug.keepOriginalTree) {
-        (function unwrapAllNodes() {
+        function unwrapAllNodes(vnode: VNode) {
             const vnodes: VNode[] = [];
             const collectVNodes = (vnode: VNode) => {
                 vnodes.push(vnode);
@@ -71,6 +70,8 @@ export function postprocess(vnode: VNode) {
                     isOriginalGhostNode(vnode) &&
                     !ghostNodeCanRemove(vnode)
                 ) {
+                    // 这一层不能拆解，往下可以继续拆，只要都在这个盒子里就行
+                    vnode.children = unwrapAllNodes(vnode);
                     return;
                 }
 
@@ -78,11 +79,14 @@ export function postprocess(vnode: VNode) {
                 vnode.children = [];
             };
             _.each(vnode.children, collectVNodes);
-            vnode.children = vnodes;
-        })();
-        if (defaultConfig.removeGhostNodes) {
-            removeGhostNodes(vnode);
+
+            if (defaultConfig.removeGhostNodes) {
+                return removeGhostNodes(vnodes);
+            }
+            return vnodes;
         }
+
+        vnode.children = unwrapAllNodes(vnode);
     }
 
     if (debug.buildToStage >= BuildStage.Tree) {
