@@ -29,7 +29,7 @@ module.exports = [
         ]
     },
     {
-        input: 'dist/dist-types/index.d.ts',
+        input: 'dist/dist-types/src/index.d.ts',
         output: {
             file: 'dist/index.d.ts',
             format: 'es'

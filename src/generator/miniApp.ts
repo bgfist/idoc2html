@@ -2,7 +2,7 @@
 // px转成rpx
 
 import _ from 'lodash';
-import { defaultConfig } from '../main';
+import { defaultConfig } from '../main/config';
 import { VNode, getClassName } from '../vnode';
 
 const TAB = '  ';

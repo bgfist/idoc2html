@@ -7,6 +7,7 @@ import { removeEle, assert } from '../utils';
 function mayLiftVoidElement(vnode: VNode) {
     if (isVoidElementWrapper(vnode)) {
         removeEle(vnode.classList, context.voidElementMarker);
+        vnode.tagName = 'div';
 
         const canRemoveWrapper = vnode.children.length === 0 && vnode.attachNodes.length === 1;
         if (!canRemoveWrapper) {

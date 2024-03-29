@@ -1,14 +1,5 @@
 import * as _ from 'lodash';
-import {
-    VNode,
-    SizeSpec,
-    Direction,
-    isRole,
-    Dimension,
-    DimensionSpec,
-    isFlexWrapLike,
-    isListWrapContainer
-} from '../vnode';
+import { VNode, SizeSpec, Direction, isRole, Dimension, DimensionSpec, maybeFrameImage } from '../vnode';
 import { assert } from '../utils';
 
 /** 根据子元素确定父盒子的尺寸类型 */
@@ -95,13 +86,13 @@ function limitParentJustifyAsPossible(parent: VNode, justifySpec: DimensionSpec)
 
 /** 尽可能将父亲的align尺寸类型设得更受限 */
 function limitParentAlignAsPossible(parent: VNode, alignSpec: DimensionSpec) {
+    // 图片与容器粘在一起，不能撑开
+    if (_.some(parent.children, child => maybeFrameImage(child, parent))) {
+        parent[alignSpec] = SizeSpec.Fixed;
+    }
     // 只要有一个子节点需要自动撑开，则父节点必须由着它一起撑开
-    if (_.some(parent.children, child => child[alignSpec] === SizeSpec.Auto)) {
-        // if (alignSpec === 'widthSpec' && _.some(parent.children, child => child.widthSpec === SizeSpec.Auto && isListWrapContainer(child))) {
-        //     parent[alignSpec] = SizeSpec.Constrained;
-        // } else {
+    else if (_.some(parent.children, child => child[alignSpec] === SizeSpec.Auto)) {
         parent[alignSpec] = SizeSpec.Auto;
-        // }
     }
     // 如果都由父亲分配尺寸，则父亲给个最小尺寸即可
     else if (_.every(parent.children, child => child[alignSpec] === SizeSpec.Constrained)) {

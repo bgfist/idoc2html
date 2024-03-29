@@ -70,7 +70,8 @@ function stylishSlice(node: Node, vnode: VNode) {
         node.children = [];
     }
     // TODO: 处理切图尺寸和实际不一致的问题？
-    vnode.classList.push(`bg-cover bg-[url(https://idoc.mucang.cn${node.slice.bitmapURL})]`);
+    vnode.classList.push('bg-cover');
+    vnode.classList.push(`bg-[url(https://idoc.mucang.cn${node.slice.bitmapURL})]`);
     // vnode.style['background-image'] = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
@@ -103,6 +104,7 @@ function stylishImage(node: Node, vnode: VNode) {
             }
         })
     ];
+    vnode.tagName = 'img';
     // 防止被当作幽灵节点删除
     vnode.classList = [context.voidElementMarker];
     vnode.widthSpec = SizeSpec.Fixed;

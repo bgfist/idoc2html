@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { replaceHtmlImages } from '../src';
-    import { ImageResize, TargetPlatform } from '../src/generator';
+    import { replaceHtmlImages, ImageResize, TargetPlatform, html2Platform } from '../src';
     import { ResultItem } from './Result.svelte';
     import { makeToast } from './utils';
     import { createEventDispatcher } from 'svelte';
@@ -19,6 +18,11 @@
     let uploadImage2Remote = false;
     let targetPlatform = 'html';
     let exporting = false;
+
+    $: canUseTailwind = targetPlatform === 'html' || targetPlatform === 'miniApp';
+    $: if (!canUseTailwind) {
+        useTailwindcss = false;
+    }
 
     function onCloseClick() {
         dispatcher('close', false);
@@ -52,13 +56,9 @@
         } else {
             makeToast(uploadImage2Remote ? '图片上传成功' : '图片下载成功', { fontSize: '80px', border: 'success' });
         }
-        dispatcher('close', [
-            {
-                code: html,
-                title: 'index.html',
-                description: ''
-            }
-        ]);
+
+        const templates = html2Platform(code, targetPlatform, useTailwindcss);
+        dispatcher('close', templates);
     }
 </script>
 
@@ -91,7 +91,7 @@
 
         <h2 class="mt-20 mb-8">样式选项</h2>
         <label class="cursor-pointer flex items-center w-200">
-            <input type="checkbox" class="w-15 h-15" bind:checked={useTailwindcss} />
+            <input type="checkbox" class="w-15 h-15" bind:checked={useTailwindcss} disabled={!canUseTailwind} />
             <span class="text-16/30 ml-6">使用tailwindcss</span>
         </label>
 

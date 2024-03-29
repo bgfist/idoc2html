@@ -239,6 +239,24 @@ export function makeMultiLineTextClamp(textNode: VNode) {
     });
 }
 
+/** 是否是图片或切图，这才是真正尺寸固定的 */
+export function isImageOrSliceNode(vnode: VNode) {
+    return vnode.tagName === 'img' || _.some(vnode.classList, className => className.startsWith('bg-[url'));
+}
+
+/** 是否是裸盒子 */
+export function isNakedBox(vnode: VNode) {
+    return !vnode.direction && !isTextNode(vnode);
+}
+
+/** 是否是真正需要指定宽高的原始节点 */
+export function isFixSizeOriginalNode(vnode: VNode) {
+    if (isGeneratedNode(vnode)) {
+        return false;
+    }
+    return isTextNode(vnode) || isImageOrSliceNode(vnode) || isNakedBox(vnode);
+}
+
 export function isListWrapContainer(vnode: VNode) {
     return isRole(vnode, 'list-wrap');
 }

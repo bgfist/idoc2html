@@ -6,7 +6,7 @@ import {
     SizeSpec,
     VNode,
     getClassList,
-    isGeneratedNode,
+    isFixSizeOriginalNode,
     isListWrapContainer,
     isListXContainer,
     isListYContainer,
@@ -56,14 +56,14 @@ function measureFlexLayout(parent: VNode) {
 
     if (
         parent.widthSpec === SizeSpec.Fixed &&
-        (!isGeneratedNode(parent) || isListWrapContainer(parent) || isListYContainer(parent))
+        (isFixSizeOriginalNode(parent) || isListWrapContainer(parent) || isListYContainer(parent))
     ) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
     if (
         parent.heightSpec === SizeSpec.Fixed &&
         !isSingleLineText(parent) &&
-        (!isGeneratedNode(parent) || isListXContainer(parent))
+        (isFixSizeOriginalNode(parent) || isListXContainer(parent))
     ) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }

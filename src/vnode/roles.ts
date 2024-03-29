@@ -1,7 +1,16 @@
 import * as _ from 'lodash';
 import { Direction, SizeSpec, VNode } from './types';
 import { allNumsEqual, collectContinualRanges, numEq } from '../utils';
-import { addRole, getBounds, getClassName, getItemGaps, isEqualBox, isTextNode, newVNode } from './helpers';
+import {
+    addRole,
+    getBounds,
+    getClassName,
+    getItemGaps,
+    isEqualBox,
+    isImageOrSliceNode,
+    isTextNode,
+    newVNode
+} from './helpers';
 import { context } from './context';
 
 /** 判断节点是不是分隔线 */
@@ -112,4 +121,10 @@ export function maybeTable(rows: VNode[][]) {
             })
         };
     });
+}
+
+/** 检查图片是否框死容器尺寸 */
+export function maybeFrameImage(vnode: VNode, parent: VNode) {
+    const alignDimension = parent.direction === Direction.Row ? 'height' : 'width';
+    return isImageOrSliceNode(vnode) && numEq(vnode.bounds[alignDimension], parent.bounds[alignDimension]);
 }

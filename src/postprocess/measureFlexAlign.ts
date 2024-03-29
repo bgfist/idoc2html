@@ -252,7 +252,12 @@ function setCommonPadding(parent: VNode, parentAlign: string, alignSpec: Dimensi
 
     const s = parent.direction === Direction.Row ? 't' : 'l';
     const e = parent.direction === Direction.Row ? 'b' : 'r';
-    parent.classList.push(R`p${s}-${padding.paddingStart} p${e}-${padding.paddingEnd}`);
+    if (numEq(padding.paddingStart, padding.paddingEnd)) {
+        const xy = parent.direction === Direction.Row ? 'y' : 'x';
+        parent.classList.push(R`p${xy}-${padding.paddingStart}`);
+    } else {
+        parent.classList.push(R`p${s}-${padding.paddingStart} p${e}-${padding.paddingEnd}`);
+    }
     _.each(margins, margin => {
         margin.marginStart -= padding.paddingStart;
         margin.marginEnd -= padding.paddingEnd;
@@ -290,7 +295,12 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
 
     function setConstrainedAlign(child: VNode, margin: Margin) {
         child.classList.push(mayNeedAlign('stretch'));
-        child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
+        if (numEq(margin.marginStart, margin.marginEnd)) {
+            const xy = parent.direction === Direction.Row ? 'y' : 'x';
+            child.classList.push(R`m${xy}-${margin.marginStart}`);
+        } else {
+            child.classList.push(R`m${s}-${margin.marginStart} m${e}-${margin.marginEnd}`);
+        }
     }
 
     if (parentAlign !== 'stretch') {
@@ -384,19 +394,31 @@ function setAutoPreserveMarginIfNeeded(
             assert(alignDimension === 'height', '多行文本预留空间只能是纵向');
             const lineHeight = getMultiLineTextLineHeight(child);
             const bottomMargin = Math.min(lineHeight, margin.marginEnd);
-            child.classList.push(R`mb-${bottomMargin}`);
+            // TODO: 这里判断是否有问题
             if (getSelfSide(margin) === 'center') {
                 const topMargin = Math.min(lineHeight, margin.marginStart);
-                child.classList.push(R`mt-${topMargin}`);
+                if (numEq(topMargin, bottomMargin)) {
+                    child.classList.push(R`my-${topMargin}`);
+                } else {
+                    child.classList.push(R`mt-${topMargin} mb-${bottomMargin}`);
+                }
+            } else {
+                child.classList.push(R`mb-${bottomMargin}`);
             }
         } else if (isListWrapContainer(child)) {
             assert(alignDimension === 'height', 'flexWrap预留空间只能是纵向');
             const marginPreserve = 10; // 先给10吧
             const bottomMargin = Math.min(marginPreserve, margin.marginEnd);
-            child.classList.push(R`mb-${bottomMargin}`);
+            // TODO: 这里判断是否有问题
             if (getSelfSide(margin) === 'center') {
                 const topMargin = Math.min(marginPreserve, margin.marginStart);
-                child.classList.push(R`mt-${topMargin}`);
+                if (numEq(topMargin, bottomMargin)) {
+                    child.classList.push(R`my-${topMargin}`);
+                } else {
+                    child.classList.push(R`mt-${topMargin} mb-${bottomMargin}`);
+                }
+            } else {
+                child.classList.push(R`mb-${bottomMargin}`);
             }
         } else {
             assert(isFlexBox(child), '只有flex盒子才能预留空间');
