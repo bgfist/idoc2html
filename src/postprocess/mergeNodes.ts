@@ -30,6 +30,8 @@ export function mergeNode(dest: VNode, src: VNode) {
         dest.id = src.id;
     }
     dest.tagName = src.tagName;
+
+    // TODO: 背景/边框/圆角有冲突怎么办
     dest.classList = _.union(dest.classList, src.classList);
 
     if (src.widthSpec && dest.widthSpec !== SizeSpec.Fixed) {

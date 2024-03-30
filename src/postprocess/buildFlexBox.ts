@@ -49,7 +49,7 @@ function decideFlexDirection(children: VNode[], preferDirection: Direction) {
     }
 
     /**
-     * 如果基准盒子的两边有其他盒子可以构成一行/一列，则尝试换个方向划分
+     * 以基准盒子为中心划分九宫格，判断周围八个格子有没有可以连到一起的
      *
      * @param direction 划分方向
      * @param baseNode 基准盒子(最高的/最宽的)

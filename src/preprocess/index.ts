@@ -5,7 +5,14 @@ import { filterEmpty } from '../utils';
 import { SizeSpec, VNode, addRole, context, isEqualBox, newVNode } from '../vnode';
 import { stylishBox } from './stylishBox';
 import { stylishText } from './stylishText';
-import { float2Int, isImageNode, isSymbolNode, isTextNode } from './helpers';
+import {
+    float2Int,
+    getIntersectionBox,
+    isContainedWithin,
+    isImageNode,
+    isSymbolNode,
+    isTextNode
+} from './helpers';
 
 function opacity2ColorAlpha(node: Node) {
     const opacity = node.basic.opacity;
@@ -78,13 +85,9 @@ function stylishSlice(node: Node, vnode: VNode) {
 }
 
 function stylishImage(node: Node, vnode: VNode) {
-    if (!debug.buildAllNodes) {
-        node.children = [];
-
-        // 图片占满屏幕，一般是截的一个背景图
-        if (isEqualBox(vnode, context.root)) {
-            return null;
-        }
+    // 图片占满屏幕，一般是截的一个背景图
+    if (isEqualBox(vnode, context.root)) {
+        return null;
     }
 
     // vnode.classList.push('bg-cover');
@@ -111,6 +114,25 @@ function stylishImage(node: Node, vnode: VNode) {
     vnode.heightSpec = SizeSpec.Fixed;
 }
 
+function processOverBoundsNodes(refNode: Node, nodes: Node[], level: number) {
+    // 将children限定在页面内，比如Image
+    return _.filter(nodes, child => {
+        if (!isContainedWithin(child, context.root)) {
+            console.warn('节点超出页面范围,裁切至可见', child.basic.id);
+            child.bounds = getIntersectionBox(child, context.root);
+        }
+        if (!isContainedWithin(child, refNode)) {
+            console.warn('节点超出父节点范围,剥离至根节点', child.basic.id);
+            const vnode = preprocess(child, level + 1);
+            if (vnode) {
+                context.root.children.push(vnode);
+            }
+            return false;
+        }
+        return true;
+    });
+}
+
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
     // TODO: 幕客给的json不够详细，有的节点不可见却还是放出来了
@@ -134,14 +156,18 @@ export function preprocess(node: Node, level: number): VNode | null {
         id: node.basic.id,
         classList: [],
         bounds: {
-            ...node.bounds,
-            right: node.bounds.left + node.bounds.width,
-            bottom: node.bounds.top + node.bounds.height
+            left: float2Int(node.bounds.left),
+            top: float2Int(node.bounds.top),
+            width: float2Int(node.bounds.width),
+            height: float2Int(node.bounds.height),
+            right: float2Int(node.bounds.left + node.bounds.width),
+            bottom: float2Int(node.bounds.top + node.bounds.height)
         }
     });
 
     // 根节点决定设计尺寸
     if (level === 0) {
+        checkUnknownNode(node);
         stylishRoot(node, vnode);
     }
     // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
@@ -159,12 +185,16 @@ export function preprocess(node: Node, level: number): VNode | null {
     // 文本节点
     else if (isTextNode(node)) {
         stylishText(node, vnode);
+    } else if (node.basic.type === 'oval' && node.basic.realType === 'ShapePath') {
+        // 椭圆形
+        vnode.classList.push('rounded-[50%]');
     }
     // 容器
     else if (
         (node.basic.type === 'group' && node.basic.realType === 'Group') ||
         (node.basic.type === 'rect' && node.basic.realType === 'ShapePath') ||
         (node.basic.type === 'path' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'mask' && node.basic.realType === 'ShapePath') ||
         (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance')
     ) {
     }
@@ -181,6 +211,8 @@ export function preprocess(node: Node, level: number): VNode | null {
         stylishBox(node, vnode);
     }
 
+    node.children = processOverBoundsNodes(node, node.children, level);
+
     if (!debug.buildAllNodes) {
         // 目前先这样处理，有slice节点，则删掉其他兄弟节点
         const sliceChild = _.find(
@@ -188,25 +220,17 @@ export function preprocess(node: Node, level: number): VNode | null {
             node => node.basic.type === 'shape' && node.basic.realType === 'Slice'
         );
         if (sliceChild) {
-            node.children = _.filter(node.children, node => !!node.slice.bitmapURL);
-            if (node.children.length > 1) {
+            let [slices, leftover] = _.partition(node.children, node => !!node.slice.bitmapURL);
+            if (slices.length > 1) {
                 console.warn('切图可能重复');
+            }
+            node.children = slices;
+            leftover = processOverBoundsNodes(sliceChild, leftover, level);
+            if (leftover.length) {
+                console.debug('删掉切图的兄弟节点', leftover);
             }
         }
     }
-
-    // 将children限定在父容器内，比如Image
-    node.children = _.map(node.children, child => {
-        const top = Math.max(child.bounds.top, node.bounds.top);
-        const left = Math.max(child.bounds.left, node.bounds.left);
-        const bottom = Math.min(child.bounds.top + child.bounds.height, node.bounds.top + node.bounds.height);
-        const right = Math.min(child.bounds.left + child.bounds.width, node.bounds.left + node.bounds.width);
-        child.bounds.top = float2Int(top);
-        child.bounds.left = float2Int(left);
-        child.bounds.width = float2Int(right - left);
-        child.bounds.height = float2Int(bottom - top);
-        return child;
-    });
 
     if (defaultConfig.codeGenOptions.experimentalZIndex) {
         const [hasRight, noRight] = _.partition(node.children, n => 'right' in n.bounds);
@@ -236,10 +260,28 @@ export function preprocess(node: Node, level: number): VNode | null {
         }
     }
 
-    const children = _.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty);
-    if (children.length) {
-        vnode.children = children;
-    }
+    vnode.children.push(..._.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty));
 
     return vnode;
+}
+
+function checkUnknownNode(node: Node) {
+    const knownTypes = [
+        ['group', 'Artboard'],
+        ['group', 'Group'],
+        ['path', 'ShapePath'],
+        ['rect', 'ShapePath'],
+        ['text', 'Text'],
+        ['shape', 'Slice'],
+        ['oval', 'ShapePath'],
+        ['image', 'Image'],
+        ['mask', 'ShapePath'],
+        ['shape', 'Shape'],
+        ['mask', 'Shape'],
+        ['symbol', 'SymbolInstance']
+    ];
+    if (!_.find(knownTypes, t => t[0] === node.basic.type && t[1] === node.basic.realType)) {
+        console.warn('未知的节点类型', node.basic.type, node.basic.realType, node.basic.id);
+    }
+    _.each(node.children, checkUnknownNode);
 }

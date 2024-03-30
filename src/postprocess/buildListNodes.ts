@@ -17,6 +17,8 @@ import {
     addRole,
     getBounds,
     getMiddleLine,
+    getSingleLineTextFZLH,
+    getTextAlign,
     isContainedWithin,
     isListItemWrapped,
     isListWrapContainer,
@@ -28,7 +30,6 @@ import {
     isTableBody,
     isTableRow,
     isTextNode,
-    isTextRight,
     maybeTable,
     newVNode,
     refreshBoxBounds
@@ -41,9 +42,11 @@ function isSimilarBoxX(a: VNode, b: VNode) {
         isTextNode(a) &&
         isTextNode(b) &&
         numEq(a.bounds.top, b.bounds.top) &&
-        numEq(a.bounds.height, b.bounds.height)
+        getTextAlign(a) === getTextAlign(b)
     ) {
-        return true;
+        a = _.isArray(a.textContent) ? a.textContent[0] : a;
+        b = _.isArray(b.textContent) ? b.textContent[0] : b;
+        return _.isEqual(getSingleLineTextFZLH(a), getSingleLineTextFZLH(b));
     }
     if (
         !isTextNode(a) &&
@@ -64,10 +67,10 @@ function isSimilarBoxY(a: VNode, b: VNode) {
         isTextNode(a) &&
         isTextNode(b) &&
         numEq(a.bounds.height, b.bounds.height) &&
-        ((isTextRight(a) && isTextRight(b) && numEq(a.bounds.right, b.bounds.right)) ||
-            numEq(a.bounds.left, b.bounds.left))
+        getTextAlign(a) === getTextAlign(b)
     ) {
-        return true;
+        const isTextRight = getTextAlign(a) === 'right';
+        return (isTextRight && numEq(a.bounds.right, b.bounds.right)) || numEq(a.bounds.left, b.bounds.left);
     }
     if (
         !isTextNode(a) &&

@@ -200,8 +200,14 @@ export function isTextNode(vnode: VNode) {
     return !!vnode.textContent;
 }
 
-export function isTextRight(vnode: VNode) {
-    return _.includes(getClassList(vnode), 'text-right');
+export function getTextAlign(vnode: VNode) {
+    assert(isSingleLineText(vnode), 'getTextAlign: 非单行文本');
+    const c = getClassName(vnode).match(/text-(left|center|right)/);
+    if (c) {
+        return c[1] as 'left' | 'center' | 'right';
+    } else {
+        return 'left';
+    }
 }
 
 export function isOriginalNode(vnode: VNode) {
@@ -212,9 +218,13 @@ export function isGeneratedNode(vnode: VNode) {
     return !vnode.id;
 }
 
-// TODO: 只有背景且背景跟父亲一样的，也属于不可见
 export function isOriginalGhostNode(vnode: VNode) {
-    return isOriginalNode(vnode) && !vnode.textContent && _.isEmpty(vnode.classList);
+    return (
+        isOriginalNode(vnode) &&
+        !vnode.textContent &&
+        _.isEmpty(vnode.style) &&
+        (_.isEmpty(vnode.classList) || getClassName(vnode) === 'bg-transparent')
+    );
 }
 
 export function isSingleLineText(vnode: VNode) {
@@ -234,13 +244,20 @@ export function isMultiLineText(vnode: VNode) {
     return !!vnode.textMultiLine;
 }
 
+/** 获取文本的字体/行高 */
+export function getSingleLineTextFZLH(textVNode: VNode) {
+    const match = getClassName(textVNode).match(/text-(\d+)\/(\d+)/)!;
+    assert(!_.isNull(match), '文本找不到字体/行高');
+    return {
+        fontSize: _.toNumber(match[1]),
+        lineHeight: _.toNumber(match[2])
+    };
+}
+
 /** 获取多行文本行高 */
 export function getMultiLineTextLineHeight(textVNode: VNode) {
     const firstSpan = _.isArray(textVNode.textContent) ? textVNode.textContent[0] : textVNode;
-    const match = getClassName(firstSpan).match(/text-\d+\/(\d+)/);
-    assert(!_.isNull(match), '多行元素找不到行高');
-    const lineHeight = _.toNumber(match![1]);
-    return lineHeight;
+    return getSingleLineTextFZLH(firstSpan).lineHeight;
 }
 
 export function makeMultiLineTextClamp(textNode: VNode) {

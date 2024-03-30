@@ -47,7 +47,7 @@ export interface Basic {
      *  [ 'symbol', 'SymbolInstance' ]
      * ]
      */
-    type: 'group' | 'text' | 'rect' | 'path' | 'shape' | 'symbol' | 'image';
+    type: 'group' | 'text' | 'rect' | 'path' | 'shape' | 'symbol' | 'image' | 'mask' | 'oval';
     realType: 'Artboard' | 'Group' | 'Text' | 'ShapePath' | 'Slice' | 'Shape' | 'SymbolInstance' | 'Image';
     opacity: number;
     imageID: string;
