@@ -15,7 +15,7 @@ import {
     isTextNode
 } from './helpers';
 import { processSlice } from './slice';
-import { processZIndex } from './zindex';
+import { processZIndex } from './zIndex';
 
 function opacity2ColorAlpha(node: Node) {
     const opacity = node.basic.opacity;

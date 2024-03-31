@@ -109,9 +109,10 @@
         showExportSettings = false;
     }
 
-    let showExportResult = false as false | ResultItem[];
-    function openExportResult(results: ResultItem[]) {
-        showExportResult = results;
+    let showExportResult = false;
+    let exportResults: ResultItem[] = [];
+    function openExportResult() {
+        showExportResult = true;
     }
 
     function closeExportResult() {
@@ -121,7 +122,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="fixed right-20 bottom-60 rounded-6 shadow-2xl bg-white p-10" style="z-index:100;">
+<div class="fixed right-20 bottom-60 rounded-6 shadow-2xl bg-white p-10 text-[#333]" style="z-index:100;">
     <div
         class="flex items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer"
         data-id="generateBtn"
@@ -152,15 +153,24 @@
         on:click={onExportClick}
     >
         导出
+        <i
+            class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
+            class:!hidden={!exportResults.length}
+            style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+            on:click={e => {
+                e.stopPropagation();
+                openExportResult();
+            }}
+        ></i>
     </div>
     <div
-        class="fixed left-0 top-0 right-0 bottom-0"
+        class="fixed left-0 top-0 right-0 bottom-0 pointer-events-none"
         class:!invisible={!showPreviewDialog}
         data-id="previewDialog"
     >
         <Preview {previewUrl} />
         <div
-            class="absolute left-1/2 -translate-x-1/2 top-4 flex items-center"
+            class="absolute left-1/2 -translate-x-1/2 top-4 flex items-center pointer-events-auto"
             style="transform: translateX(-50%)"
         >
             <div
@@ -179,11 +189,20 @@
                 ></i>
             </div>
             <div
-                class="flex ml-16 items-center justify-center px-10 bg-[#ff296d] text-14/36 text-white rounded-6 cursor-pointer"
+                class="flex ml-16 items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer"
                 data-id="openBtn"
                 on:click={onExportClick}
             >
                 导出
+                <i
+                    class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
+                    class:!hidden={!exportResults.length}
+                    style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+                    on:click={e => {
+                        e.stopPropagation();
+                        openExportResult();
+                    }}
+                ></i>
             </div>
         </div>
     </div>
@@ -208,14 +227,15 @@
             on:close={e => {
                 closeExportSettings();
                 if (e.detail) {
-                    openExportResult(e.detail);
+                    exportResults = e.detail;
+                    openExportResult();
                 }
             }}
         />
     {/if}
     {#if showExportResult}
         <Result
-            results={showExportResult}
+            results={exportResults}
             on:close={() => {
                 closeExportResult();
             }}

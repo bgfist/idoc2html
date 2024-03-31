@@ -28,16 +28,18 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="fixed left-0 right-0 top-0 bottom-0 bg-[hsla(0,0%,0%,0.6)] flex justify-center pt-63 items-start">
-    <div class="bg-white rounded-16 p-20 pb-60 flex flex-col w-650 relative">
+<div
+    class="fixed left-0 right-0 top-0 bottom-0 bg-[hsla(0,0%,0%,0.6)] flex justify-center pt-63 items-start pointer-events-none"
+>
+    <div class="bg-white rounded-16 p-20 pb-60 flex flex-col w-650 relative pointer-events-auto">
         <i
             class="mp-icon iconfont icon-a-18_close_normal mp-icon-solid-disableHoverColor absolute top-10 right-10"
             style="color:#333;font-size:22px;line-height:36px;width:40px;height:36px;"
             on:click={onCloseClick}
         ></i>
 
-        <h1 class="text-center mt-0 mb-8 text-26">选项配置</h1>
-        <h2 class="mb-8">基本选项</h2>
+        <div class="text-center mt-0 mb-8 text-26">选项配置</div>
+        <div class="mb-8 text-21">基本选项</div>
         <label class="cursor-pointer flex items-center w-200">
             <input type="checkbox" class="w-15 h-15" bind:checked={settings.previewInNewWindow} />
             <span class="text-16/30 ml-6">在新窗口中预览</span>
@@ -59,7 +61,7 @@
                 bind:value={settings.tinypngApiKey}
             />
         </label> -->
-        <h2 class="mt-20 mb-8">生成选项</h2>
+        <div class="mt-20 mb-8 text-21">生成选项</div>
         <div class="flex flex-wrap">
             <label class="cursor-pointer flex items-center w-200">
                 <input
@@ -76,6 +78,14 @@
                     bind:checked={settings.configOptions.removeGhostNodes}
                 />
                 <span class="text-16/30 ml-6">删除幽灵节点</span>
+            </label>
+            <label class="cursor-pointer flex items-center w-200">
+                <input
+                    type="checkbox"
+                    class="w-15 h-15"
+                    bind:checked={settings.configOptions.preOptions.removeSliceSibings}
+                />
+                <span class="text-16/30 ml-6">删除切图多余节点</span>
             </label>
             <label class="cursor-pointer flex items-center w-200">
                 <input
@@ -132,7 +142,7 @@
             value={settings.configOptions.leafNodes.join(',')}
             on:input={v => (settings.configOptions.leafNodes = v.currentTarget.value.split(','))}
         />
-        <h2 class="mt-20 mb-8">调试选项</h2>
+        <div class="mt-20 mb-8 text-21">调试选项</div>
         <div class="flex flex-wrap">
             <label class="cursor-pointer flex items-center w-200">
                 <input type="checkbox" class="w-15 h-15" bind:checked={settings.debugOptions.showId} />

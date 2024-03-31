@@ -51,6 +51,7 @@ export interface Basic {
     realType: 'Artboard' | 'Group' | 'Text' | 'ShapePath' | 'Slice' | 'Shape' | 'SymbolInstance' | 'Image';
     opacity: number;
     imageID: string;
+    maskType?: 'down';
 }
 
 export interface Bounds {

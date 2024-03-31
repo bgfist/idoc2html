@@ -11,6 +11,7 @@ import {
     getClassList,
     isFlexWrapLike,
     isListContainer,
+    isRootNode,
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
@@ -62,7 +63,7 @@ export function measureFlexJustify(parent: VNode) {
         maybeInsertFlex1Node(parent, isParentAutoMinSize, justifySide, startGap, endGap, gaps, ranges);
     }
 
-    sideJustify(parent, justifySpec, justifySide, startGap, endGap, gaps, needEqualGaps);
+    sideJustify(parent, isParentAutoMinSize, justifySpec, justifySide, startGap, endGap, gaps, needEqualGaps);
 }
 
 /** 重新决定子元素的尺寸 */
@@ -286,6 +287,7 @@ function maybeInsertFlex1Node(
 /** 靠边布局 */
 function sideJustify(
     parent: VNode,
+    isParentAutoMinSize: boolean,
     justifySpec: DimensionSpec,
     justifySide: Side,
     startGap: number,
@@ -311,7 +313,12 @@ function sideJustify(
         }
     } else if (justifySide === 'start') {
         if (parent[justifySpec] === SizeSpec.Auto) {
-            parent.classList.push(R`p${ee}-${endGap}`);
+            if (isParentAutoMinSize && isRootNode(parent)) {
+                // 给页面底部预留20像素就够了
+                parent.classList.push(R`p${ee}-${Math.min(endGap, 20)}`);
+            } else {
+                parent.classList.push(R`p${ee}-${endGap}`);
+            }
         }
     } else if (justifySide === 'end') {
         parent.classList.push('justify-end');

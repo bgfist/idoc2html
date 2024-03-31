@@ -81,7 +81,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="relative w-full h-full flex justify-end items-end">
-    <div class="relative">
+    <div class="relative pointer-events-auto">
         <iframe
             title=""
             width={windowWidth}

@@ -34,7 +34,11 @@
         }
 
         if (useTinypngCompress && !tinypngApiKey) {
-            makeToast('请先去设置中配置tinypng的API KEY', { fontSize: '80px', border: 'success', time: 3000 });
+            makeToast('请先去设置中配置tinypng的API KEY', {
+                fontSize: '80px',
+                border: 'success',
+                time: 3000
+            });
             return;
         }
 
@@ -54,10 +58,13 @@
         } else if (noImages) {
             makeToast('代码中没有要处理的图片!', { fontSize: '80px', border: 'success' });
         } else {
-            makeToast(uploadImage2Remote ? '图片上传成功' : '图片下载成功', { fontSize: '80px', border: 'success' });
+            makeToast(uploadImage2Remote ? '图片上传成功' : '图片下载成功', {
+                fontSize: '80px',
+                border: 'success'
+            });
         }
 
-        const templates = html2Platform(code, targetPlatform, useTailwindcss);
+        const templates = html2Platform(targetPlatform, code, useTailwindcss);
         dispatcher('close', templates);
     }
 </script>
@@ -72,14 +79,14 @@
             on:click={onCloseClick}
         ></i>
 
-        <h1 class="text-center mt-0 mb-8 text-26">导出配置</h1>
+        <div class="text-center mt-0 mb-8 text-26">导出配置</div>
         {#if warn}
             <div class="mb-20 text-[#d28d02] text-14/20 p-10 border-2 border-dotted">
                 剪贴板内容跟生成的代码不一致，请确认是否只需导出部分代码
             </div>
         {/if}
 
-        <h2>基本选项</h2>
+        <div class="text-21">基本选项</div>
         <div class="flex text-16/30 my-6">
             <div class="mr-10 font-bold">平台:</div>
             <select class="cursor-pointer" bind:value={targetPlatform}>
@@ -89,13 +96,18 @@
             </select>
         </div>
 
-        <h2 class="mt-20 mb-8">样式选项</h2>
+        <div class="mt-20 mb-8 text-21">样式选项</div>
         <label class="cursor-pointer flex items-center w-200">
-            <input type="checkbox" class="w-15 h-15" bind:checked={useTailwindcss} disabled={!canUseTailwind} />
+            <input
+                type="checkbox"
+                class="w-15 h-15"
+                bind:checked={useTailwindcss}
+                disabled={!canUseTailwind}
+            />
             <span class="text-16/30 ml-6">使用tailwindcss</span>
         </label>
 
-        <h2 class="mt-20 mb-8">图片选项</h2>
+        <div class="mt-20 mb-8 text-21">图片选项</div>
         <div class="flex text-16/30 my-6">
             <div class="mr-10">图片尺寸:</div>
             <select class="cursor-pointer" bind:value={imageResize}>

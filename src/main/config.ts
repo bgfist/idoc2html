@@ -39,6 +39,11 @@ export const defaultConfig = {
         /** 是否为内容超出元素预留一点边距 */
         overflowMargin: false
     },
+    /** 预处理选项 */
+    preOptions: {
+        /** 删除切图的多余节点 */
+        removeSliceSibings: true
+    },
     /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
     removeGhostNodes: false,
     /** 为列表元素指定同样的固定高度/宽度 */

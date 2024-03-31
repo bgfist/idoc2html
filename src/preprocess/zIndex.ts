@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import { defaultConfig } from '../main';
 import { VNode } from '../vnode';
 import { isTextNode } from './helpers';
 import { Node } from './page';
