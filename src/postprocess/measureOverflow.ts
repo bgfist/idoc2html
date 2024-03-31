@@ -23,7 +23,8 @@ import {
     context,
     isOverflowWrapped,
     makeListOverflowAuto,
-    mayAddClass
+    mayAddClass,
+    hasClass
 } from '../vnode';
 import { defaultConfig } from '../main/config';
 
@@ -317,7 +318,7 @@ export function expandOverflowChild(params: {
 /** 设置其他兄弟节点不能压缩 */
 export function setSiblingsNoShrink(vnode: VNode) {
     const [markNodes, noShrinkSiblingNodes] = _.partition(vnode.children, child =>
-        _.includes(child.classList, context.overflowSiblingsNoShrink)
+        hasClass(child, context.overflowSiblingsNoShrink)
     );
     if (markNodes.length) {
         _.each(markNodes, markNode => removeEle(markNode.classList, context.overflowSiblingsNoShrink));

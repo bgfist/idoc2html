@@ -28,8 +28,12 @@ export function getClassList(vnode: VNode) {
     return vnode.classList.join(' ').split(' ').filter(Boolean);
 }
 
+export function hasClass(vnode: VNode, className: string) {
+    return _.includes(getClassName(vnode), className);
+}
+
 export function mayAddClass(vnode: VNode, className: string) {
-    if (!_.includes(vnode.classList, className)) {
+    if (!hasClass(vnode, className)) {
         vnode.classList.push(className);
     }
 }
@@ -100,47 +104,73 @@ export function R2(strings: TemplateStringsArray, ...values: any[]) {
     return normalizeClassName(result, false);
 }
 
+type VNodeBounds = Pick<VNode, 'bounds'>;
+
 /** 两个盒子是否一样大 */
-export function isEqualBox(a: VNode, b: VNode) {
+export function isEqualBox(a: VNodeBounds, b: VNodeBounds) {
     return numEq(a.bounds.width, b.bounds.width) && numEq(a.bounds.height, b.bounds.height);
 }
 
-export function isContainedWithinX(child: VNode, parent: VNode) {
+export function isContainedWithinX(child: VNodeBounds, parent: VNodeBounds) {
     return numGte(child.bounds.left, parent.bounds.left) && numLte(child.bounds.right, parent.bounds.right);
 }
 
-export function isContainedWithinY(child: VNode, parent: VNode) {
+export function isContainedWithinY(child: VNodeBounds, parent: VNodeBounds) {
     return numGte(child.bounds.top, parent.bounds.top) && numLte(child.bounds.bottom, parent.bounds.bottom);
 }
 
 /** 处理元素之间的包含关系 */
-export function isContainedWithin(child: VNode, parent: VNode) {
+export function isContainedWithin(child: VNodeBounds, parent: VNodeBounds) {
     return isContainedWithinX(child, parent) && isContainedWithinY(child, parent);
 }
 
-export function isOverlappingX(child: VNode, parent: VNode) {
+export function isOverlappingX(child: VNodeBounds, parent: VNodeBounds) {
     return numLt(child.bounds.left, parent.bounds.right) && numGt(child.bounds.right, parent.bounds.left);
 }
 
-export function isOverlappingY(child: VNode, parent: VNode) {
+export function isOverlappingY(child: VNodeBounds, parent: VNodeBounds) {
     return numLt(child.bounds.top, parent.bounds.bottom) && numGt(child.bounds.bottom, parent.bounds.top);
 }
 
 /** 处理元素之间的重叠关系 */
-export function isOverlapping(child: VNode, parent: VNode) {
+export function isOverlapping(child: VNodeBounds, parent: VNodeBounds) {
     return isOverlappingX(child, parent) && isOverlappingY(child, parent);
 }
 
-export function getIntersectionX(a: VNode, b: VNode) {
+export function getIntersectionX(a: VNodeBounds, b: VNodeBounds) {
     return Math.max(0, Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left));
 }
 
-export function getIntersectionY(a: VNode, b: VNode) {
+export function getIntersectionY(a: VNodeBounds, b: VNodeBounds) {
     return Math.max(0, Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top));
 }
 
-export function getIntersectionArea(a: VNode, b: VNode) {
+export function getIntersectionArea(a: VNodeBounds, b: VNodeBounds) {
     return getIntersectionX(a, b) * getIntersectionY(a, b);
+}
+
+export function getNodeArea(a: VNodeBounds) {
+    return a.bounds.width * a.bounds.height;
+}
+
+export function isIntersectOverHalf(a: VNodeBounds, b: VNodeBounds, direction: Direction) {
+    const dimensionFields = {
+        [Direction.Row]: {
+            getIntersectionFn: getIntersectionX,
+            dimension: 'width'
+        },
+        [Direction.Column]: {
+            getIntersectionFn: getIntersectionY,
+            dimension: 'height'
+        }
+    } as const;
+    const { getIntersectionFn, dimension } = dimensionFields[direction];
+    const intersectionLen = getIntersectionFn(a, b);
+    const smallerSize = Math.min(a.bounds[dimension], b.bounds[dimension]);
+    if (intersectionLen > smallerSize / 2) {
+        return true;
+    }
+    return false;
 }
 
 export function getMiddleLine(vnode: VNode, direction: Direction) {
@@ -201,7 +231,6 @@ export function isTextNode(vnode: VNode) {
 }
 
 export function getTextAlign(vnode: VNode) {
-    assert(isSingleLineText(vnode), 'getTextAlign: 非单行文本');
     const c = getClassName(vnode).match(/text-(left|center|right)/);
     if (c) {
         return c[1] as 'left' | 'center' | 'right';
@@ -220,15 +249,20 @@ export function isGeneratedNode(vnode: VNode) {
 
 export function isOriginalGhostNode(vnode: VNode) {
     return (
-        isOriginalNode(vnode) &&
-        !vnode.textContent &&
-        _.isEmpty(vnode.style) &&
-        (_.isEmpty(vnode.classList) || getClassName(vnode) === 'bg-transparent')
+        isOriginalNode(vnode) && !vnode.textContent && _.isEmpty(vnode.style) && _.isEmpty(vnode.classList)
     );
 }
 
 export function isSingleLineText(vnode: VNode) {
     return isTextNode(vnode) && !isMultiLineText(vnode);
+}
+
+export function getTextContent(vnode: VNode): string {
+    if (_.isArray(vnode.textContent)) {
+        return vnode.textContent.map(getTextContent).join('');
+    } else {
+        return vnode.textContent || '';
+    }
 }
 
 export function makeSingleLineTextNoWrap(textNode: VNode) {
@@ -237,7 +271,7 @@ export function makeSingleLineTextNoWrap(textNode: VNode) {
 
 export function makeSingleLineTextEllipsis(textNode: VNode) {
     makeSingleLineTextNoWrap(textNode);
-    textNode.classList.push('text-ellipsis overflow-hidden');
+    mayAddClass(textNode, 'text-ellipsis overflow-hidden');
 }
 
 export function isMultiLineText(vnode: VNode) {
@@ -308,7 +342,7 @@ export function makeListOverflowAuto(vnode: VNode, dimension: Dimension) {
     vnode.classList.push(R`overflow-${dimension === 'width' ? 'x' : 'y'}-auto`);
     // TODO: 是否可以给一个utility-class，child:shrink-0
     _.each(vnode.children, son => {
-        son.classList.push('shrink-0');
+        mayAddClass(son, 'shrink-0');
     });
 }
 
@@ -350,11 +384,11 @@ export function isVoidElement(node: VNode) {
 }
 
 export function isVoidElementWrapper(node: VNode) {
-    return _.includes(node.classList, context.voidElementMarker);
+    return hasClass(node, context.voidElementMarker);
 }
 
 export function isOverflowWrapped(node: VNode) {
-    return _.includes(node.classList, context.overflowWrapedMarker);
+    return hasClass(node, context.overflowWrapedMarker);
 }
 
 export function isTableBody(vnode: VNode) {

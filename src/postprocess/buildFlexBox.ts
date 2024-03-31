@@ -5,10 +5,11 @@ import {
     VNode,
     getBounds,
     getCrossDirection,
-    getIntersectionX,
-    getIntersectionY,
+    getNodeArea,
     isContainedWithinX,
     isContainedWithinY,
+    isIntersectOverHalf,
+    isTextNode,
     newVNode
 } from '../vnode';
 import { mergeUnnessaryFlexBox } from './mergeNodes';
@@ -18,29 +19,14 @@ import { mergeUnnessaryFlexBox } from './mergeNodes';
  * 如果划分时遇到有问题的重叠，则尝试换个方向划分
  */
 function decideFlexDirection(children: VNode[], preferDirection: Direction) {
-    const dimensionFields = {
-        [Direction.Row]: {
-            getIntersectionFn: getIntersectionX,
-            dimension: 'width'
-        },
-        [Direction.Column]: {
-            getIntersectionFn: getIntersectionY,
-            dimension: 'height'
-        }
-    } as const;
-
     /**  检查是否有节点在坐标上重叠超过一半 */
     function checkNodesOverlapping(direction: Direction, group1: VNode[], group2: VNode[]) {
-        const { getIntersectionFn, dimension } = dimensionFields[direction];
-
         for (let i = 0; i < group1.length; i++) {
             for (let j = 0; j < group2.length; j++) {
                 const a = group1[i];
                 const b = group2[j];
 
-                const intersectionLen = getIntersectionFn(a, b);
-                const smallerSize = Math.min(a.bounds[dimension], b.bounds[dimension]);
-                if (intersectionLen > smallerSize / 2) {
+                if (isIntersectOverHalf(a, b, direction)) {
                     return true;
                 }
             }
@@ -62,11 +48,8 @@ function decideFlexDirection(children: VNode[], preferDirection: Direction) {
         coveredNodes: VNode[],
         leftoverNodes: VNode[]
     ) {
-        const { dimension, getIntersectionFn } = dimensionFields[direction];
         // 刨除掉跟基准盒子有重叠的
-        const omitOverlapped = (child: VNode) =>
-            getIntersectionFn(child, baseNode) <
-            Math.min(child.bounds[dimension], baseNode.bounds[dimension]) / 2;
+        const omitOverlapped = (child: VNode) => !isIntersectOverHalf(baseNode, child, direction);
         const sideCoveredNodes = _.filter(coveredNodes, omitOverlapped);
         const sideLeftoverNodes = _.filter(leftoverNodes, omitOverlapped);
         // 剩下的都是可以用负的margin搞定的
@@ -126,16 +109,14 @@ function getDivideIteration(
     const dimensionFields = {
         [Direction.Row]: {
             dimension: 'width',
-            isContainedWithinFn: isContainedWithinX,
-            getIntersectionFn: getIntersectionX
+            isContainedWithinFn: isContainedWithinX
         },
         [Direction.Column]: {
             dimension: 'height',
-            isContainedWithinFn: isContainedWithinY,
-            getIntersectionFn: getIntersectionY
+            isContainedWithinFn: isContainedWithinY
         }
     } as const;
-    const { dimension, isContainedWithinFn, getIntersectionFn } = dimensionFields[direction];
+    const { dimension, isContainedWithinFn } = dimensionFields[direction];
     while (nodes.length) {
         const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
         const [intersectingNodes, leftoverNodes] = _.partition(
@@ -144,7 +125,7 @@ function getDivideIteration(
                 isContainedWithinFn(node, biggestNode) ||
                 // 超过一半都侵入基准盒子了，我们就带上它
                 // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
-                getIntersectionFn(node, biggestNode) > node.bounds[dimension] / 2
+                isIntersectOverHalf(biggestNode, node, direction)
         );
         // 返回true表示跳出循环
         if (iteratee(biggestNode, intersectingNodes, leftoverNodes)) {
@@ -173,6 +154,37 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
             if (checkCrossCount && intersectingNodes.length === prevCrossCount) {
                 console.warn(`${prevCrossCount}个盒子互相交叉，横竖都能分在一组`);
 
+                // 那就尝试将小的做成绝对定位，其他的继续划分
+                const otherNodes = intersectingNodes.filter(node => node !== biggestNode);
+                if (otherNodes.length > 1) {
+                    const vnode = newVNode({
+                        children: otherNodes,
+                        bounds: getBounds(otherNodes)
+                    });
+                    // TODO: 判断是否可以为绝对定位
+                    if (isIntersectOverHalf(biggestNode, vnode, direction) && !isTextNode(biggestNode)) {
+                        parent.attachNodes.push(biggestNode);
+                        parent.children = otherNodes;
+                        // 继续分割
+                        groupNodes(parent, true);
+                        return true;
+                    }
+                } else if (
+                    otherNodes.length === 1 &&
+                    isIntersectOverHalf(biggestNode, otherNodes[0], direction) &&
+                    !isTextNode(biggestNode) &&
+                    !isTextNode(otherNodes[0])
+                ) {
+                    if (getNodeArea(biggestNode) > getNodeArea(otherNodes[0])) {
+                        parent.attachNodes.push(otherNodes[0]);
+                        parent.children = [biggestNode];
+                    } else {
+                        parent.attachNodes.push(biggestNode);
+                        parent.children = otherNodes;
+                    }
+                    return true;
+                }
+
                 // 一次性给到，跳出循环
                 children.push(...intersectingNodes);
                 return true;
@@ -190,7 +202,9 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
         }
     });
 
-    parent.children = _.sortBy(children, node => node.bounds[sortSide]);
+    if (children.length) {
+        parent.children = _.sortBy(children, node => node.bounds[sortSide]);
+    }
 }
 
 /** 生成flexbox盒子 */

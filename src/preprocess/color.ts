@@ -3,9 +3,11 @@ import { assert } from '../utils';
 import { VNode } from '../vnode';
 import { float2Fixed } from './helpers';
 
+export const Transparent = 'transparent';
+
 export function getNormalColor(rgba: RGBA): string {
     if (!rgba.a) {
-        return 'transparent';
+        return Transparent;
     }
 
     let r = rgba.r / 255;

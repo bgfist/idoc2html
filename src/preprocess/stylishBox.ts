@@ -1,11 +1,18 @@
 import * as _ from 'lodash';
-import { Node, RGBA } from './page';
+import { Node } from './page';
 import { numEq } from '../utils';
 import { R, VNode, getClassName } from '../vnode';
-import { getLinearColor, getNormalColor } from './color';
-import { float2Fixed, float2Int } from './helpers';
+import { Transparent, getLinearColor, getNormalColor } from './color';
+import { float2Int } from './helpers';
 
 export function stylishBox(node: Node, vnode: VNode) {
+    stylishBackground(node, vnode);
+    stylishBorderRadius(node, vnode);
+    stylishBorder(node, vnode);
+    stylishShadow(node, vnode);
+}
+
+function stylishBackground(node: Node, vnode: VNode) {
     if (node.fill && node.fill.colors && node.fill.colors.length) {
         if (getClassName(vnode).indexOf('bg-[url(') !== -1) {
             console.warn('节点已有图片背景，不能再指定颜色背景了');
@@ -15,11 +22,18 @@ export function stylishBox(node: Node, vnode: VNode) {
         // 只支持一个颜色
         const color = node.fill.colors[0];
         if (color.type === 'normal') {
-            vnode.classList.push(`bg-${getNormalColor(color.value)}`);
+            const c = getNormalColor(color.value);
+            if (c === Transparent) {
+                return;
+            }
+            vnode.classList.push(`bg-${c}`);
         } else if (color.type === 'linearGradient') {
             getLinearColor(vnode, color);
         }
     }
+}
+
+function stylishBorderRadius(node: Node, vnode: VNode) {
     if (node.stroke && node.stroke.radius) {
         const [tl, tr, br, bl] = node.stroke.radius;
         const r1 = {
@@ -62,33 +76,56 @@ export function stylishBox(node: Node, vnode: VNode) {
             addClasses('', 0, []);
         }
     }
+}
+
+function stylishBorder(node: Node, vnode: VNode) {
     if (node.stroke && node.stroke.borders && node.stroke.borders.length) {
         // TODO: 暂时只支持一个border
         const border = node.stroke.borders[0];
+
+        if (border.color.type === 'normal') {
+            const color = getNormalColor(border.color.value);
+            if (color === Transparent) {
+                return;
+            }
+            vnode.classList.push(`border-${color}`);
+        } else if (border.color.type === 'linearGradient') {
+            console.warn('border不支持线性渐变,用第一个渐变色代替');
+            const color = getNormalColor(border.color.value.colorStops[0].color);
+            if (color === Transparent) {
+                return;
+            }
+            vnode.classList.push(`border-${color}`);
+        }
         if (numEq(border.strokeWidth, 1)) {
             vnode.classList.push('border');
         } else {
             vnode.classList.push(R`border-${float2Int(border.strokeWidth)}`);
         }
-        if (border.color.type === 'normal') {
-            vnode.classList.push(`border-${getNormalColor(border.color.value)}`);
-        } else if (border.color.type === 'linearGradient') {
-            console.warn('border不支持线性渐变,用第一个渐变色代替');
-            vnode.classList.push(`border-${getNormalColor(border.color.value.colorStops[0].color)}`);
-        }
     }
+}
+
+function stylishShadow(node: Node, vnode: VNode) {
     if (node.effect && node.effect.shadows && node.effect.shadows.length) {
         const styles = _.map(node.effect.shadows, shadow => {
-            let color!: RGBA;
+            let color = '';
             if (shadow.color.type === 'linearGradient') {
                 console.warn('shadow不支持线性渐变,用第一个渐变色代替');
-                color = shadow.color.value.colorStops[0].color;
+                color = getNormalColor(shadow.color.value.colorStops[0].color);
+                if (color === Transparent) {
+                    return '';
+                }
             } else if (shadow.color.type === 'normal') {
-                color = shadow.color.value;
+                color = getNormalColor(shadow.color.value);
+                if (color === Transparent) {
+                    return '';
+                }
             }
-            const shadowColor = `rgba(${color.r},${color.g},${color.b},${float2Fixed(color.a)})`;
-            return `${shadow.type === 'inside' ? 'inset ' : ''}${float2Int(shadow.offsetX)}px ${float2Int(shadow.offsetY)}px ${float2Int(shadow.blur)}px ${float2Int(shadow.spread)}px ${shadowColor}`;
-        });
-        vnode.style['box-shadow'] = styles.join(',');
+            color = color.slice(1, -1);
+            return `${shadow.type === 'inside' ? 'inset ' : ''}${float2Int(shadow.offsetX)}px ${float2Int(shadow.offsetY)}px ${float2Int(shadow.blur)}px ${float2Int(shadow.spread)}px ${color}`;
+        }).filter(Boolean);
+        if (styles.length) {
+            vnode.style['box-shadow'] = styles.join(',');
+        }
     }
 }

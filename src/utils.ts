@@ -382,8 +382,11 @@ export function combineAndIterate<T>(arrays: T[][], callback: (combination: T[])
     }
 }
 
-/** 组合算法，从数组中依次取4个，取3个... */
-export function pickCombination<T>(arr: T[], callback: (items: T[]) => boolean) {
+/**
+ * 组合算法，从数组中依次取4个，取3个...
+ * @deprecated 此算法性能太差
+ */
+export function pickCombinationOld<T>(arr: T[], callback: (items: T[]) => boolean) {
     function pickCount(n: number, callback: (items: T[]) => boolean) {
         const path: T[] = []; //每次组合的集合
 
@@ -404,6 +407,38 @@ export function pickCombination<T>(arr: T[], callback: (items: T[]) => boolean) 
         }
 
         return backTracking(0);
+    }
+
+    for (let i = arr.length; i >= 2; i--) {
+        if (pickCount(i, callback)) {
+            return;
+        }
+    }
+}
+
+/** 组合算法，从数组中依次取4个，取3个... */
+export function pickCombination<T>(arr: T[], callback: (items: T[]) => boolean) {
+    function pickCount(n: number, callback: (items: T[]) => boolean) {
+        const path: T[] = [];
+        const used: boolean[] = new Array(arr.length).fill(false);
+
+        function backTracking(startIndex: number, left: number) {
+            if (left === 0) {
+                return callback([...path]);
+            }
+            for (let i = startIndex; i <= arr.length - left; i++) {
+                if (used[i]) continue;
+                used[i] = true;
+                path.push(arr[i]);
+                if (backTracking(i + 1, left - 1)) {
+                    return true;
+                }
+                path.pop();
+                used[i] = false;
+            }
+        }
+
+        return backTracking(0, n);
     }
 
     for (let i = arr.length; i >= 2; i--) {

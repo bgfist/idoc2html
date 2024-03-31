@@ -8,11 +8,9 @@ import {
     SizeSpec,
     VNode,
     getClassList,
-    isFixSizeOriginalNode,
+    getTextContent,
     isImageOrSliceNode,
     isListWrapContainer,
-    isListXContainer,
-    isListYContainer,
     isMultiLineText,
     isRootNode,
     isSingleLineText,
@@ -71,10 +69,18 @@ function measureFlexLayout(parent: VNode) {
 
     setFixSizeTextClampIfConfigured(parent);
     makeSingleLineTextNoWrapIfNeed(parent);
+    setTextClampIfDetectedEllipis(parent);
 }
 
 /** 父节点的固定尺寸很可能完全由子节点撑开，则没必要设置父节点的固定尺寸 */
 function needSetFixSize(parent: VNode, spec: DimensionSpec, dimension: Dimension) {
+    if (isMultiLineText(parent) && spec === 'heightSpec') {
+        // 已经设置过最多显示几行，则无需设置高度
+        if (parent.style['-webkit-box-orient']) {
+            return false;
+        }
+    }
+
     if (!parent.children.length) {
         return true;
     }
@@ -138,6 +144,24 @@ function makeSingleLineTextNoWrapIfNeed(parent: VNode) {
                     makeSingleLineTextNoWrap(child);
                 }
             });
+        }
+    }
+}
+
+function setTextClampIfDetectedEllipis(textNode: VNode) {
+    function isEllpsisContent(content: string) {
+        return content.endsWith('...') && !content.startsWith('...');
+    }
+
+    if (isSingleLineText(textNode)) {
+        const textContent = getTextContent(textNode);
+        if (isEllpsisContent(textContent)) {
+            makeSingleLineTextEllipsis(textNode);
+        }
+    } else if (isMultiLineText(textNode)) {
+        const textContent = getTextContent(textNode);
+        if (isEllpsisContent(textContent)) {
+            makeMultiLineTextClamp(textNode);
         }
     }
 }

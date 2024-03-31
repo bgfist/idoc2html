@@ -7,7 +7,7 @@ import { measureTree } from './measure';
 // TODO: 仍可优化
 function ghostNodeCanUnwrap(vnode: VNode) {
     // 只有一个文本节点，则最好不要拆解这个幽灵节点，可能是用来对齐的
-    if (vnode.children.length === 1 && isTextNode(vnode.children[0])) {
+    if (vnode.children.length && _.every(vnode.children, isTextNode)) {
         return false;
     }
     return true;

@@ -1,3 +1,4 @@
+import { numEq } from '../utils';
 import { Node } from './page';
 
 export function isTextNode(node: Node) {
@@ -21,7 +22,9 @@ export function float2Fixed(n: number) {
     return Math.round(n * 100) / 100;
 }
 
-export function getIntersectionBox(node: Pick<Node, 'bounds'>, parent: Pick<Node, 'bounds'>) {
+type NodeBounds = Pick<Node, 'bounds'>;
+
+export function getIntersectionBox(node: NodeBounds, parent: NodeBounds) {
     const { left, top, width, height } = node.bounds;
     const { left: pLeft, top: pTop, width: pWidth, height: pHeight } = parent.bounds;
     return {
@@ -32,8 +35,41 @@ export function getIntersectionBox(node: Pick<Node, 'bounds'>, parent: Pick<Node
     };
 }
 
-export function isContainedWithin(node: Pick<Node, 'bounds'>, parent: Pick<Node, 'bounds'>) {
+export function isContainedWithin(node: NodeBounds, parent: NodeBounds) {
     const { left, top, width, height } = node.bounds;
     const { left: pLeft, top: pTop, width: pWidth, height: pHeight } = parent.bounds;
     return left >= pLeft && top >= pTop && left + width <= pLeft + pWidth && top + height <= pTop + pHeight;
+}
+
+export function isOverlapping(node: NodeBounds, parent: NodeBounds) {
+    const { left, top, width, height } = node.bounds;
+    const { left: pLeft, top: pTop, width: pWidth, height: pHeight } = parent.bounds;
+    return left < pLeft + pWidth && left + width > pLeft && top < pTop + pHeight && top + height > pTop;
+}
+
+export function getNodeArea(a: NodeBounds) {
+    return a.bounds.width * a.bounds.height;
+}
+
+/** 两个盒子是否一样大 */
+export function isEqualBox(a: NodeBounds, b: NodeBounds) {
+    return numEq(a.bounds.width, b.bounds.width) && numEq(a.bounds.height, b.bounds.height);
+}
+
+export function getNodeBounds(node: Node) {
+    const left = float2Int(node.bounds.left);
+    const top = float2Int(node.bounds.top);
+    const width = float2Int(node.bounds.width);
+    const height = float2Int(node.bounds.height);
+    const right = left + width;
+    const bottom = top + height;
+
+    return {
+        left,
+        top,
+        right,
+        bottom,
+        width,
+        height
+    };
 }

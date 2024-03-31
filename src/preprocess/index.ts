@@ -2,17 +2,20 @@ import * as _ from 'lodash';
 import { debug, defaultConfig } from '../main/config';
 import { Color, Node } from './page';
 import { filterEmpty } from '../utils';
-import { SizeSpec, VNode, addRole, context, isEqualBox, newVNode } from '../vnode';
+import { SizeSpec, VNode, addRole, context, newVNode } from '../vnode';
 import { stylishBox } from './stylishBox';
 import { stylishText } from './stylishText';
 import {
-    float2Int,
     getIntersectionBox,
+    getNodeBounds,
     isContainedWithin,
+    isEqualBox,
     isImageNode,
     isSymbolNode,
     isTextNode
 } from './helpers';
+import { processSlice } from './slice';
+import { processZIndex } from './zindex';
 
 function opacity2ColorAlpha(node: Node) {
     const opacity = node.basic.opacity;
@@ -85,6 +88,10 @@ function stylishSlice(node: Node, vnode: VNode) {
 }
 
 function stylishImage(node: Node, vnode: VNode) {
+    if (!debug.buildAllNodes) {
+        node.children = [];
+    }
+
     // 图片占满屏幕，一般是截的一个背景图
     if (isEqualBox(vnode, context.root)) {
         return null;
@@ -115,8 +122,27 @@ function stylishImage(node: Node, vnode: VNode) {
 }
 
 function processOverBoundsNodes(refNode: Node, nodes: Node[], level: number) {
+    // TODO: 处理mask类型
+    const masks = _.filter(nodes, node => node.basic.type === 'mask');
+    if (masks.length) {
+        if (masks.length > 1) {
+            console.error(
+                '发现多个mask节点',
+                masks.map(n => n.basic.id + ',' + n.basic.realType)
+            );
+        }
+        const mask = masks[0];
+        if (!isEqualBox(mask, refNode)) {
+            console.error('mask节点与父节点不一样大', mask.basic.id);
+        }
+    }
+
     // 将children限定在页面内，比如Image
     return _.filter(nodes, child => {
+        if (masks.length || isImageNode(child)) {
+            child.bounds = getIntersectionBox(child, refNode);
+            return true;
+        }
         if (!isContainedWithin(child, context.root)) {
             console.warn('节点超出页面范围,裁切至可见', child.basic.id);
             child.bounds = getIntersectionBox(child, context.root);
@@ -155,14 +181,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     const vnode = newVNode({
         id: node.basic.id,
         classList: [],
-        bounds: {
-            left: float2Int(node.bounds.left),
-            top: float2Int(node.bounds.top),
-            width: float2Int(node.bounds.width),
-            height: float2Int(node.bounds.height),
-            right: float2Int(node.bounds.left + node.bounds.width),
-            bottom: float2Int(node.bounds.top + node.bounds.height)
-        }
+        bounds: getNodeBounds(node)
     });
 
     // 根节点决定设计尺寸
@@ -195,6 +214,7 @@ export function preprocess(node: Node, level: number): VNode | null {
         (node.basic.type === 'rect' && node.basic.realType === 'ShapePath') ||
         (node.basic.type === 'path' && node.basic.realType === 'ShapePath') ||
         (node.basic.type === 'mask' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'mask' && node.basic.realType === 'Shape') ||
         (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance')
     ) {
     }
@@ -211,53 +231,14 @@ export function preprocess(node: Node, level: number): VNode | null {
         stylishBox(node, vnode);
     }
 
-    node.children = processOverBoundsNodes(node, node.children, level);
-
     if (!debug.buildAllNodes) {
-        // 目前先这样处理，有slice节点，则删掉其他兄弟节点
-        const sliceChild = _.find(
-            node.children,
-            node => node.basic.type === 'shape' && node.basic.realType === 'Slice'
-        );
-        if (sliceChild) {
-            let [slices, leftover] = _.partition(node.children, node => !!node.slice.bitmapURL);
-            if (slices.length > 1) {
-                console.warn('切图可能重复');
-            }
-            node.children = slices;
-            leftover = processOverBoundsNodes(sliceChild, leftover, level);
-            if (leftover.length) {
-                console.debug('删掉切图的兄弟节点', leftover);
-            }
-        }
+        processSlice(node, vnode, level);
     }
 
-    if (defaultConfig.codeGenOptions.experimentalZIndex) {
-        const [hasRight, noRight] = _.partition(node.children, n => 'right' in n.bounds);
+    node.children = processOverBoundsNodes(node, node.children, level);
 
-        if (hasRight.length) {
-            node.children = hasRight
-                .reverse()
-                .map((n, i) => {
-                    // @ts-ignore
-                    n._index = i + 1;
-                    return n;
-                })
-                .concat(
-                    noRight.map(n => {
-                        if (isTextNode(n)) {
-                            // @ts-ignore
-                            n._index = 10;
-                        }
-                        return n;
-                    })
-                );
-        }
-        // @ts-ignore
-        if (node._index) {
-            // @ts-ignore
-            vnode.classList.push(`z-${node._index}`);
-        }
+    if (defaultConfig.codeGenOptions.experimentalZIndex) {
+        processZIndex(node, vnode);
     }
 
     vnode.children.push(..._.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty));

@@ -2,12 +2,14 @@ import * as _ from 'lodash';
 import { debug, defaultConfig } from '../main/config';
 import { groupWith } from '../utils';
 import {
+    Direction,
     VNode,
     getClassName,
-    getIntersectionArea,
+    getNodeArea,
     isContainedWithin,
     isContainedWithinX,
     isContainedWithinY,
+    isIntersectOverHalf,
     isOriginalGhostNode,
     isOverlapping,
     isTextNode,
@@ -22,9 +24,9 @@ function findBestParent(node: VNode, nodes: VNode[]) {
     for (const potentialParent of nodes) {
         if (potentialParent === node) continue;
         if (isContainedWithin(node, potentialParent)) {
-            const area = potentialParent.bounds.width * potentialParent.bounds.height;
-            if (area < minArea) {
-                minArea = area;
+            const parentArea = getNodeArea(potentialParent);
+            if (parentArea < minArea) {
+                minArea = parentArea;
                 bestParent = potentialParent;
             }
         }
@@ -41,7 +43,7 @@ function checkAttachPossible(node: VNode, potentialParent: VNode, nodeArea: numb
     // x方向重叠，检查重叠宽度占父盒子比例，即x向插入深度, 深入超过一半，则认为是附着，不然用负的margin过多
     if (
         isContainedWithinY(node, potentialParent) &&
-        getIntersectionArea(node, potentialParent) / node.bounds.height > potentialParent.bounds.width / 2
+        isIntersectOverHalf(node, potentialParent, Direction.Row)
     ) {
         return true;
     }
@@ -49,7 +51,7 @@ function checkAttachPossible(node: VNode, potentialParent: VNode, nodeArea: numb
     // y方向重叠，检查重叠高度占父盒子比例，即y向插入深度, 深入超过一半，则认为是附着，不然用负的margin过多
     if (
         isContainedWithinX(node, potentialParent) &&
-        getIntersectionArea(node, potentialParent) / node.bounds.width > potentialParent.bounds.height / 2
+        isIntersectOverHalf(node, potentialParent, Direction.Column)
     ) {
         return true;
     }
@@ -60,13 +62,13 @@ function checkAttachPossible(node: VNode, potentialParent: VNode, nodeArea: numb
 function findBestIntersectNode(node: VNode, nodes: VNode[]) {
     let bestIntersectNode: VNode | null = null;
     let minArea = Infinity;
-    const nodeArea = isTextNode(node) ? 100000000 : node.bounds.width * node.bounds.height;
+    const nodeArea = getNodeArea(node);
     /** 面积低于此数值的直接绝对定位 */
     const attachPassArea = 5000;
     for (const potentialParent of nodes) {
         if (potentialParent === node) continue;
         if (isOverlapping(node, potentialParent)) {
-            const parentArea = potentialParent.bounds.width * potentialParent.bounds.height;
+            const parentArea = getNodeArea(potentialParent);
 
             if (nodeArea > attachPassArea) {
                 const allowAttach = checkAttachPossible(node, potentialParent, nodeArea, parentArea);
@@ -143,6 +145,11 @@ function buildContainTree(nodes: VNode[]) {
 
 function buildAttachTree(parent: VNode, nodes: VNode[]) {
     return nodes.filter(node => {
+        // 裸文本节点不建议做成绝对定位
+        if (isTextNode(node)) {
+            return true;
+        }
+
         const bestIntersectNode = findBestIntersectNode(node, nodes);
         if (bestIntersectNode) {
             if (isTextNode(bestIntersectNode)) {
@@ -192,6 +199,7 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
         const hsla = bgHSLA[1];
         return hsla;
     }
+
     const parentBgHSLA = getBgHSLA(parent);
     if (!parentBgHSLA) {
         return nodes;
@@ -200,6 +208,20 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
     const isSemiTransparent = alpha.startsWith('0.');
     if (isSemiTransparent) {
         return nodes;
+    }
+
+    function canBlendInParentBg(node: VNode) {
+        if (getBgHSLA(node) === parentBgHSLA) {
+            // 再看边框是否能融合
+            const borderHSLA = getClassName(node).match(/border-\[hsla\((.+)\)\]/);
+            if (!borderHSLA) {
+                return true;
+            } else {
+                return borderHSLA[1] === parentBgHSLA;
+            }
+        } else {
+            return false;
+        }
     }
 
     function checkOverlapComboBg(nodes: VNode[], node: VNode) {
@@ -215,7 +237,7 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
         const node = toRemove.pop()!;
         if (
             isGhostNode(node) &&
-            getBgHSLA(node) === parentBgHSLA &&
+            canBlendInParentBg(node) &&
             checkOverlapComboBg(nodes, node) &&
             // 不能破坏原有层级
             (!debug.keepOriginalTree || _.every(node.children, child => _.includes(parent.children, child)))
