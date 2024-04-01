@@ -69,7 +69,6 @@ function measureFlexLayout(parent: VNode) {
 
     setFixSizeTextClampIfConfigured(parent);
     makeSingleLineTextNoWrapIfNeed(parent);
-    setTextClampIfDetectedEllipis(parent);
 }
 
 /** 父节点的固定尺寸很可能完全由子节点撑开，则没必要设置父节点的固定尺寸 */
@@ -144,24 +143,6 @@ function makeSingleLineTextNoWrapIfNeed(parent: VNode) {
                     makeSingleLineTextNoWrap(child);
                 }
             });
-        }
-    }
-}
-
-function setTextClampIfDetectedEllipis(textNode: VNode) {
-    function isEllpsisContent(content: string) {
-        return content.endsWith('...') && !content.startsWith('...');
-    }
-
-    if (isSingleLineText(textNode)) {
-        const textContent = getTextContent(textNode);
-        if (isEllpsisContent(textContent)) {
-            makeSingleLineTextEllipsis(textNode);
-        }
-    } else if (isMultiLineText(textNode)) {
-        const textContent = getTextContent(textNode);
-        if (isEllpsisContent(textContent)) {
-            makeMultiLineTextClamp(textNode);
         }
     }
 }

@@ -8,7 +8,7 @@
 
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { makeToast } from './utils';
+    import { makeToast } from '../utils';
 
     export let results: ResultItem[];
 

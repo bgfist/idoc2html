@@ -102,6 +102,7 @@ function stylishBorder(node: Node, vnode: VNode) {
         } else {
             vnode.classList.push(R`border-${float2Int(border.strokeWidth)}`);
         }
+        vnode.classList.push('border-solid');
     }
 }
 

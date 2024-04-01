@@ -1,37 +1,37 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { BuildStage, debug, defaultConfig } from '../src';
+    import { BuildStage, debug, defaultConfig } from '../../../src';
+    import _ from 'lodash';
 
     const dispatcher = createEventDispatcher();
 
     const cacheKey = 'iDocJson2HtmlSettings';
-    export const settings = {
-        /** 是否在新窗口中预览 */
-        previewInNewWindow: false,
-        /** 本地图片文件夹前缀 */
-        localImagePrefix: '../images/',
-        /** tinypng api token */
-        tinypngApiKey: '',
-        debugOptions: debug,
-        configOptions: defaultConfig
-    };
     const cacheSettings = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-    Object.assign(settings, cacheSettings);
-    Object.assign(debug, settings.debugOptions);
+
+    export const settings = _.merge(
+        {
+            /** 是否在新窗口中预览 */
+            previewInNewWindow: false,
+            /** 本地图片文件夹前缀 */
+            localImagePrefix: '../images/',
+            /** tinypng api token */
+            tinypngApiKey: '',
+            debugOptions: debug,
+            configOptions: defaultConfig
+        },
+        cacheSettings
+    );
 
     function onCloseClick() {
         localStorage.setItem(cacheKey, JSON.stringify(settings));
-        Object.assign(debug, settings.debugOptions);
         dispatcher('close');
     }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-    class="fixed left-0 right-0 top-0 bottom-0 bg-[hsla(0,0%,0%,0.6)] flex justify-center pt-63 items-start pointer-events-none"
->
-    <div class="bg-white rounded-16 p-20 pb-60 flex flex-col w-650 relative pointer-events-auto">
+<div class="fixed left-0 right-0 top-0 bottom-0 bg-[hsla(0,0%,0%,0.6)] flex justify-center pt-63 items-start">
+    <div class="bg-white rounded-16 p-20 pb-60 flex flex-col w-650 relative">
         <i
             class="mp-icon iconfont icon-a-18_close_normal mp-icon-solid-disableHoverColor absolute top-10 right-10"
             style="color:#333;font-size:22px;line-height:36px;width:40px;height:36px;"

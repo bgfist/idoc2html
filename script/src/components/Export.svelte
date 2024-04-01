@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { replaceHtmlImages, ImageResize, TargetPlatform, html2Platform } from '../src';
+    import { replaceHtmlImages, ImageResize, TargetPlatform, html2Platform } from '../../../src';
     import { ResultItem } from './Result.svelte';
-    import { makeToast } from './utils';
+    import { makeToast } from '../utils';
     import { createEventDispatcher } from 'svelte';
 
     const dispatcher = createEventDispatcher<{

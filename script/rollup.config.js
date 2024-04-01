@@ -6,7 +6,7 @@ const postcss = require('rollup-plugin-postcss');
 
 /** @type {import('rollup').RollupOptions[]} */
 module.exports = {
-    input: 'script/main.ts',
+    input: 'script/src/main.ts',
     output: {
         file: 'dist/script.js',
         format: 'umd',

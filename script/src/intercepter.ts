@@ -1,4 +1,4 @@
-import type { Page } from '../src';
+import type { Page } from '../../src';
 
 /** 拦截幕客设计稿json请求 */
 export function interceptIDocJsonRequest(callback: (page: Page) => void) {

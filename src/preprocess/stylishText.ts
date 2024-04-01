@@ -1,6 +1,16 @@
 import * as _ from 'lodash';
 import { Node, TextStyle } from './page';
-import { R, SizeSpec, VNode, newVNode } from '../vnode';
+import {
+    R,
+    SizeSpec,
+    VNode,
+    getTextContent,
+    isMultiLineText,
+    isSingleLineText,
+    makeMultiLineTextClamp,
+    makeSingleLineTextEllipsis,
+    newVNode
+} from '../vnode';
 import { getNormalColor } from './color';
 import { float2Int } from './helpers';
 import { numLt } from '../utils';
@@ -60,6 +70,8 @@ export function stylishText(node: Node, vnode: VNode) {
 
         vnode.heightSpec = SizeSpec.Fixed;
     }
+
+    setTextClampIfDetectedEllipis(vnode);
 }
 
 function stylishTextSpan(text: TextStyle, vnode: VNode) {
@@ -114,4 +126,31 @@ function calculateCharacterWidth(str: string) {
         }
     }
     return width;
+}
+
+function setTextClampIfDetectedEllipis(textNode: VNode) {
+    const EllipsisList = ['…', '...'];
+
+    function isEllpsisContent(content: string) {
+        return (
+            _.some(EllipsisList, Ellipsis => content.endsWith(Ellipsis)) &&
+            _.every(EllipsisList, Ellipsis => !content.startsWith(Ellipsis))
+        );
+    }
+
+    if (isSingleLineText(textNode)) {
+        const textContent = getTextContent(textNode);
+        if (isEllpsisContent(textContent)) {
+            console.debug('检测到单行文本省略号');
+            textNode.widthSpec = SizeSpec.Fixed;
+            makeSingleLineTextEllipsis(textNode);
+        }
+    } else if (isMultiLineText(textNode)) {
+        const textContent = getTextContent(textNode);
+        if (isEllpsisContent(textContent)) {
+            console.debug('检测到多行文本省略号');
+            textNode.heightSpec = SizeSpec.Fixed;
+            makeMultiLineTextClamp(textNode);
+        }
+    }
 }

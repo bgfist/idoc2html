@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { iDocJson2Html, type Page, ImageResize } from '../src';
+    import { iDocJson2Html, type Page, ImageResize } from '../../../src';
     import Export from './Export.svelte';
-    import { interceptIDocJsonRequest } from './intercepter';
+    import { interceptIDocJsonRequest } from '../intercepter';
     import Preview from './Preview.svelte';
     import Result, { ResultItem } from './Result.svelte';
     import Settings from './Settings.svelte';
-    import { makeToast } from './utils';
+    import { makeToast } from '../utils';
 
     const previewUrl = 'https://play.tailwindcss.com/Dz6aGsv8WA';
 
@@ -36,8 +36,6 @@
         if (!currentPage) {
             makeToast('当前没有页面', { fontSize: '80px', border: 'error' });
             return;
-        } else if (!location.href.match(/develop\/design\//)) {
-            makeToast('当前不在开发模式', { fontSize: '80px', border: 'error' });
         }
         generatedHtml = iDocJson2Html(currentPage, settingsComp.settings.configOptions);
         calcImageResize();
@@ -122,47 +120,63 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="fixed right-20 bottom-60 rounded-6 shadow-2xl bg-white p-10 text-[#333]" style="z-index:100;">
-    <div
-        class="flex items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer"
-        data-id="generateBtn"
-        on:click={onGenerateClick}
-    >
-        生成html代码
-    </div>
-    <div
-        class="mt-10 items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer hidden"
-        class:!flex={!showPreviewDialog}
-        data-id="openBtn"
-        on:click={openPreview}
-    >
-        打开预览
-        <i
-            class="mp-icon iconfont icon-a-18_setting mp-icon-solid-disableHoverColor"
-            style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
-            on:click={e => {
-                e.stopPropagation();
-                openSettings();
-            }}
-        ></i>
-    </div>
-    <div
-        class="mt-10 items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer hidden"
-        class:!flex={showPreviewDialog}
-        data-id="openBtn"
-        on:click={onExportClick}
-    >
-        导出
-        <i
-            class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
-            class:!hidden={!exportResults.length}
-            style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
-            on:click={e => {
-                e.stopPropagation();
-                openExportResult();
-            }}
-        ></i>
-    </div>
+<div
+    class="fixed right-20 bottom-60 rounded-6 shadow-2xl bg-white p-10 text-[#333] {!currentPage ?
+        'border-2 border-solid border-[#ff296d]'
+    :   ''}"
+    style="z-index:100;"
+>
+    {#if currentPage}
+        <div
+            class="flex items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer"
+            data-id="generateBtn"
+            on:click={onGenerateClick}
+        >
+            生成html代码
+        </div>
+        <div
+            class="mt-10 items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer hidden"
+            class:!flex={!showPreviewDialog}
+            data-id="openBtn"
+            on:click={openPreview}
+        >
+            打开预览
+            <i
+                class="mp-icon iconfont icon-a-18_setting mp-icon-solid-disableHoverColor"
+                style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+                on:click={e => {
+                    e.stopPropagation();
+                    openSettings();
+                }}
+            ></i>
+        </div>
+        <div
+            class="mt-10 items-center justify-center px-20 bg-[#ff296d] text-16/36 text-white rounded-6 cursor-pointer hidden"
+            class:!flex={showPreviewDialog}
+            data-id="openBtn"
+            on:click={onExportClick}
+        >
+            导出
+            <i
+                class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
+                class:!hidden={!exportResults.length}
+                style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+                on:click={e => {
+                    e.stopPropagation();
+                    openExportResult();
+                }}
+            ></i>
+        </div>
+    {:else}
+        <div class="text-16/30 text-[#ff296d] text-center">
+            {#if !location.pathname.match(/\/app\//) || location.pathname.match(/\/design$/)}
+                请先选择设计稿页面<br />
+                并双击进入详情
+            {:else}
+                请先切换一下设计稿
+            {/if}
+        </div>
+    {/if}
     <div
         class="fixed left-0 top-0 right-0 bottom-0 pointer-events-none"
         class:!invisible={!showPreviewDialog}
