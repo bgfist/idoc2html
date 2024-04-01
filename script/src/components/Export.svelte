@@ -14,6 +14,9 @@
     export let imageResize: ImageResize = 1;
 
     let useTailwindcss = true;
+    let extractColorPresets = false;
+    let useRemUnit = true;
+    let remBase = 100;
     let useTinypngCompress = false;
     let uploadImage2Remote = false;
     let targetPlatform = 'html';
@@ -22,6 +25,9 @@
     $: canUseTailwind = targetPlatform === 'html' || targetPlatform === 'miniApp';
     $: if (!canUseTailwind) {
         useTailwindcss = false;
+    }
+    $: if (targetPlatform === 'miniApp') {
+        extractColorPresets = true;
     }
 
     function onCloseClick() {
@@ -64,7 +70,12 @@
             });
         }
 
-        const templates = html2Platform(targetPlatform, code, useTailwindcss);
+        const templates = html2Platform(targetPlatform, html, {
+            useTailwindcss,
+            useRemUnit,
+            remBase,
+            extractColorPresets
+        });
         dispatcher('close', templates);
     }
 </script>
@@ -97,15 +108,42 @@
         </div>
 
         <div class="mt-20 mb-8 text-21">样式选项</div>
-        <label class="cursor-pointer flex items-center w-200">
-            <input
-                type="checkbox"
-                class="w-15 h-15"
-                bind:checked={useTailwindcss}
-                disabled={!canUseTailwind}
-            />
-            <span class="text-16/30 ml-6">使用tailwindcss</span>
-        </label>
+        <div class="flex flex-wrap">
+            <label class="cursor-pointer flex items-center w-200">
+                <input
+                    type="checkbox"
+                    class="w-15 h-15"
+                    bind:checked={useTailwindcss}
+                    disabled={!canUseTailwind}
+                />
+                <span class="text-16/30 ml-6">使用tailwindcss</span>
+            </label>
+            <label class="cursor-pointer flex items-center w-200">
+                <input
+                    type="checkbox"
+                    class="w-15 h-15"
+                    bind:checked={extractColorPresets}
+                    disabled={targetPlatform === 'miniApp'}
+                />
+                <span class="text-16/30 ml-6">抽取颜色预设值</span>
+            </label>
+        </div>
+        {#if targetPlatform === 'html'}
+            <div class="flex">
+                <label class="cursor-pointer flex items-center w-200">
+                    <input type="checkbox" class="w-15 h-15" bind:checked={useRemUnit} />
+                    <span class="text-16/30 ml-6">用rem自适应单位</span>
+                </label>
+                <input
+                    type="text"
+                    class="flex-1 rounded-6 py-0 px-8 border text-16/28"
+                    placeholder="rem基准值"
+                    title="rem基准值"
+                    value={remBase}
+                    disabled={!useRemUnit}
+                />
+            </div>
+        {/if}
 
         <div class="mt-20 mb-8 text-21">图片选项</div>
         <div class="flex text-16/30 my-6">

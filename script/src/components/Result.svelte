@@ -62,9 +62,13 @@
         >
             复制代码
         </div>
-        <div class="">{currentResult.description}</div>
-        <div class="flex-1 overflow-auto whitespace-pre-wrap text-[#d4d4d4] bg-[#1e293b] text-14/24 p-10">
-            {currentResult.code}
-        </div>
+        {#if currentResult}
+            <div class="mb-10">{currentResult.description}</div>
+            <div
+                class="flex-1 overflow-auto whitespace-pre-wrap text-[#d4d4d4] bg-[#1e293b] text-14/24 p-10 select-text"
+            >
+                {currentResult.code}
+            </div>
+        {/if}
     </div>
 </div>

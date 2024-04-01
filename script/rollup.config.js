@@ -3,6 +3,7 @@ const typescript = require('@rollup/plugin-typescript');
 const resolve = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
 const postcss = require('rollup-plugin-postcss');
+const { string } = require('rollup-plugin-string');
 
 /** @type {import('rollup').RollupOptions[]} */
 module.exports = {
@@ -13,6 +14,9 @@ module.exports = {
         sourcemap: true
     },
     plugins: [
+        string({
+            include: 'src/templates/**' // 这里可以根据需要指定包含或排除的文件
+        }),
         svelte({
             preprocess: require('svelte-preprocess')()
         }),

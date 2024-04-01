@@ -231,13 +231,13 @@
             }}
         />
     </div>
-    {#if showExportSettings}
+    <div class:invisible={!showExportSettings}>
         <Export
             {warn}
             {code}
             imageResize={defaultImageResize}
-            prefix={settingsComp.settings.localImagePrefix}
-            tinypngApiKey={settingsComp.settings.tinypngApiKey}
+            prefix={settingsComp?.settings.localImagePrefix || ''}
+            tinypngApiKey={settingsComp?.settings.tinypngApiKey || ''}
             on:close={e => {
                 closeExportSettings();
                 if (e.detail) {
@@ -246,13 +246,13 @@
                 }
             }}
         />
-    {/if}
-    {#if showExportResult}
+    </div>
+    <div class:invisible={!showExportResult}>
         <Result
             results={exportResults}
             on:close={() => {
                 closeExportResult();
             }}
         />
-    {/if}
+    </div>
 </div>

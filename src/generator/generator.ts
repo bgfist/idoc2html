@@ -1,16 +1,18 @@
-import * as html from './html';
-import * as miniApp from './miniApp';
-import * as flutter from './flutter';
-import * as reactNative from './reactNative';
-import * as android from './android';
-import * as ios from './ios';
-import * as harmony from './harmony';
-import * as swiftUI from './swiftUI';
-import * as jetpackCompose from './jetpackCompose';
-import { VNode } from '../vnode';
+import _ from 'lodash';
 import { html2VNode } from '../differ/deCompile';
-import { extractTailwindStyle } from './tailwind/extractTailwindStyle';
 import { debug } from '../main/config';
+import tailwindConfigTemplate from '../templates/tailwind.config.template';
+import { VNode } from '../vnode';
+import * as android from './android';
+import * as flutter from './flutter';
+import * as harmony from './harmony';
+import * as html from './html';
+import * as ios from './ios';
+import * as jetpackCompose from './jetpackCompose';
+import * as miniApp from './miniApp';
+import * as reactNative from './reactNative';
+import * as swiftUI from './swiftUI';
+import { extractColorPresets } from './tailwind/extractColorPresets';
 
 export enum TargetPlatform {
     html = 'html',
@@ -34,7 +36,16 @@ export interface Template {
     title: string;
 }
 
-export function html2Platform(targetPlatform: string, code: string, useTailwindcss: boolean): Template[] {
+export function html2Platform(
+    targetPlatform: string,
+    code: string,
+    params: {
+        useTailwindcss: boolean;
+        extractColorPresets: boolean;
+        useRemUnit: boolean;
+        remBase: number;
+    }
+): Template[] {
     const generators: Record<string, Generator> = {
         html,
         miniApp,
@@ -78,7 +89,30 @@ export function html2Platform(targetPlatform: string, code: string, useTailwindc
     function generateTemplates() {
         let cssTemplate: Template | undefined;
         let htmlTemplate: Template | undefined;
-        let jsTemplate: Template | undefined;
+        let configTemplate: Template | undefined;
+
+        configTemplate = {
+            code: tailwindConfigTemplate as any,
+            title: 'taiwind.config.js',
+            description: 'Tailwind配置文件'
+        };
+        if (params.extractColorPresets) {
+            const res = extractColorPresets(code);
+            code = res.code;
+
+            if (!_.isEmpty(res.colors)) {
+                const colorLines = JSON.stringify(res.colors, null, 8);
+                configTemplate.code = configTemplate.code.replace(
+                    'colors: {\n',
+                    'colors: {\n' + colorLines.slice(2, -1)
+                );
+            }
+        }
+        if (targetPlatform === 'miniApp') {
+            configTemplate.code = configTemplate.code.replace(`i + 'px'`, `i * 2 + 'rpx'`);
+        } else if (targetPlatform === 'html' && params.useRemUnit) {
+            configTemplate.code = configTemplate.code.replace(`i + 'px'`, `i / ${params.remBase} + 'rem'`);
+        }
 
         const vnode = html2VNode(code);
 
@@ -88,7 +122,7 @@ export function html2Platform(targetPlatform: string, code: string, useTailwindc
             description: ''
         };
 
-        return [htmlTemplate, cssTemplate].filter(t => t) as Template[];
+        return [htmlTemplate, configTemplate, cssTemplate].filter(t => t) as Template[];
     }
 
     return maskDebug(generateTemplates)();
