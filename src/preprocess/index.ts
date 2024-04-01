@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { debug, defaultConfig } from '../main/config';
 import { Color, Node } from './page';
 import { filterEmpty } from '../utils';
-import { SizeSpec, VNode, addRole, context, newVNode } from '../vnode';
+import { SizeSpec, VNode, addRole, context, getClassName, newVNode } from '../vnode';
 import { stylishBox } from './stylishBox';
 import { stylishText } from './stylishText';
 import {
@@ -244,6 +244,29 @@ export function preprocess(node: Node, level: number): VNode | null {
     vnode.children.push(..._.map(node.children, n => preprocess(n, level + 1)).filter(filterEmpty));
 
     return vnode;
+}
+
+/** 如果有节点跟页面一样大，且背景是hsla(0,0,0,0.5)这种，就认为它是弹窗 */
+export function pickOnlyDialogIfDetected(vnode: VNode) {
+    if (isEqualBox(vnode, context.root)) {
+        const bgHSLA = getClassName(vnode).match(/bg-\[hsla\((.+)\)\]/);
+        if (bgHSLA) {
+            const [h, s, l, a] = bgHSLA[1].split(',');
+            if (h === '0' && s === '0%' && l === '0%' && +a < 0.9 && +a > 0.3) {
+                console.debug('检测到弹窗节点');
+                addRole(vnode, 'dialog');
+                vnode.classList.push('fixed left-0 right-0 top-0 bottom-0');
+                return vnode;
+            }
+        }
+    }
+
+    for (const child of vnode.children) {
+        if (pickOnlyDialogIfDetected(child)) {
+            return child;
+        }
+    }
+    return null;
 }
 
 function checkUnknownNode(node: Node) {

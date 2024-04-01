@@ -5,7 +5,7 @@ import { postprocess } from '../postprocess';
 import { VNode, isRole } from '../vnode';
 import { defaultConfig, BuildStage, debug, Config } from './config';
 import { assert } from '../utils';
-import { preprocess } from '../preprocess';
+import { pickOnlyDialogIfDetected, preprocess } from '../preprocess';
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
     if (parent) {
@@ -41,7 +41,11 @@ export function iDocJson2Html(page: Page, config?: Config) {
     assert(root.basic.type === 'group' && root.basic.realType === 'Artboard', '页面根节点不对');
 
     // 先遍历整棵树，进行预处理，删除一些不必要的节点，将节点的前景背景样式都计算出来，对节点进行分类标记
-    const vnode = preprocess(_.cloneDeep(root), 0)!;
+    let vnode = preprocess(_.cloneDeep(root), 0)!;
+    const dialog = pickOnlyDialogIfDetected(vnode);
+    // if (dialog) {
+    //     vnode = dialog;
+    // }
 
     if (debug.buildToStage === BuildStage.Pre) {
         if (!debug.keepOriginalTree) {

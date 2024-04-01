@@ -160,7 +160,7 @@
             <i
                 class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
                 class:!hidden={!exportResults.length}
-                style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+                style="color:white;font-size:17px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
                 on:click={e => {
                     e.stopPropagation();
                     openExportResult();
@@ -211,7 +211,7 @@
                 <i
                     class="mp-icon iconfont icon-a-18_history background-icon-wrap mp-icon-solid-disableHoverColor"
                     class:!hidden={!exportResults.length}
-                    style="color:white;font-size:18px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
+                    style="color:white;font-size:17px;line-height:36px;width:40px;height:36px;margin-left:6px;margin-right:-20px"
                     on:click={e => {
                         e.stopPropagation();
                         openExportResult();

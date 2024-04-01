@@ -1,5 +1,14 @@
 import * as _ from 'lodash';
-import { VNode, SizeSpec, Direction, isRole, Dimension, DimensionSpec, maybeFrameImage } from '../vnode';
+import {
+    VNode,
+    SizeSpec,
+    Direction,
+    isRole,
+    Dimension,
+    DimensionSpec,
+    maybeFrameImage,
+    maybeInlineButton
+} from '../vnode';
 import { assert } from '../utils';
 
 /** 根据子元素确定父盒子的尺寸类型 */
@@ -32,7 +41,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
 
     if (parent.direction === Direction.Row) {
         if (!parent.widthSpec) {
-            limitParentJustifyAsPossible(parent, 'widthSpec');
+            limitParentJustifyAsPossible(parent, grandParent, 'widthSpec');
         }
         // 针对align方向
         if (!parent.heightSpec) {
@@ -45,7 +54,7 @@ export function measureParentSizeSpec(parent: VNode, grandParent: VNode) {
         }
     } else if (parent.direction === Direction.Column) {
         if (!parent.heightSpec) {
-            limitParentJustifyAsPossible(parent, 'heightSpec');
+            limitParentJustifyAsPossible(parent, grandParent, 'heightSpec');
         }
         // 针对align方向
         if (!parent.widthSpec) {
@@ -74,14 +83,18 @@ export function canChildStretchWithParent(child: VNode, parent: VNode, dimension
 }
 
 /** 尽可能将父亲的justify尺寸类型设得更受限 */
-function limitParentJustifyAsPossible(parent: VNode, justifySpec: DimensionSpec) {
+function limitParentJustifyAsPossible(parent: VNode, grandParent: VNode, justifySpec: DimensionSpec) {
     // if (_.every(parent.children, child => child[justifySpec] === SizeSpec.Fixed)) {
     //     // TODO: 并且所有元素之间overlap产生了负间距。说明它们实际上是一个整体
     //     parent[justifySpec] = SizeSpec.Fixed;
     //     return;
     // }
 
-    parent[justifySpec] = SizeSpec.Auto;
+    if (justifySpec === 'widthSpec' && maybeInlineButton(parent, grandParent)) {
+        parent[justifySpec] = SizeSpec.Fixed;
+    } else {
+        parent[justifySpec] = SizeSpec.Auto;
+    }
 }
 
 /** 尽可能将父亲的align尺寸类型设得更受限 */

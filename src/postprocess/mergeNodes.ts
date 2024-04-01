@@ -1,6 +1,62 @@
 import * as _ from 'lodash';
-import { SizeSpec, VNode, isEqualBox, isGeneratedNode, isListWrapContainer, isTextNode } from '../vnode';
+import {
+    SizeSpec,
+    VNode,
+    getClassList,
+    isEqualBox,
+    isGeneratedNode,
+    isListWrapContainer,
+    isTextNode
+} from '../vnode';
 import { removeEle } from '../utils';
+
+function mergeClassList(dest: VNode, src: VNode) {
+    let destClassList = getClassList(dest);
+    let srcClassList = getClassList(src);
+
+    const destZIndexClass = destClassList.find(c => c.startsWith('z-'));
+    const srcZIndexClass = srcClassList.find(c => c.startsWith('z-'));
+    const destZIndex = destZIndexClass ? parseInt(destZIndexClass.slice(2)) : 0;
+    const srcZIndex = srcZIndexClass ? parseInt(srcZIndexClass.slice(2)) : 0;
+
+    if (destZIndex > srcZIndex) {
+        // dest的层级更高，换过来
+        const tmp = destClassList;
+        destClassList = srcClassList;
+        srcClassList = tmp;
+    }
+
+    // 移除冲突的zIndex
+    if (destZIndex && srcZIndex) {
+        _.remove(destClassList, c => c.startsWith('z-'));
+    }
+
+    // 移除冲突的bg
+    if (_.some(destClassList, c => c.startsWith('bg-')) && _.some(srcClassList, c => c.startsWith('bg-'))) {
+        _.remove(
+            destClassList,
+            c => c.startsWith('bg-') || c.startsWith('from-') || c.startsWith('to-') || c.startsWith('via-')
+        );
+    }
+
+    // 移除冲突的border
+    if (
+        _.some(destClassList, c => c.startsWith('border-')) &&
+        _.some(srcClassList, c => c.startsWith('border-'))
+    ) {
+        _.remove(destClassList, c => c.startsWith('border-'));
+    }
+
+    // 移除冲突的round
+    if (
+        _.some(destClassList, c => c.startsWith('round-')) &&
+        _.some(srcClassList, c => c.startsWith('round-'))
+    ) {
+        _.remove(destClassList, c => c.startsWith('round-'));
+    }
+
+    dest.classList = _.union(destClassList, srcClassList);
+}
 
 /** 合并节点 */
 export function mergeNode(dest: VNode, src: VNode) {
@@ -31,8 +87,7 @@ export function mergeNode(dest: VNode, src: VNode) {
     }
     dest.tagName = src.tagName;
 
-    // TODO: 背景/边框/圆角有冲突怎么办
-    dest.classList = _.union(dest.classList, src.classList);
+    mergeClassList(dest, src);
 
     if (src.widthSpec && dest.widthSpec !== SizeSpec.Fixed) {
         // 尺寸固定的元素不能被覆盖
@@ -44,7 +99,7 @@ export function mergeNode(dest: VNode, src: VNode) {
 
     dest.style = _.merge(dest.style, src.style);
     dest.attributes = _.merge(dest.attributes, src.attributes);
-    dest.role = _.merge(dest.role, src.role);
+    dest.role = _.union(dest.role, src.role);
     dest.direction = src.direction;
     dest.attachNodes = _.union(dest.attachNodes, src.attachNodes);
 }

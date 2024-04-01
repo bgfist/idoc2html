@@ -9,6 +9,7 @@ import {
     isContainedWithinX,
     isContainedWithinY,
     isIntersectOverHalf,
+    isSingleLineText,
     isTextNode,
     newVNode
 } from '../vnode';
@@ -214,6 +215,9 @@ export function buildFlexBox(parent: VNode) {
         // 默认先横着划分, 符合人眼的阅读顺序
         // TODO: 单个子节点可能更适合用Row
         parent.direction = Direction.Column;
+        if (parent.children.length === 1 && isSingleLineText(parent.children[0])) {
+            parent.direction = Direction.Row;
+        }
         groupNodes(parent);
         // 只有一个子元素
         mergeUnnessaryFlexBox(parent);

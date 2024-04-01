@@ -89,12 +89,12 @@ export function buildMissingNodes(parent: VNode) {
     let nodes = parent.children;
     if (!nodes.length) return;
 
+    nodes = mergeSameSizeBox(nodes);
+
     // 去除无样式空盒子
     if (defaultConfig.removeGhostNodes) {
         nodes = removeGhostNodesPre(nodes);
     }
-
-    nodes = mergeSameSizeBox(nodes);
 
     // 剩下的节点都是直接子节点, 互不包含
     nodes = buildContainTree(nodes);

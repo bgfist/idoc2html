@@ -55,7 +55,7 @@ export function maybeBorder(child: VNode, parent: VNode) {
 }
 
 /** 判断节点是不是内联按钮，这种有交互的节点不一定能自动扩充 */
-export function maybeInlineButton(vnode: VNode) {
+export function maybeInlineButton(vnode: VNode, parent: VNode) {
     // 按钮要么宽度固定，要么内容撑开，宽度不能用Constrained
     if (vnode.children.length !== 1) {
         return false;
@@ -64,7 +64,7 @@ export function maybeInlineButton(vnode: VNode) {
 
     if (
         isTextNode(onlyChild) &&
-        vnode.bounds.width < Math.min(context.root.bounds.width, context.root.bounds.height) / 2 &&
+        vnode.bounds.width < parent.bounds.width / 2 &&
         vnode.bounds.height <= onlyChild.bounds.height * 3
     ) {
         addRole(vnode, 'btn');

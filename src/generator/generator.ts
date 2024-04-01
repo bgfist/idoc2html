@@ -80,27 +80,11 @@ export function html2Platform(targetPlatform: string, code: string, useTailwindc
         let htmlTemplate: Template | undefined;
         let jsTemplate: Template | undefined;
 
-        if (targetPlatform === 'html' && useTailwindcss) {
-            htmlTemplate = {
-                code,
-                title: 'index.html',
-                description: ''
-            };
-            return [htmlTemplate];
-        }
-
         const vnode = html2VNode(code);
-        if (!useTailwindcss && (targetPlatform === 'html' || targetPlatform === 'miniApp')) {
-            cssTemplate = {
-                code: extractTailwindStyle(vnode),
-                title: 'index' + targetPlatform === 'html' ? '.css' : '.wxss',
-                description: ''
-            };
-        }
 
         htmlTemplate = {
             code: generators[targetPlatform].VNode2Code(vnode, 0, true),
-            title: 'index' + targetPlatform === 'html' ? '.html' : '.wxml',
+            title: 'index' + (targetPlatform === 'html' ? '.html' : '.wxml'),
             description: ''
         };
 
