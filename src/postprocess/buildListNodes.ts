@@ -5,7 +5,6 @@ import {
     groupWith,
     numEq,
     pairPrevNext,
-    pickCombination,
     removeEle,
     removeEles,
     unreachable
@@ -21,7 +20,6 @@ import {
     getSingleLineTextFZLH,
     getTextAlign,
     isContainedWithin,
-    isIntersectOverHalf,
     isListItemWrapped,
     isListWrapContainer,
     isListXContainer,
@@ -298,6 +296,10 @@ function tryMergeFlexWrapNodes(parent: VNode, toMergeLists2: VNode[]) {
                 removeEle(parent.children, lonelyChild);
             }
         }
+
+        _.each(vnode.children, child => {
+            addRole(child, 'list-item');
+        });
 
         setListItemSizeSpec(vnode);
 

@@ -173,7 +173,7 @@ export function isIntersectOverHalf(a: VNodeBounds, b: VNodeBounds, direction: D
     return false;
 }
 
-export function getMiddleLine(vnode: VNode, direction: Direction) {
+export function getMiddleLine(vnode: VNodeBounds, direction: Direction) {
     if (direction === Direction.Row) {
         return vnode.bounds.left + vnode.bounds.width / 2;
     } else {

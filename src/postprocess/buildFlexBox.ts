@@ -5,10 +5,12 @@ import {
     VNode,
     getBounds,
     getCrossDirection,
+    getMiddleLine,
     getNodeArea,
     isContainedWithinX,
     isContainedWithinY,
     isIntersectOverHalf,
+    isOverlapping,
     isSingleLineText,
     isTextNode,
     newVNode
@@ -81,6 +83,22 @@ function decideFlexDirection(children: VNode[], preferDirection: Direction) {
                     leftoverNodes
                 )
             ) {
+                console.debug('换个方向划分');
+                canDivide = false;
+                return true;
+            }
+        });
+        return canDivide;
+    }
+
+    /**
+     * 是否能按这个方向完美划分
+     */
+    function canDivideByDirection2(nodes: VNode[], direction: Direction) {
+        let canDivide = true;
+        getDivideIteration(nodes, direction, (biggestNode, intersectingNodes, leftoverNodes) => {
+            const bounds = getBounds(intersectingNodes);
+            if (_.some(leftoverNodes, node => isOverlapping({ bounds }, node))) {
                 canDivide = false;
                 return true;
             }
@@ -89,9 +107,9 @@ function decideFlexDirection(children: VNode[], preferDirection: Direction) {
     }
 
     const crossDirection = getCrossDirection(preferDirection);
-    if (canDivideByDirection(children, preferDirection)) {
+    if (canDivideByDirection2(children, preferDirection)) {
         return preferDirection;
-    } else if (canDivideByDirection(children, crossDirection)) {
+    } else if (canDivideByDirection2(children, crossDirection)) {
         return crossDirection;
     } else {
         return preferDirection;
@@ -110,17 +128,22 @@ function getDivideIteration(
     const dimensionFields = {
         [Direction.Row]: {
             dimension: 'width',
+            side: 'right',
             isContainedWithinFn: isContainedWithinX
         },
         [Direction.Column]: {
             dimension: 'height',
+            side: 'bottom',
             isContainedWithinFn: isContainedWithinY
         }
     } as const;
-    const { dimension, isContainedWithinFn } = dimensionFields[direction];
-    while (nodes.length) {
+    const { dimension, side, isContainedWithinFn } = dimensionFields[direction];
+
+    const groups = [nodes];
+    while (groups.length) {
+        const nodes = groups.pop()!;
         const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
-        const [intersectingNodes, leftoverNodes] = _.partition(
+        let [intersectingNodes, leftoverNodes] = _.partition(
             nodes,
             node =>
                 isContainedWithinFn(node, biggestNode) ||
@@ -128,11 +151,36 @@ function getDivideIteration(
                 // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
                 isIntersectOverHalf(biggestNode, node, direction)
         );
+
+        // 如果划分到的这行与其他节点有重叠，则往两边继续找重叠的，一起换个方向划分
+        let [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
+            isOverlapping({ bounds: getBounds(intersectingNodes) }, node)
+        );
+        while (overlappedNodes.length) {
+            intersectingNodes.push(...overlappedNodes);
+            leftoverNodes = nonOverlappedNodes;
+            [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
+                isOverlapping({ bounds: getBounds(intersectingNodes) }, node)
+            );
+        }
+
         // 返回true表示跳出循环
         if (iteratee(biggestNode, intersectingNodes, leftoverNodes)) {
             break;
         }
-        nodes = leftoverNodes;
+
+        // 否则，往两边分开继续切
+        const [startSideNodes, endSideNodes] = _.partition(
+            leftoverNodes,
+            node => node.bounds[side] < getMiddleLine({ bounds: getBounds(intersectingNodes) }, direction)
+        );
+
+        if (startSideNodes.length) {
+            groups.push(startSideNodes);
+        }
+        if (endSideNodes.length) {
+            groups.push(endSideNodes);
+        }
     }
 }
 

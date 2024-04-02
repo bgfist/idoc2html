@@ -34,6 +34,9 @@ export function getNormalColor(rgba: RGBA): string {
                 break;
         }
         h = Math.round(h * 60);
+        if (h < 0) {
+            h += 360;
+        }
     }
     s = Math.round(s * 100);
     l = Math.round(l * 100);

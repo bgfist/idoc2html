@@ -68,7 +68,7 @@ export interface Fill {
 export interface Stroke {
     borders?: Border[];
     radius: Radius;
-    dash: any[];
+    dash: number[];
 }
 
 export interface Effect {

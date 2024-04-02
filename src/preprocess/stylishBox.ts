@@ -97,12 +97,22 @@ function stylishBorder(node: Node, vnode: VNode) {
             }
             vnode.classList.push(`border-${color}`);
         }
-        if (numEq(border.strokeWidth, 1)) {
-            vnode.classList.push('border');
+        const borderWidth = numEq(border.strokeWidth, 1) ? 1 : float2Int(border.strokeWidth);
+        const borderWidthSuffix = borderWidth === 1 ? '' : `-${borderWidth}`;
+
+        if (numEq(borderWidth, node.bounds.width)) {
+            vnode.classList.push(`border-l${borderWidthSuffix}`);
+        } else if (numEq(borderWidth, node.bounds.height)) {
+            vnode.classList.push(`border-t${borderWidthSuffix}`);
         } else {
-            vnode.classList.push(R`border-${float2Int(border.strokeWidth)}`);
+            vnode.classList.push(R`border${borderWidthSuffix}`);
         }
-        vnode.classList.push('border-solid');
+
+        if (node.stroke.dash && node.stroke.dash[0]) {
+            vnode.classList.push('border-dashed');
+        } else {
+            vnode.classList.push('border-solid');
+        }
     }
 }
 
