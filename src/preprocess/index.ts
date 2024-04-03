@@ -249,7 +249,7 @@ export function preprocess(node: Node, level: number): VNode | null {
 /** 如果有节点跟页面一样大，且背景是hsla(0,0,0,0.5)这种，就认为它是弹窗 */
 export function pickOnlyDialogIfDetected(vnode: VNode) {
     if (isEqualBox(vnode, context.root)) {
-        const bgHSLA = getClassName(vnode).match(/bg-\[hsla\((.+)\)\]/);
+        const bgHSLA = getClassName(vnode).match(/bg-\[hsla\((.+?)\)\]/);
         if (bgHSLA) {
             const [h, s, l, a] = bgHSLA[1].split(',');
             if (h === '0' && s === '0%' && l === '0%' && +a < 0.9 && +a > 0.3) {

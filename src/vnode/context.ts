@@ -4,12 +4,10 @@ import { VNode } from './types';
 export const context = {
     index: 0,
     voidElementMarker: '$void',
-    overflowWrapedMarker: '$overflowWrapped',
-    overflowSiblingsNoShrink: '$overflowSiblingsNoShrink'
+    overflowWrapedMarker: '$overflowWrapped'
 } as {
     index: number;
     root: VNode;
     voidElementMarker: string;
     overflowWrapedMarker: string;
-    overflowSiblingsNoShrink: string;
 };

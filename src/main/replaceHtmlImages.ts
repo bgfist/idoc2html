@@ -15,7 +15,7 @@ export async function replaceHtmlImages(params: {
     const { prefix, imageResize, uploadImage2Remote, useTinypngCompress, tinypngApiKey } = params;
     let { html } = params;
 
-    const grapImageUrls = html.matchAll(/bg-\[url\((https:\/\/idoc\.mucang\.cn\/.+\/(.+\.png))\)]/g);
+    const grapImageUrls = html.matchAll(/bg-\[url\((https:\/\/idoc\.mucang\.cn\/.+?\/(.+?\.png))\)]/g);
     const imageMap: Record<
         string,
         {

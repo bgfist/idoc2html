@@ -126,14 +126,6 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             }
         }
     });
-
-    // 只有一个auto元素，那基本就是被它撑开
-    if (parent[alignSpec] === SizeSpec.Auto) {
-        const autoChildren = _.filter(parent.children, child => child[alignSpec] === SizeSpec.Auto);
-        if (autoChildren.length === 1 && parent.children.length !== 1) {
-            autoChildren[0][alignSpec] = SizeSpec.Constrained;
-        }
-    }
 }
 
 /** 如果设置了超出滚动，则可能需要扩充auto元素 */
@@ -275,7 +267,11 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
     }
 
     function setFixOrAutoAlign(child: VNode, margin: Margin) {
-        const selfAlign = getSelfSide(margin);
+        let selfAlign = getSelfSide(margin);
+        if (child[alignSpec] === SizeSpec.Auto && selfAlign === 'center' && numEq(margin.marginStart, 0)) {
+            selfAlign = 'start';
+        }
+
         if (selfAlign === 'center') {
             child.classList.push(mayNeedAlign('center'));
         } else if (selfAlign === 'start') {

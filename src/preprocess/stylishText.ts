@@ -47,8 +47,8 @@ export function stylishText(node: Node, vnode: VNode) {
         if (textAlign !== 'left') {
             vnode.classList.push(`text-${textAlign}`);
         }
-        // 单词超长需换行
-        vnode.classList.push('break-words');
+        // 单词超长需换行, 这个得视情况加
+        // vnode.classList.push('break-words');
     } else {
         // 有的文本框跟文字本身宽度并不一致，会多出一些空间，这时候应该视作Fixed尺寸，简单判断下，数字和字母为半个字宽
         if (
@@ -81,7 +81,11 @@ function stylishTextSpan(text: TextStyle, vnode: VNode) {
             ...vnode.bounds
         }
     });
-    textNode.textContent = text.value.replace(/\n/g, '<br/>'); // 换行符用<br/>代替
+    textNode.textContent = text.value
+        // 换行符用<br/>代替
+        .replace(/\n/g, '<br/>')
+        // 空格用nbsp;代替
+        .replace(/ /g, '&nbsp;');
     if (text.font.color.type === 'normal') {
         textNode.classList.push(`text-${getNormalColor(text.font.color.value)}`);
     } else if (text.font.color.type === 'linearGradient') {

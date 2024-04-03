@@ -8,12 +8,14 @@ import {
     SizeSpec,
     VNode,
     getClassList,
+    getClassName,
     getTextContent,
     isImageOrSliceNode,
     isListWrapContainer,
     isMultiLineText,
     isRootNode,
     isSingleLineText,
+    isTextNode,
     makeMultiLineTextClamp,
     makeSingleLineTextEllipsis,
     makeSingleLineTextNoWrap,
@@ -35,6 +37,10 @@ export function measureTree(vnode: VNode) {
     measureAttachPosition(vnode);
 
     _.each(vnode.children, measureTree);
+
+    // 让文本节点层级高一些
+    const [textNodes, otherNodes] = _.partition(vnode.attachNodes, isTextNode);
+    vnode.attachNodes = [...otherNodes, ...textNodes];
     _.each(vnode.attachNodes, measureTree);
 }
 
@@ -128,8 +134,11 @@ function setFixSizeTextClampIfConfigured(textNode: VNode) {
 /** 特殊情况需要让单行文本不换行 */
 function makeSingleLineTextNoWrapIfNeed(parent: VNode) {
     if (parent.widthSpec === SizeSpec.Fixed) {
+        if (isSingleLineText(parent)) {
+            makeSingleLineTextNoWrap(parent);
+        }
         // 固定宽度的按钮
-        if (
+        else if (
             parent.direction === Direction.Row &&
             parent.children.length === 1 &&
             isSingleLineText(parent.children[0])
@@ -154,11 +163,14 @@ function measureAttachPosition(parent: VNode) {
         return;
     }
     _.each(attachNodes, attachNode => {
+        const hasBorder = getClassName(parent).match(/border($|\s|-\d+)/);
+        const borderWidth = hasBorder ? Number(hasBorder[1]) || 1 : 0;
+
         const [left, right, top, bottom] = [
-            attachNode.bounds.left - parent.bounds.left,
-            parent.bounds.right - attachNode.bounds.right,
-            attachNode.bounds.top - parent.bounds.top,
-            parent.bounds.bottom - attachNode.bounds.bottom
+            attachNode.bounds.left - parent.bounds.left - borderWidth,
+            parent.bounds.right - attachNode.bounds.right - borderWidth,
+            attachNode.bounds.top - parent.bounds.top - borderWidth,
+            parent.bounds.bottom - attachNode.bounds.bottom - borderWidth
         ];
         if (anyElesIn(getClassList(parent), ['relative', 'absolute', 'fixed'])) {
             // 已经脱离文档流

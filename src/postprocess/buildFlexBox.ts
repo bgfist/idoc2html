@@ -145,23 +145,24 @@ function getDivideIteration(
         const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
         let [intersectingNodes, leftoverNodes] = _.partition(
             nodes,
-            node =>
-                isContainedWithinFn(node, biggestNode) ||
-                // 超过一半都侵入基准盒子了，我们就带上它
-                // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
-                isIntersectOverHalf(biggestNode, node, direction)
+            node => isContainedWithinFn(node, biggestNode)
+            // 超过一半都侵入基准盒子了，我们就带上它
+            // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
+            // || isIntersectOverHalf(biggestNode, node, direction)
         );
 
-        // 如果划分到的这行与其他节点有重叠，则往两边继续找重叠的，一起换个方向划分
-        let [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
-            isOverlapping({ bounds: getBounds(intersectingNodes) }, node)
-        );
-        while (overlappedNodes.length) {
-            intersectingNodes.push(...overlappedNodes);
-            leftoverNodes = nonOverlappedNodes;
-            [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
+        if (intersectingNodes.length > 1) {
+            // 如果划分到的这行与其他节点有重叠，则往两边继续找重叠的，一起换个方向划分
+            let [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
                 isOverlapping({ bounds: getBounds(intersectingNodes) }, node)
             );
+            while (overlappedNodes.length) {
+                intersectingNodes.push(...overlappedNodes);
+                leftoverNodes = nonOverlappedNodes;
+                [overlappedNodes, nonOverlappedNodes] = _.partition(leftoverNodes, node =>
+                    isOverlapping({ bounds: getBounds(intersectingNodes) }, node)
+                );
+            }
         }
 
         // 返回true表示跳出循环
@@ -184,6 +185,44 @@ function getDivideIteration(
     }
 }
 
+/**
+ * 切分迭代器
+ * @param iteratee 返回true表示跳出循环
+ */
+function getDivideIteration2(
+    nodes: VNode[],
+    direction: Direction,
+    iteratee: (biggestNode: VNode, intersectingNodes: VNode[], leftoverNodes: VNode[]) => void | boolean
+) {
+    const dimensionFields = {
+        [Direction.Row]: {
+            dimension: 'width',
+            isContainedWithinFn: isContainedWithinX
+        },
+        [Direction.Column]: {
+            dimension: 'height',
+            isContainedWithinFn: isContainedWithinY
+        }
+    } as const;
+    const { dimension, isContainedWithinFn } = dimensionFields[direction];
+    while (nodes.length) {
+        const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
+        const [intersectingNodes, leftoverNodes] = _.partition(
+            nodes,
+            node =>
+                isContainedWithinFn(node, biggestNode) ||
+                // 超过一半都侵入基准盒子了，我们就带上它
+                // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
+                isIntersectOverHalf(biggestNode, node, direction)
+        );
+        // 返回true表示跳出循环
+        if (iteratee(biggestNode, intersectingNodes, leftoverNodes)) {
+            break;
+        }
+        nodes = leftoverNodes;
+    }
+}
+
 /** 将子节点按行或列归组 */
 function groupNodes(parent: VNode, checkCrossCount?: boolean) {
     let nodes = parent.children;
@@ -197,7 +236,7 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
     const children: VNode[] = [];
     const sortSide = direction === Direction.Row ? 'left' : 'top';
 
-    getDivideIteration(nodes, direction, (biggestNode, intersectingNodes) => {
+    getDivideIteration2(nodes, direction, (biggestNode, intersectingNodes) => {
         if (intersectingNodes.length > 1) {
             // 有可能两个盒子互相交叉，横竖都能分在一组，此时不能再往下分了
             if (checkCrossCount && intersectingNodes.length === prevCrossCount) {
@@ -211,7 +250,10 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
                         bounds: getBounds(otherNodes)
                     });
                     // TODO: 判断是否可以为绝对定位
-                    if (isIntersectOverHalf(biggestNode, vnode, direction) && !isTextNode(biggestNode)) {
+                    if (
+                        isIntersectOverHalf(biggestNode, vnode, direction)
+                        // && !isTextNode(biggestNode)
+                    ) {
                         parent.attachNodes.push(biggestNode);
                         parent.children = otherNodes;
                         // 继续分割
@@ -220,9 +262,9 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
                     }
                 } else if (
                     otherNodes.length === 1 &&
-                    isIntersectOverHalf(biggestNode, otherNodes[0], direction) &&
-                    !isTextNode(biggestNode) &&
-                    !isTextNode(otherNodes[0])
+                    isIntersectOverHalf(biggestNode, otherNodes[0], direction)
+                    // && !isTextNode(biggestNode) &&
+                    // !isTextNode(otherNodes[0])
                 ) {
                     if (getNodeArea(biggestNode) > getNodeArea(otherNodes[0])) {
                         parent.attachNodes.push(otherNodes[0]);

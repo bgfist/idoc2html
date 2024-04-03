@@ -99,13 +99,13 @@ export function buildMissingNodes(parent: VNode) {
     // 剩下的节点都是直接子节点, 互不包含
     nodes = buildContainTree(nodes);
 
+    // 剩下的节点都是直接子节点, 互不交叉
+    nodes = buildAttachTree(parent, nodes);
+
     // 去除背景与父亲完全融合的中间盒子
     if (defaultConfig.removeGhostNodes) {
         nodes = removeGhostNodesPost(parent, nodes);
     }
-
-    // 剩下的节点都是直接子节点, 互不交叉
-    nodes = buildAttachTree(parent, nodes);
 
     parent.children = nodes;
 }
@@ -145,11 +145,6 @@ function buildContainTree(nodes: VNode[]) {
 
 function buildAttachTree(parent: VNode, nodes: VNode[]) {
     return nodes.filter(node => {
-        // 裸文本节点不建议做成绝对定位
-        if (isTextNode(node)) {
-            return true;
-        }
-
         const bestIntersectNode = findBestIntersectNode(node, nodes);
         if (bestIntersectNode) {
             if (isTextNode(bestIntersectNode)) {
@@ -192,7 +187,7 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
     }
 
     function getBgHSLA(n: VNode) {
-        const bgHSLA = getClassName(n).match(/bg-\[hsla\((.+)\)\]/);
+        const bgHSLA = getClassName(n).match(/bg-\[hsla\((.+?)\)\]/);
         if (!bgHSLA) {
             return;
         }
@@ -213,7 +208,7 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
     function canBlendInParentBg(node: VNode) {
         if (getBgHSLA(node) === parentBgHSLA) {
             // 再看边框是否能融合
-            const borderHSLA = getClassName(node).match(/border-\[hsla\((.+)\)\]/);
+            const borderHSLA = getClassName(node).match(/border-\[hsla\((.+?)\)\]/);
             if (!borderHSLA) {
                 return true;
             } else {
@@ -252,7 +247,7 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
 
     if (found) {
         // 重新安排父节点
-        return buildContainTree(toKeep);
+        return buildAttachTree(parent, buildContainTree(toKeep));
     }
     return toKeep;
 }

@@ -22,9 +22,7 @@ import {
     Side,
     context,
     isOverflowWrapped,
-    makeListOverflowAuto,
-    mayAddClass,
-    hasClass
+    makeListOverflowAuto
 } from '../vnode';
 import { defaultConfig } from '../main/config';
 
@@ -133,7 +131,6 @@ function setTextClamp(params: {
         // justify的直接auto撑开，给个overflow-hidden就行
         if (isJustify) {
             makeSingleLineTextEllipsis(child);
-            child.classList.push(context.overflowSiblingsNoShrink);
             return;
         }
 
@@ -312,17 +309,6 @@ export function expandOverflowChild(params: {
                 margin,
                 expandAuto2SizeSpec
             });
-    }
-}
-
-/** 设置其他兄弟节点不能压缩 */
-export function setSiblingsNoShrink(vnode: VNode) {
-    const [markNodes, noShrinkSiblingNodes] = _.partition(vnode.children, child =>
-        hasClass(child, context.overflowSiblingsNoShrink)
-    );
-    if (markNodes.length) {
-        _.each(markNodes, markNode => removeEle(markNode.classList, context.overflowSiblingsNoShrink));
-        _.each(noShrinkSiblingNodes, child => mayAddClass(child, 'shrink-0'));
     }
 }
 

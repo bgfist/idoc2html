@@ -5,6 +5,7 @@ import {
     getClassList,
     isEqualBox,
     isGeneratedNode,
+    isListContainer,
     isListWrapContainer,
     isTextNode
 } from '../vnode';
@@ -49,10 +50,10 @@ function mergeClassList(dest: VNode, src: VNode) {
 
     // 移除冲突的round
     if (
-        _.some(destClassList, c => c.startsWith('round-')) &&
-        _.some(srcClassList, c => c.startsWith('round-'))
+        _.some(destClassList, c => c.startsWith('rounded-')) &&
+        _.some(srcClassList, c => c.startsWith('rounded-'))
     ) {
-        _.remove(destClassList, c => c.startsWith('round-'));
+        _.remove(destClassList, c => c.startsWith('rounded-'));
     }
 
     dest.classList = _.union(destClassList, srcClassList);
@@ -150,6 +151,10 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
         child.widthSpec !== SizeSpec.Fixed &&
         isGeneratedNode(child)
     ) {
+        // 列表盒子不能带绝对定位的，会有很多问题
+        if (isListContainer(child) && parent.attachNodes.length) {
+            return;
+        }
         mergeNode(parent, child);
         parent.children = child.children;
     }

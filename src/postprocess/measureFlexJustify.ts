@@ -12,10 +12,11 @@ import {
     isFlexWrapLike,
     isListContainer,
     isRootNode,
+    mayAddClass,
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
-import { autoMaybeClamp, expandOverflowChild, setSiblingsNoShrink } from './measureOverflow';
+import { autoMaybeClamp, expandOverflowChild } from './measureOverflow';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
@@ -139,7 +140,6 @@ function expandOverflowChildrenIfPossible(
             }
         });
     });
-    setSiblingsNoShrink(parent);
 }
 
 /** 计算间距信息 */
@@ -334,7 +334,9 @@ function sideJustify(
             child.classList.push(R`m${ss}-${gaps[i]}`);
         });
         parent.children[parent.children.length - 1].classList.push(R`m${ee}-${endGap}`);
-    } else if (needEqualGaps) {
+
+        // 父亲有绝对定位元素，space-x有问题
+    } else if (needEqualGaps && !parent.attachNodes.length) {
         parent.classList.push(R`space-${xy}-${gaps[0]}`);
 
         if (justifySide === 'start') {
@@ -369,4 +371,21 @@ function sideJustify(
             // TODO: 同时有多个Constrained，则可以将其中一个减少一两像素，不然很有可能会导致空间不足
         }
     });
+
+    setSiblingsNoShrink(parent, justifySpec);
+}
+
+/** 设置其他兄弟节点不能压缩 */
+function setSiblingsNoShrink(parent: VNode, justifySpec: DimensionSpec) {
+    if (parent[justifySpec] !== SizeSpec.Constrained) {
+        return;
+    }
+
+    const [markNodes, noShrinkSiblingNodes] = _.partition(
+        parent.children,
+        child => child[justifySpec] === SizeSpec.Constrained
+    );
+    if (markNodes.length) {
+        _.each(noShrinkSiblingNodes, child => mayAddClass(child, 'shrink-0'));
+    }
 }

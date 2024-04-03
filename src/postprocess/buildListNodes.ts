@@ -4,6 +4,7 @@ import {
     collectLongestRepeatRanges,
     groupWith,
     numEq,
+    numGt,
     pairPrevNext,
     removeEle,
     removeEles,
@@ -76,7 +77,6 @@ function isSimilarBoxY(a: VNode, b: VNode) {
         !isTextNode(a) &&
         !isTextNode(b) &&
         numEq(a.bounds.left, b.bounds.left) &&
-        numEq(a.bounds.height, b.bounds.height) &&
         numEq(a.bounds.width, b.bounds.width)
     ) {
         return true;
@@ -143,18 +143,24 @@ function setListItemSizeSpec(vnode: VNode) {
             targetSizeSpec = SizeSpec.Fixed;
         }
 
-        _.each(vnode.children, item => {
-            item.heightSpec = targetSizeSpec;
-        });
+        if (targetSizeSpec === SizeSpec.Fixed) {
+            _.each(vnode.children, item => {
+                item.heightSpec = targetSizeSpec;
+            });
+            vnode.heightSpec = targetSizeSpec;
+        }
     } else if (isListYContainer(vnode)) {
         // 有些列表元素已经固定尺寸了，比如图片
         if (_.some(vnode.children, child => child.widthSpec === SizeSpec.Fixed)) {
             targetSizeSpec = SizeSpec.Fixed;
         }
 
-        _.each(vnode.children, item => {
-            item.widthSpec = targetSizeSpec;
-        });
+        if (targetSizeSpec === SizeSpec.Fixed) {
+            _.each(vnode.children, item => {
+                item.widthSpec = targetSizeSpec;
+            });
+            vnode.widthSpec = targetSizeSpec;
+        }
     } else if (isListWrapContainer(vnode)) {
         _.each(vnode.children, item => {
             if (defaultConfig.listItemSizeFixed) {
@@ -456,8 +462,10 @@ function buildListDirection(vnode: VNode, direction: Direction) {
         function getListItemGap(vnode: VNode) {
             return getItemGap(vnode.children[0], vnode.children[1], direction);
         }
+        // gap为0的不太可能是flexWrap，反而可能是表格
+        const validFlexWrapLists = addPlainListNodes.filter(list => numGt(getListItemGap(list), 0));
         const flexWrapGroups = Array.from(
-            groupWith(addPlainListNodes, (a, b) => {
+            groupWith(validFlexWrapLists, (a, b) => {
                 return numEq(a.bounds.left, b.bounds.left) && numEq(getListItemGap(a), getListItemGap(b));
             }).values()
         ).filter(nodes => nodes.length > 1);
