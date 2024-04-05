@@ -147,8 +147,9 @@ function buildAttachTree(parent: VNode, nodes: VNode[]) {
     return nodes.filter(node => {
         const bestIntersectNode = findBestIntersectNode(node, nodes);
         if (bestIntersectNode) {
-            if (isTextNode(bestIntersectNode)) {
-                //TODO: 文本节点有子节点？层级需要处理下，文本不能被遮住
+            if (isTextNode(bestIntersectNode) && isTextNode(node)) {
+                // 两个文本有重叠，一般是设计稿的误差
+                return true;
             }
 
             bestIntersectNode.attachNodes.push(node);

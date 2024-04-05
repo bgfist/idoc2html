@@ -104,7 +104,7 @@ export function R2(strings: TemplateStringsArray, ...values: any[]) {
     return normalizeClassName(result, false);
 }
 
-type VNodeBounds = Pick<VNode, 'bounds'>;
+export type VNodeBounds = Pick<VNode, 'bounds'>;
 
 /** 两个盒子是否一样大 */
 export function isEqualBox(a: VNodeBounds, b: VNodeBounds) {
@@ -279,8 +279,9 @@ export function isMultiLineText(vnode: VNode) {
 }
 
 /** 获取文本的字体/行高 */
-export function getSingleLineTextFZLH(textVNode: VNode) {
-    const match = getClassName(textVNode).match(/text-(\d+)\/(\d+)/)!;
+export function getTextFZLH(textVNode: VNode) {
+    const firstSpan = _.isArray(textVNode.textContent) ? textVNode.textContent[0] : textVNode;
+    const match = getClassName(firstSpan).match(/text-(\d+)\/(\d+)/)!;
     assert(!_.isNull(match), '文本找不到字体/行高');
     return {
         fontSize: _.toNumber(match[1]),
@@ -288,14 +289,8 @@ export function getSingleLineTextFZLH(textVNode: VNode) {
     };
 }
 
-/** 获取多行文本行高 */
-export function getMultiLineTextLineHeight(textVNode: VNode) {
-    const firstSpan = _.isArray(textVNode.textContent) ? textVNode.textContent[0] : textVNode;
-    return getSingleLineTextFZLH(firstSpan).lineHeight;
-}
-
 export function makeMultiLineTextClamp(textNode: VNode) {
-    const maxLineCount = Math.floor(textNode.bounds.height / getMultiLineTextLineHeight(textNode));
+    const maxLineCount = Math.floor(textNode.bounds.height / getTextFZLH(textNode).lineHeight);
     _.assign(textNode.style, {
         display: '-webkit-box',
         '-webkit-box-orient': 'vertical',
@@ -387,10 +382,6 @@ export function isVoidElementWrapper(node: VNode) {
     return hasClass(node, context.voidElementMarker);
 }
 
-export function isOverflowWrapped(node: VNode) {
-    return hasClass(node, context.overflowWrapedMarker);
-}
-
 export function isTableBody(vnode: VNode) {
     return isRole(vnode, 'table-body');
 }
@@ -406,4 +397,10 @@ export function refreshBoxBounds(vnode: VNode) {
 
 export function isRootNode(vnode: VNode) {
     return vnode === context.root;
+}
+
+export function getBorderWidth(vnode: VNode) {
+    const hasBorder = getClassName(vnode).match(/border($|\s|-\d+)/);
+    const borderWidth = hasBorder ? Number(hasBorder[1]) || 1 : 0;
+    return borderWidth;
 }

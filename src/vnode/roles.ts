@@ -1,16 +1,7 @@
 import * as _ from 'lodash';
 import { Direction, SizeSpec, VNode } from './types';
-import { allNumsEqual, collectContinualRanges, numEq, numGt } from '../utils';
-import {
-    addRole,
-    getBounds,
-    getClassName,
-    getItemGaps,
-    isEqualBox,
-    isImageOrSliceNode,
-    isTextNode,
-    newVNode
-} from './helpers';
+import { numEq, numGt } from '../utils';
+import { addRole, getClassName, isEqualBox, isImageOrSliceNode, isTextNode } from './helpers';
 import { context } from './context';
 
 /** 判断节点是不是分隔线 */
@@ -78,49 +69,6 @@ export function maybeTabLine(vnode: VNode) {}
 /** 弹窗不透明蒙层 */
 export function maybeDialogMask(vnode: VNode) {
     return isEqualBox(vnode, context.root) && getClassName(vnode).indexOf('bg-[hsla(0,0%,0%,0.)') !== -1;
-}
-
-/** 判断是否是表格布局 */
-export function maybeTable(rows: VNode[][]) {
-    const ranges = collectContinualRanges(
-        rows,
-        (rowA, rowB) => rowA.length === rowB.length,
-        range => {
-            if (rows[range.start].length >= 3 && range.end - range.start >= 3 && range.end === rows.length) {
-                const tableRows = rows.slice(range.start, range.end);
-                const gaps = getItemGaps(
-                    tableRows.map(row => _.first(row)!),
-                    Direction.Column
-                );
-                if (allNumsEqual(gaps) && Math.abs(gaps[0]) < 6) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    );
-
-    return ranges.map(range => {
-        console.debug('找到表格');
-        const tableRows = rows.slice(range.start, range.end);
-        const listItems = tableRows.map(tableRow => {
-            return newVNode({
-                role: ['table-row'],
-                children: tableRow,
-                bounds: getBounds(tableRow)
-            });
-        });
-        return {
-            tableRows,
-            tableBody: newVNode({
-                role: ['table-body'],
-                children: listItems,
-                bounds: getBounds(listItems),
-                direction: Direction.Column,
-                heightSpec: SizeSpec.Auto
-            })
-        };
-    });
 }
 
 /** 检查图片是否框死容器尺寸 */

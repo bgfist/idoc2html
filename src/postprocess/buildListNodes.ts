@@ -5,6 +5,7 @@ import {
     groupWith,
     numEq,
     numGt,
+    numGte,
     pairPrevNext,
     removeEle,
     removeEles,
@@ -15,10 +16,11 @@ import {
     Side,
     SizeSpec,
     VNode,
+    VNodeBounds,
     addRole,
     getBounds,
+    getTextFZLH,
     getMiddleLine,
-    getSingleLineTextFZLH,
     getTextAlign,
     isContainedWithin,
     isListItemWrapped,
@@ -31,7 +33,6 @@ import {
     isTableBody,
     isTableRow,
     isTextNode,
-    maybeTable,
     newVNode,
     refreshBoxBounds
 } from '../vnode';
@@ -47,7 +48,7 @@ function isSimilarBoxX(a: VNode, b: VNode) {
     ) {
         a = _.isArray(a.textContent) ? a.textContent[0] : a;
         b = _.isArray(b.textContent) ? b.textContent[0] : b;
-        return _.isEqual(getSingleLineTextFZLH(a), getSingleLineTextFZLH(b));
+        return _.isEqual(getTextFZLH(a), getTextFZLH(b));
     }
     if (
         !isTextNode(a) &&
@@ -70,8 +71,7 @@ function isSimilarBoxY(a: VNode, b: VNode) {
         numEq(a.bounds.height, b.bounds.height) &&
         getTextAlign(a) === getTextAlign(b)
     ) {
-        const isTextRight = getTextAlign(a) === 'right';
-        return (isTextRight && numEq(a.bounds.right, b.bounds.right)) || numEq(a.bounds.left, b.bounds.left);
+        return numEq(a.bounds.right, b.bounds.right) || numEq(a.bounds.left, b.bounds.left);
     }
     if (
         !isTextNode(a) &&
@@ -105,6 +105,15 @@ function isSimilarBoxWrap(prev: VNode, next: VNode, yGap?: number) {
     return false;
 }
 
+function twoListAlign(a: VNode, b: VNode) {
+    const comboList = _.zip(a.children, b.children).map(([a, b]) => {
+        return {
+            bounds: getBounds([a!, b!])
+        };
+    });
+    return pairPrevNext(comboList).every(([prev, next]) => !isOverlapping(prev, next));
+}
+
 /** 获取两个元素之间direction方向的间距 */
 function getItemGap(prevItem: VNode, nextItem: VNode, direction: Direction) {
     if (direction === Direction.Row) {
@@ -119,9 +128,10 @@ function getOriginalListItemNodes(list: VNode) {
 }
 
 /** 检查列表是否合法 */
-function checkListInvalid(otherNodes: VNode[], list: VNode) {
+function checkListInvalid(otherNodes: VNode[], list: VNode, validBounds?: VNodeBounds) {
     otherNodes = _.difference(otherNodes, getOriginalListItemNodes(list));
-    return _.some(otherNodes, node => isOverlapping(list, node) && !isContainedWithin(list, node));
+    const listBound = validBounds ?? list;
+    return _.some(otherNodes, node => isOverlapping(listBound, node) && !isContainedWithin(listBound, node));
 }
 
 /** 文本节点大概率重复，需要排除这种过度包装成列表 */
@@ -222,10 +232,10 @@ function setListItemSameSizeAndGap(
 }
 
 /** 寻找重复节点，将其归成列表 */
-function groupListNodes(nodes: VNode[], direction: Direction) {
+function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction, longest: boolean) {
     const gaps = pairPrevNext(nodes).map(([prev, next]) => getItemGap(prev, next, direction));
     gaps.push(NaN); // 最后多一个gap作为比较
-    const ranges = collectLongestRepeatRanges(gaps, numEq, true);
+    const ranges = collectLongestRepeatRanges(gaps, numEq, longest ? Infinity : 2, true);
 
     const lists = ranges.map(range => {
         let listItems = nodes.slice(range.start, range.end);
@@ -439,91 +449,157 @@ function buildListDirection(vnode: VNode, direction: Direction) {
     const lineAlign = direction === Direction.Row ? 'top' : 'left';
     const lineOrder = direction === Direction.Row ? 'left' : 'top';
 
-    let lines = Array.from(groupWith(vnode.children, isSimilarFn).values()).filter(nodes => nodes.length > 1);
-    lines = _.sortBy(lines, line => line[0].bounds[lineAlign]).map(nodes =>
-        _.sortBy(nodes, node => node.bounds[lineOrder])
-    );
+    function buildListDirection(longest: boolean) {
+        let lines = Array.from(groupWith(vnode.children, isSimilarFn).values()).filter(
+            nodes => nodes.length > 1
+        );
+        lines = _.sortBy(lines, line => line[0].bounds[lineAlign]).map(nodes =>
+            _.sortBy(nodes, node => node.bounds[lineOrder])
+        );
 
-    if (direction === Direction.Row) {
-        const tables = maybeTable(lines);
-        tables.forEach(table => {
-            removeEles(lines, table.tableRows);
-            removeEles(vnode.children, _.flatten(table.tableRows));
-            vnode.children.push(table.tableBody);
-        });
-    }
-
-    lines = lines.map(line => groupListNodes(line, direction));
-    // 现在lists里面都是列表容器
-    const addPlainListNodes = _.flatten(lines);
-    const addCombinedListNodes: VNode[] = [];
-
-    if (direction === Direction.Row) {
-        function getListItemGap(vnode: VNode) {
-            return getItemGap(vnode.children[0], vnode.children[1], direction);
+        if (direction === Direction.Row) {
+            const tables = maybeTable(vnode, lines);
+            tables.forEach(table => {
+                removeEles(lines, table.tableRows);
+                removeEles(vnode.children, _.flatten(table.tableRows));
+                vnode.children.push(table.tableBody);
+            });
         }
-        // gap为0的不太可能是flexWrap，反而可能是表格
-        const validFlexWrapLists = addPlainListNodes.filter(list => numGt(getListItemGap(list), 0));
-        const flexWrapGroups = Array.from(
-            groupWith(validFlexWrapLists, (a, b) => {
-                return numEq(a.bounds.left, b.bounds.left) && numEq(getListItemGap(a), getListItemGap(b));
+
+        lines = lines.map(line => groupListNodes(vnode, line, direction, longest));
+        // 现在lists里面都是列表容器
+        const addPlainListNodes = _.flatten(lines);
+        const addCombinedListNodes: VNode[] = [];
+
+        if (direction === Direction.Row) {
+            function getListItemGap(vnode: VNode) {
+                return getItemGap(vnode.children[0], vnode.children[1], direction);
+            }
+            // gap为0的不太可能是flexWrap，反而可能是表格
+            const validFlexWrapLists = addPlainListNodes.filter(list => numGt(getListItemGap(list), 0));
+            const flexWrapGroups = Array.from(
+                groupWith(validFlexWrapLists, (a, b) => {
+                    return numEq(a.bounds.left, b.bounds.left) && numEq(getListItemGap(a), getListItemGap(b));
+                }).values()
+            ).filter(nodes => nodes.length > 1);
+
+            for (const flexWrapGroup of flexWrapGroups) {
+                const mergedInfos = tryMergeFlexWrapNodes(vnode, flexWrapGroup);
+                mergedInfos.forEach(info => {
+                    removeEles(addPlainListNodes, info.toMergeLists);
+                    addCombinedListNodes.push(info.combinedListNode);
+                });
+            }
+        }
+        const listGroups = Array.from(
+            groupWith(addPlainListNodes, (a, b) => {
+                return a.children.length === b.children.length && twoListAlign(a, b);
             }).values()
         ).filter(nodes => nodes.length > 1);
 
-        for (const flexWrapGroup of flexWrapGroups) {
-            const mergedInfos = tryMergeFlexWrapNodes(vnode, flexWrapGroup);
+        for (const listGroup of listGroups) {
+            const mergedInfos = tryMergeListNodes(vnode, listGroup, direction);
             mergedInfos.forEach(info => {
                 removeEles(addPlainListNodes, info.toMergeLists);
                 addCombinedListNodes.push(info.combinedListNode);
             });
         }
-    }
 
-    function twoListAlign(a: VNode, b: VNode) {
-        const comboList = _.zip(a.children, b.children).map(([a, b]) => {
-            return {
-                bounds: getBounds([a!, b!])
-            };
+        _.remove(addPlainListNodes, list => {
+            const firstChild = _.first(list.children)!;
+            const lastChild = _.last(list.children)!;
+            const bounds = _.clone(list.bounds);
+            if (direction === Direction.Row) {
+                bounds.left += firstChild.bounds.width / 2;
+                bounds.right -= lastChild.bounds.width / 2;
+            } else {
+                bounds.top += firstChild.bounds.height / 2;
+                bounds.bottom -= lastChild.bounds.height / 2;
+            }
+            const validBounds = { bounds };
+
+            return (
+                (!isListItemWrapped(list.children[0]) && list.children.length === 2) ||
+                _.every(list.children, isTextNode) || // 单节点列表如果都是文本，则没必要
+                checkListInvalid(vnode.children, list, validBounds)
+            );
         });
-        return pairPrevNext(comboList).every(([prev, next]) => !isOverlapping(prev, next));
-    }
-    const listGroups = Array.from(
-        groupWith(addPlainListNodes, (a, b) => {
-            return a.children.length === b.children.length && twoListAlign(a, b);
-        }).values()
-    ).filter(nodes => nodes.length > 1);
 
-    for (const listGroup of listGroups) {
-        const mergedInfos = tryMergeListNodes(vnode, listGroup, direction);
-        mergedInfos.forEach(info => {
-            removeEles(addPlainListNodes, info.toMergeLists);
-            addCombinedListNodes.push(info.combinedListNode);
+        _.each(addPlainListNodes, list => {
+            console.debug(`找到${direction === Direction.Row ? '横向列表' : '纵向列表'}`);
+            _.assign(list, {
+                role: [direction === Direction.Row ? 'list-x' : 'list-y'],
+                direction
+            });
+            setListItemSizeSpec(list);
+            _.each(list.children, child => {
+                addRole(child, 'list-item');
+            });
         });
+
+        const addListNodes = _.concat(addPlainListNodes, addCombinedListNodes);
+        removeEles(vnode.children, _.flatMap(addListNodes, getOriginalListItemNodes));
+        return addListNodes;
     }
 
-    _.remove(addPlainListNodes, list => {
-        return (
-            (!isListItemWrapped(list.children[0]) && list.children.length === 2) ||
-            _.every(list.children, isTextNode) || // 单节点列表如果都是文本，则没必要
-            checkListInvalid(vnode.children, list)
-        );
+    vnode.children.push(...buildListDirection(true));
+    vnode.children.push(...buildListDirection(false));
+}
+
+/** 判断是否是表格布局 */
+function maybeTable(parent: VNode, rows: VNode[][]) {
+    const ranges = collectContinualRanges(
+        rows,
+        (rowA, rowB) => {
+            const listA = newVNode({
+                bounds: getBounds(rowA),
+                children: rowA
+            });
+            const listB = newVNode({
+                bounds: getBounds(rowB),
+                children: rowB
+            });
+            return (
+                rowA.length >= 3 &&
+                rowA.length === rowB.length &&
+                twoListAlign(listA, listB) &&
+                numGte(listB.bounds.top - listA.bounds.bottom, 0)
+            );
+        },
+        range => {
+            if (range.end - range.start >= 3) {
+                const fakeListItems = _.flatten(rows.slice(range.start, range.end));
+                const fakeListNode = newVNode({
+                    bounds: getBounds(fakeListItems),
+                    children: fakeListItems
+                });
+                return !checkListInvalid(parent.children, fakeListNode);
+            }
+            return false;
+        }
+    );
+
+    return ranges.map(range => {
+        console.debug('找到表格');
+        const tableRows = rows.slice(range.start, range.end);
+        const listItems = tableRows.map(tableRow => {
+            return newVNode({
+                role: ['table-row'],
+                children: tableRow,
+                bounds: getBounds(tableRow)
+            });
+        });
+        return {
+            tableRows,
+            tableBody: newVNode({
+                role: ['table-body'],
+                children: listItems,
+                bounds: getBounds(listItems),
+                direction: Direction.Column,
+                heightSpec: SizeSpec.Auto
+            })
+        };
     });
-
-    _.each(addPlainListNodes, list => {
-        console.debug(`找到${direction === Direction.Row ? '横向列表' : '纵向列表'}`);
-        _.assign(list, {
-            role: [direction === Direction.Row ? 'list-x' : 'list-y'],
-            direction
-        });
-        setListItemSizeSpec(list);
-        _.each(list.children, child => {
-            addRole(child, 'list-item');
-        });
-    });
-
-    const addListNodes = _.concat(addPlainListNodes, addCombinedListNodes);
-    removeEles(vnode.children, _.flatMap(addListNodes, getOriginalListItemNodes));
-    vnode.children.push(...addListNodes);
 }
 
 /** 先寻找可能构成列表的节点，这些节点应该作为一个整体 */

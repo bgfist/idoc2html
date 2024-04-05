@@ -9,7 +9,8 @@ import {
     Side,
     SizeSpec,
     VNode,
-    getMultiLineTextLineHeight,
+    getBorderWidth,
+    getTextFZLH,
     isCrossDirection,
     isFlexBox,
     isFlexWrapLike,
@@ -62,8 +63,7 @@ function expandGhostChildrenIfPossible(parent: VNode, alignSpec: DimensionSpec) 
             // 如果同方向也撑大的话，就没有啥意义
             isCrossDirection(parent, child) &&
             // flexWrap撑大没有意义，还会有bug；列表撑开会导致全部滚到边上
-            !isListContainer(child) &&
-            !isListContainer(parent)
+            !isListContainer(child)
         ) {
             // TODO: 扩张到左边padding最多的那个，保持左右padding一致，维持居中性质
             // const margins = getMargins(parent);
@@ -333,10 +333,11 @@ function getSelfSide(margin: Margin): Side {
 function getMargins(parent: VNode, forChildren?: VNode[]) {
     const sf = parent.direction === Direction.Row ? 'top' : 'left';
     const ef = parent.direction === Direction.Row ? 'bottom' : 'right';
+    const borderWidth = getBorderWidth(parent);
 
     return (forChildren || parent.children).map(n => {
-        const marginStart = n.bounds[sf] - parent.bounds[sf];
-        const marginEnd = parent.bounds[ef] - n.bounds[ef];
+        const marginStart = n.bounds[sf] - parent.bounds[sf] - borderWidth;
+        const marginEnd = parent.bounds[ef] - n.bounds[ef] - borderWidth;
         const marginDiff = marginStart - marginEnd;
 
         return {
@@ -388,7 +389,7 @@ function setAutoPreserveMarginIfNeeded(
             }
         } else if (isMultiLineText(child)) {
             assert(alignDimension === 'height', '多行文本预留空间只能是纵向');
-            const lineHeight = getMultiLineTextLineHeight(child);
+            const lineHeight = getTextFZLH(child).lineHeight;
             const bottomMargin = Math.min(lineHeight, margin.marginEnd);
             // TODO: 这里判断是否有问题
             if (getSelfSide(margin) === 'center') {
@@ -435,124 +436,3 @@ function setAutoPreserveMarginIfNeeded(
         }
     });
 }
-
-// 据children在node中的位置计算flex对齐方式
-// 归组, 看哪种对齐方式最多
-// const [commonMarginStartCount, commonMarginStart] = getCommonMarginOverHalf(margins, 'marginStart');
-// const [commonMarginEndCount, commonMarginEnd] = getCommonMarginOverHalf(margins, 'marginEnd');
-// const [commonMarginDiffCount, commonMarginDiff] = getCommonMarginOverHalf(margins, 'marginDiff');
-// const maxCommonMarginCount = Math.max(
-//     commonMarginStartCount,
-//     commonMarginEndCount,
-//     commonMarginDiffCount
-// );
-
-// /** 获取超过一半的元素的共同margin */
-// function getCommonMarginOverHalf(margins: Margin[], key: keyof Margin) {
-//     // 使用groupBy对数组进行分组
-//     const grouped = groupByWith(margins, m => m[key], numEq);
-
-//     /** 数量最多&数值最小的优先 */
-//     const maxMargin = Array.from(grouped.values()).sort((a, b) => {
-//         if (a.length === b.length) {
-//             return Math.abs(a[0][key]) - Math.abs(b[0][key]);
-//         } else {
-//             return b.length - a.length;
-//         }
-//     })[0];
-//     if (maxMargin && maxMargin.length * 2 > margins.length) {
-//         return [maxMargin.length, maxMargin[0][key]] as const;
-//     } else {
-//         return [0, 0] as const;
-//     }
-// }
-
-// /** 处理auto元素内容居中，仅横向 */
-// function setAutoContentsAlign(vnode: VNode, side: 'center' | 'start' | 'end') {
-//     if (isTextNode(vnode)) {
-//         const sideMap = {
-//             center: 'center',
-//             start: 'left',
-//             end: 'right'
-//         };
-//         if (!anyElesIn(getClassList(vnode), ['text-left', 'text-center', 'text-right'])) {
-//             vnode.classList.push(`text-${sideMap[side]}`);
-//         }
-//     } else {
-//         vnode.classList.push(`justify-${side}`);
-//     }
-// }
-
-// /** 扩充auto元素的尺寸，并保持内部元素撑开方向 */
-// function expandAutoContents(child: VNode, margin: Margin) {
-//     // TODO: 这里只是粗暴的计算撑开方向，
-//     // 实际情况可能不是哪边预留空间多就往哪边撑，比如背景是个图
-//     // 根据策略来扩充
-//     const allocSpaceForAuto = defaultConfig.allocSpaceForAuto;
-
-//     if (
-//         // 这两种容器横向没法自由撑开, 可以优化判断下，横向只能可以往右撑开
-//         // 竖向撑开的做法也不一样 align-content/多行文本包一个div然后用flex居中等
-//         isFlexWrapLike(child)
-//     ) {
-//         if (alignSpec === 'widthSpec') {
-//             // 只能处理往右撑开的
-//             if (parent[alignSpec] === SizeSpec.Auto) {
-//                 changeChildSizeSpec(child, alignSpec, SizeSpec.Auto, SizeSpec.Fixed);
-//                 setFixOrAutoAlign(child, margin);
-//                 return true;
-//             }
-//             return;
-//         }
-
-//         if (isListWrapContainer(child)) {
-//             // 保留auto元素的位置
-//             if (possibleAlignCenter(margin)) {
-//                 // 往两边撑开
-//                 child.classList.push('content-center');
-//             } else if (margin.marginStart < margin.marginEnd) {
-//                 // 往下边撑开
-//                 child.classList.push('content-start');
-//             } else {
-//                 // 往上边撑开
-//                 child.classList.push('content-end');
-//             }
-//         } else if (isMultiLineText(child)) {
-//             // 用一个子元素包起来
-//             child.textContent = [newVNode(_.cloneDeep(child))];
-//             child.classList.push('flex');
-
-//             // 保留auto元素的位置
-//             if (possibleAlignCenter(margin)) {
-//                 // 往两边撑开
-//                 child.classList.push('items-center');
-//             } else if (margin.marginStart < margin.marginEnd) {
-//                 // 往下边撑开
-//                 child.classList.push('items-start');
-//             } else {
-//                 // 往上边撑开
-//                 child.classList.push('items-end');
-//             }
-//         }
-//     } else {
-//         // 保留auto元素的位置
-//         if (possibleAlignCenter(margin)) {
-//             // 往两边撑开
-//             setAutoContentsAlign(child, 'center');
-//         } else if (margin.marginStart < margin.marginEnd) {
-//             // 靠左边撑开
-//             setAutoContentsAlign(child, 'start');
-//         } else {
-//             // 靠右边撑开
-//             setAutoContentsAlign(child, 'end');
-//         }
-//     }
-
-//     // Auto元素需要自动撑开
-//     const realMargin = Math.min(margin.marginEnd, margin.marginStart);
-//     margin.marginStart = margin.marginEnd = realMargin;
-
-//     child.bounds[sf] = parent.bounds[sf] + realMargin;
-//     child.bounds[ef] = parent.bounds[ef] - realMargin;
-//     child.bounds[alignDimension] = child.bounds[ef] - child.bounds[sf];
-// }

@@ -193,6 +193,7 @@ export function collectRepeatRanges<T>(
 export function collectLongestRepeatRanges<T>(
     arr: T[],
     compareFn: (prev: T, next: T) => boolean,
+    repeatLenLimit: number,
     ignoreLast?: boolean
 ) {
     // number表示序列包含几个元素
@@ -210,7 +211,7 @@ export function collectLongestRepeatRanges<T>(
         findRepeatRange: for (let j = end - 1; j > start; j--) {
             if (compare(start, j)) {
                 const repeatLength = end - j;
-                if (totalLen % repeatLength === 0) {
+                if (totalLen % repeatLength === 0 && repeatLength < repeatLenLimit) {
                     for (let i = start + repeatLength; i < end; i++) {
                         if (!compare(((i - start) % repeatLength) + start, i)) {
                             continue findRepeatRange;

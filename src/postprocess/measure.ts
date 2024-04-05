@@ -7,11 +7,13 @@ import {
     R2,
     SizeSpec,
     VNode,
+    getBorderWidth,
     getClassList,
-    getClassName,
-    getTextContent,
+    getTextFZLH,
     isImageOrSliceNode,
     isListWrapContainer,
+    isListXContainer,
+    isListYContainer,
     isMultiLineText,
     isRootNode,
     isSingleLineText,
@@ -54,6 +56,8 @@ function measureFlexLayout(parent: VNode) {
 
         if (isListWrapContainer(parent)) {
             measureFlexWrapLayout(parent);
+        } else if (isListXContainer(parent) || isListYContainer(parent)) {
+            measureFlexListLayout(parent);
         } else {
             measureFlexAlign(parent);
             measureFlexJustify(parent);
@@ -65,11 +69,7 @@ function measureFlexLayout(parent: VNode) {
     if (parent.widthSpec === SizeSpec.Fixed && needSetFixSize(parent, 'widthSpec', 'width')) {
         parent.classList.push(R`w-${parent.bounds.width}`);
     }
-    if (
-        parent.heightSpec === SizeSpec.Fixed &&
-        !isSingleLineText(parent) &&
-        needSetFixSize(parent, 'heightSpec', 'height')
-    ) {
+    if (parent.heightSpec === SizeSpec.Fixed && needSetFixSize(parent, 'heightSpec', 'height')) {
         parent.classList.push(R`h-${parent.bounds.height}`);
     }
 
@@ -79,6 +79,12 @@ function measureFlexLayout(parent: VNode) {
 
 /** 父节点的固定尺寸很可能完全由子节点撑开，则没必要设置父节点的固定尺寸 */
 function needSetFixSize(parent: VNode, spec: DimensionSpec, dimension: Dimension) {
+    if (isSingleLineText(parent) && spec === 'heightSpec') {
+        if (numEq(getTextFZLH(parent).lineHeight, parent.bounds.height)) {
+            return false;
+        }
+    }
+
     if (isMultiLineText(parent) && spec === 'heightSpec') {
         // 已经设置过最多显示几行，则无需设置高度
         if (parent.style['-webkit-box-orient']) {
@@ -163,8 +169,7 @@ function measureAttachPosition(parent: VNode) {
         return;
     }
     _.each(attachNodes, attachNode => {
-        const hasBorder = getClassName(parent).match(/border($|\s|-\d+)/);
-        const borderWidth = hasBorder ? Number(hasBorder[1]) || 1 : 0;
+        const borderWidth = getBorderWidth(attachNode);
 
         const [left, right, top, bottom] = [
             attachNode.bounds.left - parent.bounds.left - borderWidth,
@@ -242,6 +247,36 @@ function measureFlexWrapLayout(parent: VNode) {
     _.each(parent.children, child => {
         child.classList.push(R`mr-${xGap} mb-${yGap}`);
     });
+}
+
+function measureFlexListLayout(parent: VNode) {
+    if (isListXContainer(parent)) {
+        const childHeightSpec = parent.heightSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+        _.each(parent.children, child => {
+            child.heightSpec = childHeightSpec;
+            child.bounds.top = parent.bounds.top;
+            child.bounds.bottom = parent.bounds.bottom;
+            child.bounds.height = parent.bounds.height;
+        });
+        const xGap = parent.children[1].bounds.left - parent.children[0].bounds.right;
+        parent.classList.push(R`space-x-${xGap}`);
+        if (parent.heightSpec === SizeSpec.Auto) {
+            parent.classList.push(R`min-h-${parent.bounds.height}`);
+        }
+    } else if (isListYContainer(parent)) {
+        const childWidthSpec = parent.widthSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+        _.each(parent.children, child => {
+            child.widthSpec = childWidthSpec;
+            child.bounds.left = parent.bounds.left;
+            child.bounds.right = parent.bounds.right;
+            child.bounds.width = parent.bounds.width;
+        });
+        const yGap = parent.children[1].bounds.top - parent.children[0].bounds.bottom;
+        parent.classList.push(R`space-y-${yGap}`);
+        if (parent.widthSpec === SizeSpec.Auto) {
+            parent.classList.push(R`min-w-${parent.bounds.width}`);
+        }
+    }
 }
 
 /** 给列表元素的文本节点扩充宽度 */

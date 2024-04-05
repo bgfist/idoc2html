@@ -137,24 +137,15 @@ export function mergeUnnessaryFlexBox(parent: VNode) {
 
     const child = children[0];
 
-    // 先不处理多行列表，margin有问题
-    if (isListWrapContainer(child)) {
-        return;
-    }
-
     // 只需要合并一层
-
     // 子盒子可以扩大
     if (
         child.direction &&
         child.heightSpec !== SizeSpec.Fixed &&
         child.widthSpec !== SizeSpec.Fixed &&
-        isGeneratedNode(child)
+        isGeneratedNode(child) &&
+        !isListContainer(child)
     ) {
-        // 列表盒子不能带绝对定位的，会有很多问题
-        if (isListContainer(child) && parent.attachNodes.length) {
-            return;
-        }
         mergeNode(parent, child);
         parent.children = child.children;
     }

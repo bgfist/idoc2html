@@ -71,6 +71,8 @@ export function stylishText(node: Node, vnode: VNode) {
         vnode.heightSpec = SizeSpec.Fixed;
     }
 
+    // TODO: 行高和bounds不契合，看是对齐行高还是改变bounds
+
     setTextClampIfDetectedEllipis(vnode);
 }
 

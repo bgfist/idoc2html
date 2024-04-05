@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { allNumsEqual, assert, numEq, numGt, numLte, pairPrevNext } from '../utils';
+import { allNumsEqual, assert, numEq, numGt, numLte } from '../utils';
 import {
     Dimension,
     DimensionSpec,
@@ -8,9 +8,9 @@ import {
     Side,
     SizeSpec,
     VNode,
+    getBorderWidth,
     getClassList,
     isFlexWrapLike,
-    isListContainer,
     isRootNode,
     mayAddClass,
     newVNode
@@ -38,8 +38,6 @@ export function measureFlexJustify(parent: VNode) {
         !hasConstrainedChilds &&
         // 中间间隔相等
         equalMiddleGaps &&
-        // 列表容器只能靠边分配
-        !isListContainer(parent) &&
         maybeSpaceJustify(parent, justifySpec, startGap, endGap, gaps)
     ) {
         return;
@@ -50,7 +48,7 @@ export function measureFlexJustify(parent: VNode) {
     const isParentAutoMinSize =
         parent[justifySpec] === SizeSpec.Auto &&
         getClassList(parent).some(className => className.startsWith(`min-${justifySpec.slice(0, 1)}-`));
-    const needEqualGaps = equalMiddleGaps && (parent.children.length > 2 || isListContainer(parent));
+    const needEqualGaps = equalMiddleGaps && parent.children.length > 2;
     const needFlex1 =
         (parent[justifySpec] === SizeSpec.Constrained || isParentAutoMinSize) &&
         // 2个以上元素才需要用flex1做弹性拉伸;
@@ -146,11 +144,12 @@ function expandOverflowChildrenIfPossible(
 function getGapsAndSide(parent: VNode) {
     const ssf = parent.direction === Direction.Row ? 'left' : 'top';
     const eef = parent.direction === Direction.Row ? 'right' : 'bottom';
+    const borderWidth = getBorderWidth(parent);
 
     // 根据children在node中的位置计算flex主轴布局
     const ranges = _.zip(
-        [...parent.children.map(n => n.bounds[ssf]), parent.bounds[eef]],
-        [parent.bounds[ssf], ...parent.children.map(n => n.bounds[eef])]
+        [...parent.children.map(n => n.bounds[ssf]), parent.bounds[eef] - borderWidth],
+        [parent.bounds[ssf] + borderWidth, ...parent.children.map(n => n.bounds[eef])]
     ) as [number, number][];
     const gaps = ranges.map(([p, n]) => p - n);
     const startGap = gaps.shift()!;
@@ -196,15 +195,6 @@ function maybeSpaceJustify(
         numGt(sameGap, endGap) &&
         parent[justifySpec] !== SizeSpec.Auto
     ) {
-        // const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
-        // if (
-        //     parent[justifySpec] === SizeSpec.Constrained &&
-        //     !(numGt(sameGap, parent.children[0].bounds[justifyDimension]) && numGt(sameGap, parent.children[1].bounds[justifyDimension]))
-        // ) {
-        //     // 这种情况太常见了，很多导致问题
-        //     return false;
-        // }
-
         const ss = parent.direction === Direction.Row ? 'l' : 't';
         const ee = parent.direction === Direction.Row ? 'r' : 'b';
         parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
