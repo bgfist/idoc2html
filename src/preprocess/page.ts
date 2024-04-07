@@ -155,11 +155,11 @@ export interface TextStyle {
         bold: boolean;
         italic: boolean;
     };
-    align: 'left' | 'center';
+    align: 'left' | 'center' | 'right' | 'justify';
 }
 
 export interface Border {
-    type: 'center' | 'inside';
+    type: 'center' | 'inside' | 'outside';
     strokeWidth: number;
     color: Color;
 }

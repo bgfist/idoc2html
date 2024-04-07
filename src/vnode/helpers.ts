@@ -420,3 +420,24 @@ export function getBorderWidth(vnode: VNode) {
     const borderWidth = hasBorder ? Number(hasBorder[1]) || 1 : 0;
     return borderWidth;
 }
+
+/** 子盒子大约在父盒子中居中 */
+export function maybeIsCenter(child: VNode, parent: VNode, dimension: Dimension) {
+    // 设定容错值为子盒子宽度的百分比
+    var childTolerancePercentage = 1; // 例如，1%的容错值基于子盒子宽度
+    var childTolerance = child.bounds[dimension] * (childTolerancePercentage / 100);
+
+    // 设定容错值为两边间隙宽度的百分比
+    var gapTolerancePercentage = 8; // 例如，1%的容错值基于两边间隙宽度
+    var gapWidth = parent.bounds[dimension] - child.bounds[dimension];
+    var gapTolerance = gapWidth * (gapTolerancePercentage / 100);
+
+    var parentCenter = getMiddleLine(parent, dimension === 'width' ? Direction.Row : Direction.Column);
+    var childCenter = getMiddleLine(child, dimension === 'width' ? Direction.Row : Direction.Column);
+
+    // 计算偏移值
+    var offset = Math.abs(parentCenter - childCenter);
+
+    // 双重判断
+    return offset <= childTolerance && offset <= gapTolerance;
+}

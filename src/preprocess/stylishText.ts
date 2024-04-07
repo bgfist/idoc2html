@@ -13,7 +13,7 @@ import {
 } from '../vnode';
 import { getNormalColor } from './color';
 import { float2Int } from './helpers';
-import { numLt } from '../utils';
+import { numEq, numLt } from '../utils';
 
 export function stylishText(node: Node, vnode: VNode) {
     // TODO: 如何处理其他样式
@@ -46,19 +46,34 @@ export function stylishText(node: Node, vnode: VNode) {
         // 单词超长需换行, 这个得视情况加
         // vnode.classList.push('break-words');
     } else {
-        // 有的文本框跟文字本身宽度并不一致，会多出一些空间，这时候应该视作Fixed尺寸，简单判断下，数字和字母为半个字宽
-        if (
-            _.isString(vnode.textContent) &&
-            vnode.bounds.width / Number(node.text.styles![0].font.size) -
-                calculateCharacterWidth(vnode.textContent) >
-                1
-        ) {
-            console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
-            vnode.widthSpec = SizeSpec.Fixed;
-        } else {
-            vnode.widthSpec = SizeSpec.Auto;
+        if (_.isString(vnode.textContent)) {
+            // 有的文本框跟文字本身宽度并不一致，会多出一些空间
+            // 先只考虑单行文本，去除其多余宽度
+            // 先暂时保留其text-align，后面扩充宽度时可能有用
+            const contentWidth = float2Int(
+                calculateCharacterWidth(vnode.textContent) * +node.text.styles[0].font.size
+            );
+
+            if (!numEq(contentWidth, node.bounds.width)) {
+                console.warn('有文本框宽度多余，调整宽度', vnode.textContent);
+                if (node.text.styles[0].align === 'left') {
+                    vnode.bounds.width = contentWidth;
+                    vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+                } else if (node.text.styles[0].align === 'center') {
+                    vnode.bounds.width = contentWidth;
+                    vnode.bounds.left =
+                        vnode.bounds.left - Math.floor((vnode.bounds.width - contentWidth) / 2);
+                    vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+                } else if (node.text.styles[0].align === 'right') {
+                    vnode.bounds.width = contentWidth;
+                    vnode.bounds.left = vnode.bounds.right - contentWidth;
+                } else if (node.text.styles[0].align === 'justify') {
+                    console.warn('TODO');
+                }
+            }
         }
 
+        vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Fixed;
     }
 
@@ -114,10 +129,31 @@ function stylishTextSpan(text: TextStyle, vnode: VNode) {
 function calculateCharacterWidth(str: string) {
     let width = 0;
     for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        if (char >= 0x00 && char <= 0x7f) {
+        const code = str.charCodeAt(i);
+        if (code >= 0x00 && code <= 0xff) {
             // 半角字符
-            width += 0.5;
+            if (code >= 65 && code <= 90) {
+                // 大写字母
+                width += 0.75;
+            } else if (code >= 97 && code <= 122) {
+                // 小写字母
+                width += 0.5;
+            } else if (code >= 48 && code <= 57) {
+                // 数字1窄一些
+                if (code === 49) {
+                    width += 0.4;
+                } else {
+                    width += 0.6154;
+                }
+            } else if (code === 32) {
+                // 空格
+                width += 0.375;
+            } else if (code === 46) {
+                // 小数点
+                width += 0.2;
+            } else {
+                width += 0.5;
+            }
         } else {
             width += 1;
         }

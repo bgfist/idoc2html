@@ -34,14 +34,14 @@ export function measureFlexJustify(parent: VNode) {
         child => child[justifySpec] === SizeSpec.Constrained
     );
 
-    if (
-        // Constained元素需要设置margin
-        !hasConstrainedChilds &&
-        // 中间间隔相等
-        equalMiddleGaps &&
-        maybeSpaceJustify(parent, justifySpec, startGap, endGap, gaps)
-    ) {
-        return;
+    if (!hasConstrainedChilds && parent[justifySpec] !== SizeSpec.Auto && parent.children.length === 2) {
+        const middleGap = gaps[0];
+        if (!numEq(middleGap, 0) && numGt(middleGap, startGap) && numGt(middleGap, endGap)) {
+            const ss = parent.direction === Direction.Row ? 'l' : 't';
+            const ee = parent.direction === Direction.Row ? 'r' : 'b';
+            parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
+            return true;
+        }
     }
 
     // 由内容自动撑开，则必须具有最小尺寸，否则flex1无效
@@ -172,39 +172,6 @@ function getGapsAndSide(parent: VNode) {
         justifySide,
         ranges
     };
-}
-
-/** 尝试靠space布局 */
-function maybeSpaceJustify(
-    parent: VNode,
-    justifySpec: DimensionSpec,
-    startGap: number,
-    endGap: number,
-    gaps: number[]
-) {
-    const sameGap = gaps[0];
-
-    if (
-        !numEq(sameGap, 0) &&
-        !numEq(startGap, 0) &&
-        numEq(startGap, endGap) &&
-        numEq(startGap * 2, sameGap) &&
-        parent[justifySpec] !== SizeSpec.Auto
-    ) {
-        parent.classList.push('justify-around');
-        return true;
-    } else if (
-        !numEq(sameGap, 0) &&
-        numGt(sameGap, startGap) &&
-        numGt(sameGap, endGap) &&
-        parent[justifySpec] !== SizeSpec.Auto
-    ) {
-        const ss = parent.direction === Direction.Row ? 'l' : 't';
-        const ee = parent.direction === Direction.Row ? 'r' : 'b';
-        parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
-        return true;
-    }
-    return false;
 }
 
 /** 尝试插入flex1节点 */

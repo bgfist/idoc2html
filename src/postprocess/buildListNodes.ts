@@ -563,7 +563,8 @@ function maybeTable(parent: VNode, rows: VNode[][]) {
                 rowA.length >= 3 &&
                 rowA.length === rowB.length &&
                 twoListAlign(listA, listB) &&
-                numGte(listB.bounds.top - listA.bounds.bottom, 0)
+                numGte(listB.bounds.top - listA.bounds.bottom, 0) &&
+                _.every(rowA, isTextNode)
             );
         },
         range => {

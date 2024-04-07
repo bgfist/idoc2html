@@ -98,7 +98,7 @@ function stylishBorder(node: Node, vnode: VNode) {
             }
             vnode.classList.push(`border-${color}`);
         }
-        const borderWidth = numEq(border.strokeWidth, 1) ? 1 : float2Int(border.strokeWidth);
+        const borderWidth = Math.max(float2Int(border.strokeWidth), 1);
         const borderWidthSuffix = borderWidth === 1 ? '' : `-${borderWidth}`;
 
         if (numEq(borderWidth, node.bounds.width)) {
@@ -107,6 +107,24 @@ function stylishBorder(node: Node, vnode: VNode) {
             vnode.classList.push(`border-t${borderWidthSuffix}`);
         } else {
             vnode.classList.push(R`border${borderWidthSuffix}`);
+
+            // box-sizing默认包含宽度？需要根据borderType调整bounds
+            if (border.type === 'outside') {
+                vnode.bounds.left -= borderWidth;
+                vnode.bounds.top -= borderWidth;
+                vnode.bounds.width += borderWidth * 2;
+                vnode.bounds.height += borderWidth * 2;
+                vnode.bounds.right += borderWidth;
+                vnode.bounds.bottom += borderWidth;
+            } else if (border.type === 'inside') {
+                const borderWidthHalf = Math.floor(borderWidth / 2);
+                vnode.bounds.left -= borderWidthHalf;
+                vnode.bounds.top -= borderWidthHalf;
+                vnode.bounds.width += borderWidth;
+                vnode.bounds.height += borderWidth;
+                vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+                vnode.bounds.bottom = vnode.bounds.top + vnode.bounds.height;
+            }
         }
 
         if (node.stroke.dash && node.stroke.dash[0]) {

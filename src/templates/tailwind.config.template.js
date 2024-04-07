@@ -21,6 +21,7 @@ module.exports = {
         },
         extend: {
             borderRadius: generateNumUnits(1, 30),
+            borderWidth: generateNumUnits(1, 30),
             zIndex: {
                 1: '1',
                 2: '2',

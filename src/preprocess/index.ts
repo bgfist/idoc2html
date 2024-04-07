@@ -85,6 +85,11 @@ function stylishSlice(node: Node, vnode: VNode) {
     // vnode.style['background-image'] = `url(https://idoc.mucang.cn${(node.slice.bitmapURL)})`;
     vnode.widthSpec = SizeSpec.Fixed;
     vnode.heightSpec = SizeSpec.Fixed;
+
+    vnode.bounds.width = node.slice.realSliceWidth;
+    vnode.bounds.height = node.slice.realSliceHeight;
+    vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+    vnode.bounds.bottom = vnode.bounds.top + vnode.bounds.height;
 }
 
 function stylishImage(node: Node, vnode: VNode) {
