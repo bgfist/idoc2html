@@ -239,6 +239,13 @@ export function getTextAlign(vnode: VNode) {
     }
 }
 
+export function maySetTextAlign(vnode: VNode, align: 'center' | 'right') {
+    const c = getClassName(vnode).match(/text-(left|center|right)/);
+    if (!c) {
+        vnode.classList.push(`text-${align}`);
+    }
+}
+
 export function isOriginalNode(vnode: VNode) {
     return Boolean(vnode.id);
 }
@@ -276,6 +283,15 @@ export function makeSingleLineTextEllipsis(textNode: VNode) {
 
 export function isMultiLineText(vnode: VNode) {
     return !!vnode.textMultiLine;
+}
+
+export function isMultiLineTextBr(vnode: VNode) {
+    return (
+        isMultiLineText(vnode) &&
+        _.isString(vnode.textContent) &&
+        vnode.textContent.includes('<br/>') &&
+        getTextAlign(vnode) === 'center'
+    );
 }
 
 /** 获取文本的字体/行高 */

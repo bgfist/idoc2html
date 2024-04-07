@@ -15,7 +15,8 @@ import {
     isFlexWrapLike,
     Side,
     makeListOverflowAuto,
-    getTextFZLH
+    getTextFZLH,
+    maySetTextAlign
 } from '../vnode';
 import { defaultConfig } from '../main/config';
 
@@ -100,9 +101,9 @@ function setTextClamp(params: {
 
             const marginSide = getMarginSide(margin);
             if (marginSide === 'center') {
-                child.classList.push('text-center');
+                maySetTextAlign(child, 'center');
             } else if (marginSide === 'end') {
-                child.classList.push('text-right');
+                maySetTextAlign(child, 'right');
             }
         }
 

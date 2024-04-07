@@ -11,6 +11,7 @@ import {
     getBorderWidth,
     getClassList,
     isFlexWrapLike,
+    isMultiLineTextBr,
     isRootNode,
     mayAddClass,
     newVNode
@@ -77,7 +78,10 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
             if (!autoMaybeClamp(child, justifySpec)) {
                 if (isFlexWrapLike(child)) {
                     assert(justifySpec === 'widthSpec', 'flexWrap和多行文本只有横向才能不被截断');
-                    if (parent[justifySpec] === SizeSpec.Constrained) {
+
+                    if (isMultiLineTextBr(child)) {
+                        // 这种情况自动撑开即可，是手动换行的
+                    } else if (parent[justifySpec] === SizeSpec.Constrained) {
                         // 允许auto元素随父节点拉伸
                         child[justifySpec] = SizeSpec.Constrained;
                     } else {
@@ -227,7 +231,7 @@ function maybeInsertFlex1Node(
         const maxGap = _.max(gapsWithSide)!;
         // 优先让后面的撑开
         flex1GapIndex = _.lastIndexOf(gapsWithSide, maxGap);
-        if (flex1GapIndex === gaps.length || maxGap === 0) {
+        if (flex1GapIndex === gaps.length || numEq(maxGap, 0)) {
             // 撑开最后面的边距说明边距过大，不需要撑开
             return;
         }
@@ -236,7 +240,7 @@ function maybeInsertFlex1Node(
         const maxGap = _.max(gapsWithSide)!;
         // 优先让前面的撑开
         flex1GapIndex = _.indexOf(gapsWithSide, maxGap);
-        if (flex1GapIndex === 0 || maxGap === 0) {
+        if (flex1GapIndex === 0 || numEq(maxGap, 0)) {
             // 撑开最前面的边距说明边距过大，不需要撑开
             return;
         } else {

@@ -73,7 +73,16 @@ export interface Stroke {
 
 export interface Effect {
     shadows: Shadow[];
-    blur?: any;
+    blur?: {
+        center: {
+            x: number;
+            y: number;
+        };
+        motionAngle: number;
+        radius: number;
+        enabled: boolean;
+        blurType: 'Gaussian';
+    };
 }
 
 export interface Slice {

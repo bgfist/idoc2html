@@ -10,6 +10,7 @@ export function stylishBox(node: Node, vnode: VNode) {
     stylishBorderRadius(node, vnode);
     stylishBorder(node, vnode);
     stylishShadow(node, vnode);
+    stylishBlur(node, vnode);
 }
 
 function stylishBackground(node: Node, vnode: VNode) {
@@ -138,5 +139,12 @@ function stylishShadow(node: Node, vnode: VNode) {
         if (styles.length) {
             vnode.style['box-shadow'] = styles.join(',');
         }
+    }
+}
+
+function stylishBlur(node: Node, vnode: VNode) {
+    if (node.effect && node.effect.blur && node.effect.blur.enabled) {
+        // Gaussian模糊在CSS中直接使用blur函数
+        vnode.style['filter'] = `blur(${float2Int(node.effect.blur.radius)}px);`;
     }
 }

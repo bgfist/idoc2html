@@ -43,10 +43,6 @@ export function stylishText(node: Node, vnode: VNode) {
         vnode.widthSpec = SizeSpec.Auto;
         vnode.heightSpec = SizeSpec.Auto;
         vnode.textMultiLine = true;
-        const textAlign = node.text.styles[0].align;
-        if (textAlign !== 'left') {
-            vnode.classList.push(`text-${textAlign}`);
-        }
         // 单词超长需换行, 这个得视情况加
         // vnode.classList.push('break-words');
     } else {
@@ -59,11 +55,6 @@ export function stylishText(node: Node, vnode: VNode) {
         ) {
             console.warn('有文本框宽度多余，设为固定宽度', vnode.textContent);
             vnode.widthSpec = SizeSpec.Fixed;
-            // makeSingleLineTextNoWrap(vnode);
-            const textAlign = node.text.styles[0].align;
-            if (textAlign !== 'left') {
-                vnode.classList.push(`text-${textAlign}`);
-            }
         } else {
             vnode.widthSpec = SizeSpec.Auto;
         }
@@ -113,9 +104,9 @@ function stylishTextSpan(text: TextStyle, vnode: VNode) {
     if (text.fontStyles.lineThrough) {
         textNode.classList.push('line-through');
     }
-    // if (text.align !== 'left') {
-    //     textNode.classList.push(`text-${text.align}`);
-    // }
+    if (text.align !== 'left') {
+        textNode.classList.push(`text-${text.align}`);
+    }
     return textNode;
 }
 

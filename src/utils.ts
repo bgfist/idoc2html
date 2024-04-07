@@ -65,6 +65,7 @@ export function groupWith<T>(arr: T[], compare: (a: T, b: T) => boolean) {
     return groupByWith(arr, _.identity, compare);
 }
 
+// TODO: 需要一个上下文，小元素的TOLERANCE不能给这么大
 const TOLERANCE = 3;
 export function numEq(num1: number, num2: number) {
     return Math.abs(num1 - num2) <= TOLERANCE;

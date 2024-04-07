@@ -18,6 +18,7 @@ import {
     isListContainer,
     isListWrapContainer,
     isMultiLineText,
+    isMultiLineTextBr,
     isRootNode,
     isSingleLineText
 } from '../vnode';
@@ -48,7 +49,7 @@ export function measureFlexAlign(parent: VNode) {
     const specialStretch =
         parent[alignSpec] === SizeSpec.Fixed &&
         _.every(parent.children, child => child[alignSpec] === SizeSpec.Fixed) &&
-        _.every(remainMargins, margin => margin.marginStart === 0 && margin.marginEnd === 0);
+        _.every(remainMargins, margin => numEq(margin.marginStart, 0) && numEq(margin.marginEnd, 0));
     if (!specialStretch) {
         setFlexAlign(parentAlign, parent, alignSpec, remainMargins);
     }
@@ -94,7 +95,10 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             if (!autoMaybeClamp(child, alignSpec)) {
                 if (isFlexWrapLike(child)) {
                     assert(alignSpec === 'widthSpec', 'flexWrap和多行文本只有横向才能不被截断');
-                    if (parent[alignSpec] === SizeSpec.Constrained) {
+
+                    if (isMultiLineTextBr(child)) {
+                        // 这种情况自动撑开即可，是手动换行的
+                    } else if (parent[alignSpec] === SizeSpec.Constrained) {
                         // 允许auto元素随父节点拉伸
                         child[alignSpec] = SizeSpec.Constrained;
                     } else {
@@ -268,7 +272,14 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
 
     function setFixOrAutoAlign(child: VNode, margin: Margin) {
         let selfAlign = getSelfSide(margin);
-        if (child[alignSpec] === SizeSpec.Auto && selfAlign === 'center' && numEq(margin.marginStart, 0)) {
+
+        // TODO: 这里应该判断真正的居中，父亲的alignSpec
+        if (
+            child[alignSpec] === SizeSpec.Auto &&
+            selfAlign === 'center' &&
+            numEq(margin.marginStart, 0) &&
+            numEq(margin.marginEnd, 0)
+        ) {
             selfAlign = 'start';
         }
 
