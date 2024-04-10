@@ -12,8 +12,35 @@ export function unreachable(): never {
     throw new Error('不可能执行到这！');
 }
 
+export function isInBrowser() {
+    return typeof window !== 'undefined';
+}
+
+export function float2Int(n: number) {
+    return Math.round(n);
+}
+
+/** 保留两位小数 */
+export function float2Fixed(n: number) {
+    return Math.round(n * 100) / 100;
+}
+
 export function filterEmpty<T>(t: T | null | undefined): t is T {
     return !!t;
+}
+
+export function filterMap<T, U>(arr: T[], iteratee: (item: T) => U | false): U[] {
+    return _.reduce(
+        arr,
+        (arr, item) => {
+            const ele = iteratee(item);
+            if (ele) {
+                arr.push(ele);
+            }
+            return arr;
+        },
+        [] as U[]
+    );
 }
 
 export function second<T>(x: [unknown, T]) {
@@ -286,7 +313,7 @@ export function collectLongestRepeatRanges<T>(
 /** 寻找同值的连续序列 */
 export function collectContinualRanges<T, K>(
     arr: T[],
-    compareFn: (prev: T, next: T) => K | boolean,
+    compareFn: (prev: T, next: T, context?: K) => K | boolean,
     isValidRange: (range: Range<K>) => boolean
 ) {
     const ranges: Range<K>[] = [];
@@ -299,7 +326,7 @@ export function collectContinualRanges<T, K>(
             do {
                 i++;
                 compareIndex++;
-            } while (i < arr.length && compareFn(arr[compareIndex], arr[i]));
+            } while (i < arr.length && compareFn(arr[compareIndex], arr[i], ele as K));
             {
             }
             for (; i > start + 1; i--, compareIndex--) {

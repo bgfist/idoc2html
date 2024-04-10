@@ -5,11 +5,27 @@ import {
     getClassList,
     isEqualBox,
     isGeneratedNode,
+    isImageOrSliceNode,
     isListContainer,
-    isListWrapContainer,
     isTextNode
 } from '../vnode';
 import { removeEle } from '../utils';
+
+function mergeBounds(dest: VNode, src: VNode) {
+    if (isImageOrSliceNode(dest)) {
+        // 不能改
+    } else if (isImageOrSliceNode(src)) {
+        _.assign(dest.bounds, src.bounds);
+    } else {
+        // 合并bounds，有时候误差有点大
+        dest.bounds.left = Math.min(dest.bounds.left, src.bounds.left);
+        dest.bounds.top = Math.min(dest.bounds.top, src.bounds.top);
+        dest.bounds.right = Math.max(dest.bounds.right, src.bounds.right);
+        dest.bounds.bottom = Math.max(dest.bounds.bottom, src.bounds.bottom);
+        dest.bounds.width = dest.bounds.right - dest.bounds.left;
+        dest.bounds.height = dest.bounds.bottom - dest.bounds.top;
+    }
+}
 
 function mergeClassList(dest: VNode, src: VNode) {
     let destClassList = getClassList(dest);
@@ -81,6 +97,8 @@ export function mergeNode(dest: VNode, src: VNode) {
             }
         }
     }
+
+    mergeBounds(dest, src);
 
     // 这里要合并样式，将src合并到dest
     if (src.id) {

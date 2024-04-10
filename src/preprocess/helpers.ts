@@ -1,4 +1,4 @@
-import { numEq } from '../utils';
+import { float2Int, numEq } from '../utils';
 import { Node } from './page';
 
 export function isTextNode(node: Node) {
@@ -11,15 +11,6 @@ export function isImageNode(node: Node) {
 
 export function isSymbolNode(node: Node) {
     return node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance';
-}
-
-export function float2Int(n: number) {
-    return Math.round(n);
-}
-
-/** 保留两位小数 */
-export function float2Fixed(n: number) {
-    return Math.round(n * 100) / 100;
 }
 
 type NodeBounds = Pick<Node, 'bounds'>;

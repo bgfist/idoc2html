@@ -1,9 +1,8 @@
 import * as _ from 'lodash';
 import { Node } from './page';
-import { numEq } from '../utils';
+import { float2Int, numEq } from '../utils';
 import { R, VNode, getClassName } from '../vnode';
 import { Transparent, getLinearColor, getNormalColor } from './color';
-import { float2Int } from './helpers';
 
 export function stylishBox(node: Node, vnode: VNode) {
     stylishBackground(node, vnode);
@@ -116,7 +115,7 @@ function stylishBorder(node: Node, vnode: VNode) {
                 vnode.bounds.height += borderWidth * 2;
                 vnode.bounds.right += borderWidth;
                 vnode.bounds.bottom += borderWidth;
-            } else if (border.type === 'inside') {
+            } else if (border.type === 'center') {
                 const borderWidthHalf = Math.floor(borderWidth / 2);
                 vnode.bounds.left -= borderWidthHalf;
                 vnode.bounds.top -= borderWidthHalf;

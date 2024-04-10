@@ -2,6 +2,8 @@ import * as _ from 'lodash';
 import {
     assert,
     collectContinualRanges,
+    collectLongestRepeatRanges,
+    float2Int,
     groupWith,
     numEq,
     numGt,
@@ -32,8 +34,10 @@ import {
     isTableRow,
     isTextNode,
     newVNode,
-    refreshBoxBounds,
-    maySetTextAlign
+    maySetTextAlign,
+    isSingleLineText,
+    isMultiLineTextBr,
+    refreshBoxBounds
 } from '../vnode';
 import { defaultConfig } from '../main/config';
 
@@ -60,10 +64,13 @@ function isSimilarBoxX(a: VNode, b: VNode) {
 function isSimilarBoxY(a: VNode, b: VNode) {
     // TODO: 是否不用高度相等
     if (isTextNode(a) && isTextNode(b) && getTextAlign(a) === getTextAlign(b)) {
+        a = _.isArray(a.textContent) ? a.textContent[0] : a;
+        b = _.isArray(b.textContent) ? b.textContent[0] : b;
         return (
-            numEq(a.bounds.right, b.bounds.right) ||
-            numEq(a.bounds.left, b.bounds.left) ||
-            numEq(getMiddleLine(a, Direction.Row), getMiddleLine(b, Direction.Row))
+            _.isEqual(getTextFZLH(a), getTextFZLH(b)) &&
+            (numEq(a.bounds.right, b.bounds.right) ||
+                numEq(a.bounds.left, b.bounds.left) ||
+                numEq(getMiddleLine(a, Direction.Row), getMiddleLine(b, Direction.Row)))
         );
     }
     if (
@@ -165,12 +172,18 @@ function setListItemSizeSpec(vnode: VNode) {
 }
 
 /** 给文本list-item设置同样的尺寸大小和同样的间距 */
-function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side) {
+function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side, maxWidth = 0) {
     assert(isTextNode(textNodes[0]), '只有文本节点需要保持一致的宽度');
 
-    const maxWidth = _.max(textNodes.map(item => item.bounds.width))!;
+    if (!maxWidth) {
+        maxWidth = _.max(textNodes.map(item => item.bounds.width))!;
+    } else {
+        maxWidth -= float2Int(getTextFZLH(textNodes[0]).fontSize);
+    }
+
     _.each(textNodes, item => {
         item.bounds.width = maxWidth;
+        item.widthSpec = SizeSpec.Fixed;
         if (textAlign === 'center') {
             item.bounds.left -= Math.round((maxWidth - item.bounds.width) / 2);
             item.bounds.right = item.bounds.left + maxWidth;
@@ -185,7 +198,35 @@ function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side) {
 }
 
 /** 寻找重复节点，将其归成列表 */
-function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
+function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction, longest: boolean) {
+    const gaps = pairPrevNext(nodes).map(([prev, next]) => getItemGap(prev, next, direction));
+    gaps.push(NaN); // 最后多一个gap作为比较
+    const ranges = collectLongestRepeatRanges(gaps, numEq, longest ? Infinity : 2, true);
+
+    const lists = ranges.map(range => {
+        let listItems = nodes.slice(range.start, range.end);
+        if (range.ele > 1) {
+            const chunks = _.chunk(listItems, range.ele);
+            listItems = chunks.map(chunk => {
+                return newVNode({
+                    children: chunk,
+                    bounds: getBounds(chunk)
+                });
+            });
+        }
+
+        const listNode = newVNode({
+            children: listItems,
+            bounds: getBounds(listItems)
+        });
+        return listNode;
+    });
+
+    return lists;
+}
+
+/** 寻找重复节点，将其归成列表 */
+function groupTextListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
     type CompareType = 'gap' | Side;
     function getCompareNum(type: CompareType, prev: VNode, next: VNode) {
         if (type === 'gap') {
@@ -200,10 +241,18 @@ function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
         unreachable();
     }
     const isTextCompare = isTextNode(nodes[0]);
+
+    if (!isTextCompare) {
+        return [];
+    }
+
     const isTextCompareColumn = isTextCompare && direction === Direction.Column;
 
-    let compareContext: Array<{ type: CompareType; num: number }> | null = null;
-    function compareNode(prev: VNode, next: VNode) {
+    function compareNode(
+        prev: VNode,
+        next: VNode,
+        compareContext?: Array<{ type: CompareType; num: number }>
+    ) {
         if (!compareContext) {
             if (isTextCompare) {
                 compareContext = [
@@ -241,7 +290,12 @@ function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
                 }
                 // 竖向文本列表需要靠一边对齐
                 if (isTextCompareColumn) {
-                    compareContext = compareContext.filter(item => item.type === 'gap' || numEq(item.num, 0));
+                    compareContext = compareContext.filter(
+                        item => item.type === 'gap' || Math.abs(item.num) <= 1
+                    );
+                    if (compareContext.length < 2) {
+                        return false;
+                    }
                 }
             } else {
                 compareContext = [
@@ -254,16 +308,22 @@ function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
             return compareContext;
         }
 
-        if (!compareContext.length) {
-            return false;
-        }
-        // 竖向文本列表需要靠一边对齐, 且上下间距相等
-        if (isTextCompareColumn && (compareContext.length < 2 || compareContext[0].type !== 'gap')) {
+        const compareContext2 = compareContext.filter(item =>
+            numEq(item.num, getCompareNum(item.type, prev, next))
+        );
+
+        if (!compareContext2.length) {
             return false;
         }
 
-        compareContext = compareContext.filter(item => numEq(item.num, getCompareNum(item.type, prev, next)));
-        return compareContext;
+        // 竖向文本列表需要靠一边对齐, 且上下间距相等
+        if (isTextCompareColumn && (compareContext2.length < 2 || compareContext2[0].type !== 'gap')) {
+            return false;
+        }
+
+        compareContext.length = 0;
+        compareContext.push(...compareContext2);
+        return true;
     }
 
     const ranges = collectContinualRanges(nodes, compareNode, _.constant(true));
@@ -272,16 +332,24 @@ function groupListNodes(parent: VNode, nodes: VNode[], direction: Direction) {
         const compareContext = range.ele;
         const listItems = nodes.slice(range.start, range.end);
 
-        if (isTextCompareColumn) {
-            setListTextItemSameSizeAndGap(listItems, compareContext[1].type as Side);
-        } else if (compareContext[0].type !== 'gap') {
-            setListTextItemSameSizeAndGap(listItems, compareContext[0].type);
-        }
-
-        return newVNode({
+        const vnode = newVNode({
             bounds: getBounds(listItems),
             children: listItems
         });
+
+        if (isTextCompareColumn) {
+            vnode.__temp.textListAlign = {
+                type: compareContext[1].type as Side,
+                num: compareContext[1].num
+            };
+        } else if (compareContext[0].type !== 'gap') {
+            vnode.__temp.textListAlign = {
+                type: compareContext[0].type,
+                num: compareContext[0].num
+            };
+        }
+
+        return vnode;
     });
 }
 
@@ -379,6 +447,25 @@ function tryMergeFlexWrapNodes(parent: VNode, toMergeLists2: VNode[]) {
 function tryMergeListNodes(parent: VNode, toMergeLists2: VNode[], direction: Direction) {
     function mergeLists(toMergeLists: VNode[]) {
         console.debug(`找到合并的${direction === Direction.Row ? '横向' : '纵向'}列表`);
+
+        // TODO: 应该往两边占满间隙
+        toMergeLists.forEach(listItem => {
+            if (
+                listItem.__temp.textListAlign &&
+                (isSingleLineText(listItem.children[0]) || isMultiLineTextBr(listItem.children[0]))
+            ) {
+                if (direction === Direction.Row && !checkListInvalid(parent.children, listItem)) {
+                    setListTextItemSameSizeAndGap(
+                        listItem.children,
+                        listItem.__temp.textListAlign.type,
+                        listItem.__temp.textListAlign.num
+                    );
+                } else if (direction === Direction.Column) {
+                    setListTextItemSameSizeAndGap(listItem.children, listItem.__temp.textListAlign.type);
+                }
+            }
+        });
+
         const children = _.map(_.zip(..._.map(toMergeLists, 'children')), vChildren => {
             const group = vChildren as VNode[];
             const vnode = newVNode({
@@ -400,17 +487,30 @@ function tryMergeListNodes(parent: VNode, toMergeLists2: VNode[], direction: Dir
         return vnode;
     }
 
-    const ranges = collectContinualRanges(toMergeLists2, _.constant(true), range => {
-        const toMergeLists = toMergeLists2.slice(range.start, range.end);
-        const fakeListNode = {
-            bounds: getBounds(toMergeLists),
-            children: _.flatMap(toMergeLists, list => list.children)
-        } as VNode;
-        if (checkListInvalid(parent.children, fakeListNode)) {
-            return false;
+    const ranges = collectContinualRanges(
+        toMergeLists2,
+        direction === Direction.Row ?
+            _.constant(true)
+        :   (a, b) => {
+                // 纵向只能横着合并，不然会过度包装成纵向列表
+                return !isOverlapping(a, b);
+            },
+        range => {
+            const toMergeLists = toMergeLists2.slice(range.start, range.end);
+            const fakeListNode = {
+                bounds: getBounds(toMergeLists),
+                children: _.flatMap(toMergeLists, list => list.children)
+            } as VNode;
+            if (checkListInvalid(parent.children, fakeListNode)) {
+                return false;
+            }
+            // 全部都是文本
+            if (direction === Direction.Row && _.every(toMergeLists, list => isTextNode(list.children[0]))) {
+                return false;
+            }
+            return true;
         }
-        return true;
-    });
+    );
     return ranges.map(range => {
         const toMergeLists = toMergeLists2.slice(range.start, range.end);
         return {
@@ -439,7 +539,12 @@ function buildListDirection(vnode: VNode, direction: Direction) {
         });
     }
 
-    lines = lines.map(line => groupListNodes(vnode, line, direction));
+    lines = lines.map(line => {
+        if (isTextNode(line[0])) {
+            return groupTextListNodes(vnode, line, direction);
+        }
+        return groupListNodes(vnode, line, direction, false);
+    });
     // 现在lists里面都是列表容器
     const addPlainListNodes = _.flatten(lines);
     const addCombinedListNodes: VNode[] = [];
@@ -464,6 +569,7 @@ function buildListDirection(vnode: VNode, direction: Direction) {
             });
         }
     }
+
     const listGroups = Array.from(
         groupWith(addPlainListNodes, (a, b) => {
             return a.children.length === b.children.length && twoListAlign(a, b);
@@ -503,6 +609,21 @@ function buildListDirection(vnode: VNode, direction: Direction) {
             role: [direction === Direction.Row ? 'list-x' : 'list-y'],
             direction
         });
+        if (
+            list.__temp.textListAlign &&
+            (isSingleLineText(list.children[0]) || isMultiLineTextBr(list.children[0]))
+        ) {
+            if (direction === Direction.Row) {
+                setListTextItemSameSizeAndGap(
+                    list.children,
+                    list.__temp.textListAlign.type,
+                    list.__temp.textListAlign.num
+                );
+            } else if (direction === Direction.Column) {
+                setListTextItemSameSizeAndGap(list.children, list.__temp.textListAlign.type);
+            }
+        }
+        refreshBoxBounds(list);
         setListItemSizeSpec(list);
         _.each(list.children, child => {
             addRole(child, 'list-item');

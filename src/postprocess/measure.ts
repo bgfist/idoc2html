@@ -15,6 +15,7 @@ import {
     isListXContainer,
     isListYContainer,
     isMultiLineText,
+    isMultiLineTextBr,
     isRootNode,
     isSingleLineText,
     isTextNode,
@@ -54,6 +55,7 @@ function measureFlexLayout(parent: VNode) {
             parent.classList.push('flex-col');
         }
 
+        // TODO: 列表元素应保持高度一致，包括其flex对齐方式
         if (isListWrapContainer(parent)) {
             measureFlexWrapLayout(parent);
         } else if (isListXContainer(parent) || isListYContainer(parent)) {
@@ -246,6 +248,10 @@ function measureFlexWrapLayout(parent: VNode) {
 
     _.each(parent.children, child => {
         child.classList.push(R`mr-${xGap} mb-${yGap}`);
+
+        if (isMultiLineText(child) && !isMultiLineTextBr(child)) {
+            child.widthSpec = SizeSpec.Fixed;
+        }
     });
 }
 
@@ -254,9 +260,18 @@ function measureFlexListLayout(parent: VNode) {
         const childHeightSpec = parent.heightSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
         _.each(parent.children, child => {
             child.heightSpec = childHeightSpec;
-            child.bounds.top = parent.bounds.top;
-            child.bounds.bottom = parent.bounds.bottom;
-            child.bounds.height = parent.bounds.height;
+
+            if (!isImageOrSliceNode(child)) {
+                child.bounds.top = parent.bounds.top;
+                child.bounds.bottom = parent.bounds.bottom;
+                child.bounds.height = parent.bounds.height;
+            }
+
+            if (isMultiLineText(child) && !isMultiLineTextBr(child)) {
+                child.widthSpec = SizeSpec.Fixed;
+            } else if (!child.widthSpec) {
+                child.widthSpec = SizeSpec.Fixed;
+            }
         });
         const xGap = parent.children[1].bounds.left - parent.children[0].bounds.right;
         parent.classList.push(R`space-x-${xGap}`);
@@ -266,10 +281,16 @@ function measureFlexListLayout(parent: VNode) {
     } else if (isListYContainer(parent)) {
         const childWidthSpec = parent.widthSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
         _.each(parent.children, child => {
-            child.widthSpec = childWidthSpec;
-            child.bounds.left = parent.bounds.left;
-            child.bounds.right = parent.bounds.right;
-            child.bounds.width = parent.bounds.width;
+            if (!isImageOrSliceNode(child)) {
+                child.widthSpec = childWidthSpec;
+                child.bounds.left = parent.bounds.left;
+                child.bounds.right = parent.bounds.right;
+                child.bounds.width = parent.bounds.width;
+            }
+
+            if (!child.heightSpec) {
+                child.heightSpec = SizeSpec.Fixed;
+            }
         });
         const yGap = parent.children[1].bounds.top - parent.children[0].bounds.bottom;
         parent.classList.push(R`space-y-${yGap}`);

@@ -65,4 +65,12 @@ export interface VNode {
 
     /** 此节点相交的节点，面积比它更小。可以做绝对定位，也可以做负的margin */
     attachNodes: VNode[];
+
+    __temp: {
+        textListAlign?: {
+            type: Side;
+            num: number;
+        };
+        flex1Placeholder?: boolean;
+    };
 }

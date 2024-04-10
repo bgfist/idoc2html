@@ -7,7 +7,10 @@ type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** 仅便于调试 */
 export function newVNode(
-    vnode: OptionalKeys<VNode, 'children' | 'classList' | 'attributes' | 'style' | 'role' | 'attachNodes'>
+    vnode: OptionalKeys<
+        VNode,
+        'children' | 'classList' | 'attributes' | 'style' | 'role' | 'attachNodes' | '__temp'
+    >
 ): VNode {
     return {
         classList: [],
@@ -16,6 +19,7 @@ export function newVNode(
         attributes: {},
         style: {},
         role: [],
+        __temp: {},
         ...vnode
     };
 }
@@ -254,6 +258,19 @@ export function isGeneratedNode(vnode: VNode) {
     return !vnode.id;
 }
 
+/** 盒子有外框 */
+export function isNodeHasShell(vnode: VNode) {
+    return (
+        !vnode.textContent &&
+        (!_.isEmpty(vnode.style) ||
+            _.some(
+                getClassList(vnode),
+                className => className.startsWith('bg-') || className.startsWith('border')
+            ) ||
+            vnode === context.root)
+    );
+}
+
 export function isOriginalGhostNode(vnode: VNode) {
     return (
         isOriginalNode(vnode) && !vnode.textContent && _.isEmpty(vnode.style) && _.isEmpty(vnode.classList)
@@ -317,7 +334,9 @@ export function makeMultiLineTextClamp(textNode: VNode) {
 
 /** 是否是图片或切图，这才是真正尺寸固定的 */
 export function isImageOrSliceNode(vnode: VNode) {
-    return vnode.tagName === 'img' || _.some(vnode.classList, className => className.startsWith('bg-[url'));
+    return (
+        vnode.tagName === 'img' || _.some(getClassList(vnode), className => className.startsWith('bg-[url'))
+    );
 }
 
 /** 是否是裸盒子 */
@@ -349,17 +368,14 @@ export function isListContainer(vnode: VNode) {
     return isListXContainer(vnode) || isListYContainer(vnode) || isListWrapContainer(vnode);
 }
 
-export function makeListOverflowAuto(vnode: VNode, dimension: Dimension) {
-    vnode.classList.push(R`overflow-${dimension === 'width' ? 'x' : 'y'}-auto`);
+export function makeListOverflowAuto(vnode: VNode) {
+    assert(isListContainer(vnode), 'makeListOverflowAuto: not a list container');
+    const xy = isListWrapContainer(vnode) || isListYContainer(vnode) ? 'y' : 'x';
+    vnode.classList.push(R`overflow-${xy}-auto`);
     // TODO: 是否可以给一个utility-class，child:shrink-0
     _.each(vnode.children, son => {
         mayAddClass(son, 'shrink-0');
     });
-}
-
-/** 多行元素 */
-export function isFlexWrapLike(vnode: VNode) {
-    return isListWrapContainer(vnode) || isMultiLineText(vnode);
 }
 
 export function isListItem(vnode: VNode) {
@@ -417,7 +433,7 @@ export function isRootNode(vnode: VNode) {
 
 export function getBorderWidth(vnode: VNode) {
     const hasBorder = getClassName(vnode).match(/border($|\s|-\d+)/);
-    const borderWidth = hasBorder ? Number(hasBorder[1]) || 1 : 0;
+    const borderWidth = hasBorder ? -hasBorder[1] || 1 : 0;
     return borderWidth;
 }
 

@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import { assert, removeEle } from '../utils';
+import { assert, collectContinualRanges, filterMap, pairPrevNext, removeEle, removeEles } from '../utils';
 import {
     Direction,
     VNode,
+    VNodeBounds,
     getBounds,
     getCrossDirection,
     getMiddleLine,
@@ -10,9 +11,11 @@ import {
     isContainedWithinX,
     isContainedWithinY,
     isIntersectOverHalf,
+    isListWrapContainer,
+    isListYContainer,
+    isMultiLineText,
     isOverlapping,
     isSingleLineText,
-    isTextNode,
     newVNode
 } from '../vnode';
 import { mergeUnnessaryFlexBox } from './mergeNodes';
@@ -192,35 +195,83 @@ function getDivideIteration(
 function getDivideIteration2(
     nodes: VNode[],
     direction: Direction,
-    iteratee: (biggestNode: VNode, intersectingNodes: VNode[], leftoverNodes: VNode[]) => void | boolean
+    iteratee: (biggestNode: VNode, intersectingNodes: VNode[]) => void | boolean
 ) {
-    const dimensionFields = {
-        [Direction.Row]: {
-            dimension: 'width',
-            isContainedWithinFn: isContainedWithinX
-        },
-        [Direction.Column]: {
-            dimension: 'height',
-            isContainedWithinFn: isContainedWithinY
+    function getDivideRanges(nodes: VNode[], direction: Direction) {
+        const dimensionFields = {
+            [Direction.Row]: {
+                dimension: 'width',
+                isContainedWithinFn: isContainedWithinX
+            },
+            [Direction.Column]: {
+                dimension: 'height',
+                isContainedWithinFn: isContainedWithinY
+            }
+        } as const;
+        const { dimension, isContainedWithinFn } = dimensionFields[direction];
+        let ranges: Array<{
+            biggestNode: VNode;
+            intersectingNodes: VNode[];
+            bounds: VNodeBounds['bounds'];
+        }> = [];
+        const sortSide = direction === Direction.Row ? 'left' : 'top';
+
+        while (nodes.length) {
+            const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
+            const [intersectingNodes, leftoverNodes] = _.partition(
+                nodes,
+                node =>
+                    isContainedWithinFn(node, biggestNode) ||
+                    // 超过一半都侵入基准盒子了，我们就带上它
+                    // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
+                    isIntersectOverHalf(biggestNode, node, direction)
+            );
+            ranges.push({
+                biggestNode,
+                intersectingNodes,
+                bounds: getBounds(intersectingNodes)
+            });
+            nodes = leftoverNodes;
         }
-    } as const;
-    const { dimension, isContainedWithinFn } = dimensionFields[direction];
-    while (nodes.length) {
-        const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
-        const [intersectingNodes, leftoverNodes] = _.partition(
-            nodes,
-            node =>
-                isContainedWithinFn(node, biggestNode) ||
-                // 超过一半都侵入基准盒子了，我们就带上它
-                // TODO: 这个还得限制下，边框有问题，会导致横竖都能分在一起
-                isIntersectOverHalf(biggestNode, node, direction)
-        );
-        // 返回true表示跳出循环
-        if (iteratee(biggestNode, intersectingNodes, leftoverNodes)) {
-            break;
-        }
-        nodes = leftoverNodes;
+
+        ranges = _.sortBy(ranges, node => node.bounds[sortSide]);
+        return ranges;
     }
+
+    let ranges = getDivideRanges(nodes, direction);
+
+    const overlappingRanges = collectContinualRanges(
+        ranges,
+        (a, b) => {
+            return isOverlapping(a, b) && (a.intersectingNodes.length > 1 || b.intersectingNodes.length > 1);
+        },
+        _.constant(true)
+    );
+    const mergedRanges = filterMap(overlappingRanges, range => {
+        const overlappings = ranges.slice(range.start, range.end);
+        const intersectingNodes = _.flatten(overlappings.map(range => range.intersectingNodes));
+
+        // 换个方向可能也有交叉，就不换了
+        const crossRanges = getDivideRanges(intersectingNodes, getCrossDirection(direction));
+        if (
+            crossRanges.length <= 1 ||
+            pairPrevNext(crossRanges).some(([prev, next]) => isOverlapping(prev, next))
+        ) {
+            return false;
+        }
+
+        console.debug('这些节点需要换个方向划分');
+        removeEles(ranges, overlappings);
+
+        return {
+            biggestNode: overlappings[0].biggestNode, // 这里不重要
+            intersectingNodes
+        };
+    });
+
+    _.concat(ranges, mergedRanges).forEach(range => {
+        iteratee(range.biggestNode, range.intersectingNodes);
+    });
 }
 
 /** 将子节点按行或列归组 */
@@ -228,9 +279,6 @@ function groupNodes(parent: VNode, checkCrossCount?: boolean) {
     let nodes = parent.children;
     let direction = parent.direction!;
     assert(!!nodes.length && !!direction, '有children才能归组');
-
-    // 看下能不能按原方向划分
-    // parent.direction = direction = decideFlexDirection(nodes, direction);
 
     const prevCrossCount = nodes.length;
     const children: VNode[] = [];
@@ -306,7 +354,18 @@ export function buildFlexBox(parent: VNode) {
         // TODO: 单个子节点可能更适合用Row
         parent.direction = Direction.Column;
         if (parent.children.length === 1) {
-            parent.direction = Direction.Row;
+            const child = parent.children[0];
+
+            if (isListWrapContainer(child)) {
+                parent.direction = Direction.Column;
+            } else if (child.direction) {
+                // 跟列表方向保持一致
+                parent.direction = child.direction;
+            } else if (isSingleLineText(child)) {
+                parent.direction = Direction.Row;
+            } else if (isMultiLineText(child)) {
+                parent.direction = Direction.Column;
+            }
         }
         groupNodes(parent);
         // 只有一个子元素

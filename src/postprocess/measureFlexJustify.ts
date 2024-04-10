@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { allNumsEqual, assert, numEq, numGt, numLte } from '../utils';
+import { allNumsEqual, assert, float2Int, numEq, numGt, numLte } from '../utils';
 import {
     Dimension,
     DimensionSpec,
@@ -10,14 +10,25 @@ import {
     VNode,
     getBorderWidth,
     getClassList,
-    isFlexWrapLike,
+    getTextFZLH,
+    isCrossDirection,
+    isListWrapContainer,
+    isListXContainer,
+    isListYContainer,
+    isMultiLineText,
     isMultiLineTextBr,
+    isNodeHasShell,
     isRootNode,
+    isSingleLineText,
+    makeListOverflowAuto,
+    makeMultiLineTextClamp,
+    makeSingleLineTextEllipsis,
     mayAddClass,
+    maySetTextAlign,
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
-import { autoMaybeClamp, expandOverflowChild } from './measureOverflow';
+import { defaultConfig } from '../main';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
@@ -25,7 +36,6 @@ export function measureFlexJustify(parent: VNode) {
     const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
 
     decideChildrenJustifySpec(parent, justifySpec, justifyDimension);
-    expandOverflowChildrenIfPossible(parent, justifySpec, justifyDimension);
 
     const { startGap, endGap, gaps, equalMiddleGaps, justifySide, ranges } = getGapsAndSide(parent);
 
@@ -60,87 +70,233 @@ export function measureFlexJustify(parent: VNode) {
         !hasConstrainedChilds;
 
     if (needFlex1) {
-        maybeInsertFlex1Node(parent, isParentAutoMinSize, justifySide, startGap, endGap, gaps, ranges);
+        maybeInsertFlex1Node(parent, justifySide, startGap, endGap, gaps, ranges);
     }
 
     sideJustify(parent, isParentAutoMinSize, justifySpec, justifySide, startGap, endGap, gaps, needEqualGaps);
+
+    const constrainedChildren = _.filter(
+        parent.children,
+        child => child[justifySpec] === SizeSpec.Constrained
+    );
+    assert(constrainedChildren.length <= 1, 'should only have one constrained child');
+    const flex1Child = constrainedChildren[0];
+    if (flex1Child) {
+        if (flex1Child.__temp.flex1Placeholder && isParentAutoMinSize) {
+            const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
+            flex1Child.classList.push(
+                R`grow ${justifyDimension.slice(0, 1)}-${flex1Child.bounds[justifyDimension]}`
+            );
+        } else {
+            flex1Child.classList.push(R`flex-1`);
+        }
+    }
+}
+
+/** auto元素是否能被截断 */
+function autoMaybeClamp(child: VNode, spec: DimensionSpec) {
+    return (
+        (spec === 'widthSpec' && isSingleLineText(child)) ||
+        (spec === 'widthSpec' && isListXContainer(child)) ||
+        (spec === 'heightSpec' && isListYContainer(child)) ||
+        (spec === 'heightSpec' && isListWrapContainer(child)) ||
+        (spec === 'heightSpec' && isMultiLineText(child))
+    );
 }
 
 /** 重新决定子元素的尺寸 */
 function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, justifyDimension: Dimension) {
-    _.each(parent.children, child => {
-        if (child[justifySpec] === SizeSpec.Constrained) {
-            if (parent[justifySpec] === SizeSpec.Fixed) {
-                child[justifySpec] = SizeSpec.Fixed;
-            }
-        } else if (child[justifySpec] === SizeSpec.Auto) {
-            // 注意列表元素的alignSpec都是Fixed或者都是Constrained，表示他们的尺寸是一样的
-            if (!autoMaybeClamp(child, justifySpec)) {
-                if (isFlexWrapLike(child)) {
-                    assert(justifySpec === 'widthSpec', 'flexWrap和多行文本只有横向才能不被截断');
+    assert(
+        !_.some(parent.children, child => child[justifySpec] === SizeSpec.Constrained),
+        'Constrained children should be decided after justify.'
+    );
 
-                    if (isMultiLineTextBr(child)) {
-                        // 这种情况自动撑开即可，是手动换行的
-                    } else if (parent[justifySpec] === SizeSpec.Constrained) {
-                        // 允许auto元素随父节点拉伸
-                        child[justifySpec] = SizeSpec.Constrained;
-                    } else {
-                        console.debug(
-                            '多行元素想撑开,父元素又是auto或fixed,还得固定多行元素的宽度,不然没法换行'
-                        );
-                        // 这里也可以用最小宽度，但是没用；包一层容器也没用
-                        child[justifySpec] = SizeSpec.Fixed;
-                    }
-                } else if (
-                    parent[justifySpec] === SizeSpec.Constrained &&
-                    canChildStretchWithParent(child, parent, justifyDimension)
+    // 扩充最有可能扩充的Auto元素为flex1
+    if (parent[justifySpec] === SizeSpec.Constrained && parent.children.length > 2) {
+        const { startGap, endGap, gaps } = getGapsAndSide(parent);
+
+        const autoChildren = _.reduce(
+            parent.children,
+            (arr, child, i) => {
+                if (
+                    child[justifySpec] === SizeSpec.Auto &&
+                    (autoMaybeClamp(child, justifySpec) ||
+                        (isCrossDirection(child, parent) && !isNodeHasShell(child)))
                 ) {
+                    // 只处理这些情况
+                } else {
+                    return arr;
+                }
+
+                const beforeGap = i === 0 ? startGap : gaps[i - 1];
+                const afterGap = i === parent.children.length - 1 ? endGap : gaps[i];
+                arr.push({
+                    dimension: beforeGap + child.bounds[justifyDimension] + afterGap,
+                    beforeGap,
+                    afterGap,
+                    child
+                });
+                return arr;
+            },
+            [] as any[]
+        );
+
+        const autoChild = _.maxBy(autoChildren, 'dimension');
+        if (autoChild && autoChild.dimension > parent.bounds[justifyDimension] / 2) {
+            if (isSingleLineText(autoChild.child)) {
+                autoChild.child.widthSpec = SizeSpec.Constrained;
+
+                if (autoChild.beforeGap > autoChild.afterGap) {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.textClamp ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            Math.min(
+                                autoChild.beforeGap,
+                                float2Int(getTextFZLH(autoChild.child).fontSize / 2)
+                            )
+                        :   0;
+                    autoChild.child.bounds.left -= autoChild.beforeGap - marginPreserve;
+                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                    maySetTextAlign(autoChild.child, 'right');
+                } else {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.textClamp ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            Math.min(autoChild.afterGap, float2Int(getTextFZLH(autoChild.child).fontSize / 2))
+                        :   0;
+                    autoChild.child.bounds.right += autoChild.afterGap - marginPreserve;
+                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                }
+
+                defaultConfig.codeGenOptions.textClamp && makeSingleLineTextEllipsis(autoChild.child);
+            } else if (isListXContainer(autoChild.child) && autoChild.afterGap > autoChild.beforeGap) {
+                autoChild.child.widthSpec = SizeSpec.Constrained;
+                const marginPreserve =
+                    (
+                        defaultConfig.codeGenOptions.listOverflowAuto ||
+                        defaultConfig.codeGenOptions.overflowMargin
+                    ) ?
+                        Math.min(autoChild.afterGap, 10)
+                    :   0;
+
+                autoChild.child.bounds.right += autoChild.afterGap - marginPreserve;
+                autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+
+                defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(autoChild.child);
+            } else if (isListYContainer(autoChild.child) && autoChild.afterGap > autoChild.beforeGap) {
+                autoChild.child.heightSpec = SizeSpec.Constrained;
+                const marginPreserve =
+                    (
+                        defaultConfig.codeGenOptions.listOverflowAuto ||
+                        defaultConfig.codeGenOptions.overflowMargin
+                    ) ?
+                        Math.min(autoChild.afterGap, 10)
+                    :   0;
+
+                autoChild.child.bounds.bottom += autoChild.afterGap - marginPreserve;
+                autoChild.child.bounds.height = autoChild.child.bounds.bottom - autoChild.child.bounds.top;
+
+                defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(autoChild.child);
+            } else if (isListWrapContainer(autoChild.child) && autoChild.afterGap > autoChild.beforeGap) {
+                autoChild.child.heightSpec = SizeSpec.Constrained;
+                const marginPreserve =
+                    (
+                        defaultConfig.codeGenOptions.listOverflowAuto ||
+                        defaultConfig.codeGenOptions.overflowMargin
+                    ) ?
+                        Math.min(autoChild.afterGap, 10)
+                    :   0;
+
+                autoChild.child.bounds.bottom += autoChild.afterGap - marginPreserve;
+                autoChild.child.bounds.height = autoChild.child.bounds.bottom - autoChild.child.bounds.top;
+
+                defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(autoChild.child);
+            } else if (isMultiLineText(autoChild.child) && autoChild.afterGap > autoChild.beforeGap) {
+                autoChild.child.heightSpec = SizeSpec.Constrained;
+                const marginPreserve =
+                    (
+                        defaultConfig.codeGenOptions.listOverflowAuto ||
+                        defaultConfig.codeGenOptions.overflowMargin
+                    ) ?
+                        Math.min(autoChild.afterGap, 10)
+                    :   0;
+
+                autoChild.child.bounds.bottom += autoChild.afterGap - marginPreserve;
+                autoChild.child.bounds.height = autoChild.child.bounds.bottom - autoChild.child.bounds.top;
+
+                defaultConfig.codeGenOptions.textClamp && makeMultiLineTextClamp(autoChild.child);
+            } else {
+                console.debug('justify扩充无外壳盒子');
+                if (autoChild.beforeGap > autoChild.afterGap) {
+                    autoChild.child.bounds.left -= autoChild.beforeGap;
+                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                    maySetTextAlign(autoChild.child, 'right');
+                } else {
+                    autoChild.child.bounds.right += autoChild.afterGap;
+                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                }
+            }
+        }
+    }
+
+    const hasConstrainedChilds = _.some(
+        parent.children,
+        child => child[justifySpec] === SizeSpec.Constrained
+    );
+
+    // TODO: 要不要处理多个flex1呢
+    /** 负边距可能会导致有多个超过一半尺寸的子节点 */
+    function checkIsOverHalfChild(child: VNode) {
+        const overHalfChildren = parent.children.filter(child =>
+            canChildStretchWithParent(child, parent, justifyDimension)
+        );
+        return overHalfChildren.length === 1 && overHalfChildren[0] === child;
+    }
+
+    _.each(parent.children, child => {
+        if (child[justifySpec] === SizeSpec.Auto && !autoMaybeClamp(child, justifySpec)) {
+            if (isListWrapContainer(child)) {
+                if (parent[justifySpec] === SizeSpec.Constrained && !hasConstrainedChilds) {
                     // 允许auto元素随父节点拉伸
                     child[justifySpec] = SizeSpec.Constrained;
+                } else {
+                    console.debug('多行列表想撑开,父元素又是auto或fixed,还得固定多行元素的宽度,不然没法换行');
+                    // 这里也可以用最小宽度，但是没用；包一层容器也没用
+                    child[justifySpec] = SizeSpec.Fixed;
                 }
+            } else if (isMultiLineText(child) && !isMultiLineTextBr(child)) {
+                if (parent[justifySpec] === SizeSpec.Constrained && !hasConstrainedChilds) {
+                    // 允许auto元素随父节点拉伸
+                    child[justifySpec] = SizeSpec.Constrained;
+                } else {
+                    console.debug('多行文本想撑开,父元素又是auto或fixed,还得固定多行元素的宽度,不然没法换行');
+                    // 这里也可以用最小宽度，但是没用；包一层容器也没用
+                    child[justifySpec] = SizeSpec.Fixed;
+                }
+            } else if (
+                !hasConstrainedChilds &&
+                parent[justifySpec] === SizeSpec.Constrained &&
+                checkIsOverHalfChild(child)
+            ) {
+                // 允许auto元素随父节点拉伸
+                child[justifySpec] = SizeSpec.Constrained;
             }
         } else if (!child[justifySpec]) {
             assert(!child.children.length, '只有裸盒子才没设置尺寸');
-            if (parent[justifySpec] === SizeSpec.Fixed) {
-                child[justifySpec] = SizeSpec.Fixed;
-            } else if (
+            if (
+                !hasConstrainedChilds &&
                 parent[justifySpec] === SizeSpec.Constrained &&
-                canChildStretchWithParent(child, parent, justifyDimension)
+                checkIsOverHalfChild(child)
             ) {
                 child[justifySpec] = SizeSpec.Constrained;
             } else {
                 child[justifySpec] = SizeSpec.Fixed;
             }
         }
-    });
-}
-
-/** 如果设置了超出滚动，则可能需要设置auto元素为flex1 */
-function expandOverflowChildrenIfPossible(
-    parent: VNode,
-    justifySpec: DimensionSpec,
-    justifyDimension: Dimension
-) {
-    if (parent[justifySpec] !== SizeSpec.Constrained) {
-        return;
-    }
-
-    _.each(parent.children, (child, i) => {
-        // 只扩充auto子节点
-        if (child[justifySpec] !== SizeSpec.Auto) {
-            return;
-        }
-
-        expandOverflowChild({
-            child,
-            spec: justifySpec,
-            dimension: justifyDimension,
-            // 不需要margin
-            margin: {
-                marginStart: 0,
-                marginEnd: 0
-            }
-        });
     });
 }
 
@@ -160,7 +316,7 @@ function getGapsAndSide(parent: VNode) {
     const endGap = gaps.pop()!;
     const equalMiddleGaps = allNumsEqual(gaps);
     const justifySide: Side =
-        numEq(startGap, endGap) ? 'center'
+        numEq(startGap, endGap) || Math.abs(startGap - endGap) / Math.max(startGap, endGap) < 0.11 ? 'center'
         : numLte(startGap, endGap) ? 'start'
         : ('end' as const);
 
@@ -177,7 +333,6 @@ function getGapsAndSide(parent: VNode) {
 /** 尝试插入flex1节点 */
 function maybeInsertFlex1Node(
     parent: VNode,
-    flex1MinSize: boolean,
     justifySide: 'start' | 'end' | 'center',
     startGap: number,
     endGap: number,
@@ -230,13 +385,15 @@ function maybeInsertFlex1Node(
             [ef]: pos,
             [ssf]: ssfn,
             [eef]: eefn,
-            // 这里是个trick，如果不需要最小高度，则设置为0
-            [spec1]: flex1MinSize ? eefn - ssfn : 0,
+            [spec1]: eefn - ssfn,
             [spec2]: 0
         } as any,
         classList: [],
         [`${spec1}Spec`]: SizeSpec.Constrained,
-        [`${spec2}Spec`]: SizeSpec.Fixed
+        [`${spec2}Spec`]: SizeSpec.Fixed,
+        __temp: {
+            flex1Placeholder: true
+        }
     });
 
     // 将flex1元素的左右gap设为0
@@ -321,32 +478,5 @@ function sideJustify(
                 child.classList.push(R`m${ee}-${gaps[i]}`);
             });
         }
-    }
-
-    // 对所有灵活伸缩的元素设置flex1
-    _.each(parent.children, child => {
-        if (child[justifySpec] === SizeSpec.Constrained) {
-            const justifyDimension = parent.direction === Direction.Row ? 'width' : 'height';
-            child.classList.push(R`grow ${justifyDimension.slice(0, 1)}-${child.bounds[justifyDimension]}`);
-
-            // TODO: 同时有多个Constrained，则可以将其中一个减少一两像素，不然很有可能会导致空间不足
-        }
-    });
-
-    setSiblingsNoShrink(parent, justifySpec);
-}
-
-/** 设置其他兄弟节点不能压缩 */
-function setSiblingsNoShrink(parent: VNode, justifySpec: DimensionSpec) {
-    if (parent[justifySpec] !== SizeSpec.Constrained) {
-        return;
-    }
-
-    const [markNodes, noShrinkSiblingNodes] = _.partition(
-        parent.children,
-        child => child[justifySpec] === SizeSpec.Constrained
-    );
-    if (markNodes.length) {
-        _.each(noShrinkSiblingNodes, child => mayAddClass(child, 'shrink-0'));
     }
 }

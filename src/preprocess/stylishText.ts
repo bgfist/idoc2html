@@ -12,8 +12,7 @@ import {
     newVNode
 } from '../vnode';
 import { getNormalColor } from './color';
-import { float2Int } from './helpers';
-import { numEq, numLt } from '../utils';
+import { float2Int, isInBrowser, numLt, numLte } from '../utils';
 
 export function stylishText(node: Node, vnode: VNode) {
     // TODO: 如何处理其他样式
@@ -45,16 +44,24 @@ export function stylishText(node: Node, vnode: VNode) {
         vnode.textMultiLine = true;
         // 单词超长需换行, 这个得视情况加
         // vnode.classList.push('break-words');
+
+        const textAlign = node.text.styles[0].align;
+        if (textAlign !== 'left') {
+            vnode.classList.push(`text-${textAlign}`);
+        }
     } else {
         if (_.isString(vnode.textContent)) {
             // 有的文本框跟文字本身宽度并不一致，会多出一些空间
             // 先只考虑单行文本，去除其多余宽度
             // 先暂时保留其text-align，后面扩充宽度时可能有用
-            const contentWidth = float2Int(
-                calculateCharacterWidth(vnode.textContent) * +node.text.styles[0].font.size
-            );
+            const contentWidth =
+                isInBrowser() ?
+                    calculateCharacterWidth2(node.text.styles[0].value, node.text.styles[0])
+                :   float2Int(
+                        calculateCharacterWidth(node.text.styles[0].value) * +node.text.styles[0].font.size
+                    );
 
-            if (!numEq(contentWidth, node.bounds.width)) {
+            if (numLte(contentWidth, node.bounds.width)) {
                 console.warn('有文本框宽度多余，调整宽度', vnode.textContent);
                 if (node.text.styles[0].align === 'left') {
                     vnode.bounds.width = contentWidth;
@@ -119,9 +126,9 @@ function stylishTextSpan(text: TextStyle, vnode: VNode) {
     if (text.fontStyles.lineThrough) {
         textNode.classList.push('line-through');
     }
-    if (text.align !== 'left') {
-        textNode.classList.push(`text-${text.align}`);
-    }
+    // if (text.align !== 'left') {
+    //     textNode.classList.push(`text-${text.align}`);
+    // }
     return textNode;
 }
 
@@ -158,6 +165,22 @@ function calculateCharacterWidth(str: string) {
             width += 1;
         }
     }
+    return width;
+}
+
+/** 计算文本的宽度 */
+function calculateCharacterWidth2(str: string, text: TextStyle) {
+    const textNode = window.document.createElement('span');
+    textNode.style.fontSize = `${text.font.size}px`;
+    textNode.style.fontFamily = 'Microsoft YaHei';
+    textNode.style.letterSpacing = `${text.space.letterSpacing}px`;
+    textNode.style.position = 'fixed';
+    textNode.style.whiteSpace = 'nowrap';
+    textNode.style.visibility = 'hidden';
+    textNode.innerText = str;
+    document.body.appendChild(textNode);
+    const width = textNode.offsetWidth;
+    document.body.removeChild(textNode);
     return width;
 }
 

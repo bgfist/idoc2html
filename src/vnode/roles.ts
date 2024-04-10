@@ -22,6 +22,8 @@ export function maybeDivider(vnode: VNode) {
 
 /** 判断节点是不是边框 */
 export function maybeBorder(child: VNode, parent: VNode) {
+    return false;
+
     if (numEq(child.bounds.width, 1) && numGt(child.bounds.height, 5)) {
         const attachLeftOrRight =
             numEq(child.bounds.left, parent.bounds.left) || numEq(child.bounds.right, parent.bounds.right);
