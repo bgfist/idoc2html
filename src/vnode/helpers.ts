@@ -261,13 +261,10 @@ export function isGeneratedNode(vnode: VNode) {
 /** 盒子有外框 */
 export function isNodeHasShell(vnode: VNode) {
     return (
-        !vnode.textContent &&
-        (!_.isEmpty(vnode.style) ||
-            _.some(
-                getClassList(vnode),
-                className => className.startsWith('bg-') || className.startsWith('border')
-            ) ||
-            vnode === context.root)
+        _.some(
+            getClassList(vnode),
+            className => className.startsWith('bg-') || className.startsWith('border')
+        ) || vnode === context.root
     );
 }
 

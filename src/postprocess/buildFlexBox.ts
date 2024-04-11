@@ -361,10 +361,10 @@ export function buildFlexBox(parent: VNode) {
             } else if (child.direction) {
                 // 跟列表方向保持一致
                 parent.direction = child.direction;
-            } else if (isSingleLineText(child)) {
-                parent.direction = Direction.Row;
             } else if (isMultiLineText(child)) {
                 parent.direction = Direction.Column;
+            } else {
+                parent.direction = Direction.Row;
             }
         }
         groupNodes(parent);

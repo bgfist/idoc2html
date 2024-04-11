@@ -11,6 +11,7 @@ import {
     getBorderWidth,
     getClassList,
     getTextFZLH,
+    hasClass,
     isCrossDirection,
     isListWrapContainer,
     isListXContainer,
@@ -146,7 +147,7 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
             if (isSingleLineText(autoChild.child)) {
                 autoChild.child.widthSpec = SizeSpec.Constrained;
 
-                if (autoChild.beforeGap > autoChild.afterGap) {
+                if (autoChild.beforeGap > autoChild.afterGap && !hasClass(autoChild.child, 'text-ellipsis')) {
                     const marginPreserve =
                         (
                             defaultConfig.codeGenOptions.textClamp ||

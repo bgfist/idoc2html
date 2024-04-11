@@ -412,15 +412,6 @@ function tryMergeFlexWrapNodes(parent: VNode, toMergeLists2: VNode[]) {
         });
 
         setListItemSizeSpec(vnode);
-
-        const xGap = toMergeLists[0].children[1].bounds.left - toMergeLists[0].children[0].bounds.right;
-        // flex-wrap应该留出右边的间距，多留两像素保持换行与设计稿一致
-        vnode.bounds.right += xGap + 2;
-        vnode.bounds.width = vnode.bounds.right - vnode.bounds.left;
-        // 下面也要留出margin
-        vnode.bounds.bottom += yGap;
-        vnode.bounds.height = vnode.bounds.bottom - vnode.bounds.top;
-
         return vnode;
     }
     const ranges = collectContinualRanges(toMergeLists2, compareList, range => {
@@ -653,7 +644,8 @@ function maybeTable(parent: VNode, rows: VNode[][]) {
                 rowA.length === rowB.length &&
                 twoListAlign(listA, listB) &&
                 numGte(listB.bounds.top - listA.bounds.bottom, 0) &&
-                _.every(rowA, isTextNode)
+                _.every(rowA, isTextNode) &&
+                _.every(rowB, isTextNode)
             );
         },
         range => {

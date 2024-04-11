@@ -53,7 +53,7 @@ const TAB = '  ';
  * @param recursive 是否递归生成
  * @returns
  */
-export function VNode2Code(vnode: VNode, level: number, recursive: boolean): string {
+export function VNode2Code(vnode: VNode, level: number): string {
     mayLiftVoidElement(vnode);
     const tab = TAB.repeat(level);
     let {
@@ -103,15 +103,15 @@ export function VNode2Code(vnode: VNode, level: number, recursive: boolean): str
     children = _.concat(children || [], attachNodes || []);
 
     if (_.isArray(textContent)) {
-        textContent = `\n${_.map(textContent, n => VNode2Code(n, level + 1, recursive)).join('\n')}\n${tab}`;
+        textContent = `\n${_.map(textContent, n => VNode2Code(n, level + 1)).join('\n')}\n${tab}`;
     }
 
-    if (children && children.length && recursive) {
+    if (children && children.length) {
         // 文本节点可能有依附的绝对定位元素, 文本保持最高层级
         if (textContent) {
             textContent = `\n${tab}${TAB}<div class="relative z-10">${textContent}</div>`;
         }
-        return `${tab}<${tagName} ${attributesString}>${textContent}\n${children.map(n => VNode2Code(n, level + 1, recursive)).join('\n')}\n${tab}</${tagName}>`;
+        return `${tab}<${tagName} ${attributesString}>${textContent}\n${children.map(n => VNode2Code(n, level + 1)).join('\n')}\n${tab}</${tagName}>`;
     }
     return `${tab}<${tagName} ${attributesString}>${textContent}</${tagName}>`;
 }

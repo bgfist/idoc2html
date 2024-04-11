@@ -208,22 +208,31 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                     marginSide,
                     marginPreserve
                 });
-                child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                if (marginSide === 'center') {
+                    child.classList.push('content-center');
+                } else {
+                    child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                }
                 defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
             } else if (alignSpec === 'heightSpec' && isMultiLineText(child)) {
-                const marginPreserve =
-                    defaultConfig.codeGenOptions.textClamp || defaultConfig.codeGenOptions.overflowMargin ?
-                        getTextFZLH(child).lineHeight
-                    :   0;
-                expandAutoToConstrained({
-                    child,
-                    alignSpec,
-                    margin,
-                    marginSide: 'start',
-                    marginPreserve
-                });
-                child.classList.push(R`pt-${margin.marginStart}`);
-                defaultConfig.codeGenOptions.textClamp && makeMultiLineTextClamp(child);
+                if (marginSide !== 'center') {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.textClamp ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            getTextFZLH(child).lineHeight
+                        :   0;
+                    expandAutoToConstrained({
+                        child,
+                        alignSpec,
+                        margin,
+                        marginSide: 'start',
+                        marginPreserve
+                    });
+                    child.classList.push(R`pt-${margin.marginStart}`);
+                    defaultConfig.codeGenOptions.textClamp && makeMultiLineTextClamp(child);
+                }
             } else if (
                 parent[alignSpec] === SizeSpec.Constrained &&
                 isGeneratedNode(child) &&
@@ -236,11 +245,25 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                     marginPreserve: 0,
                     marginSide: 'center'
                 });
-            } else if (
-                isNodeHasShell(parent) &&
-                isNodeHasShell(child) &&
-                canChildStretchWithParent(child, parent, alignDimension)
-            ) {
+
+                if (isListXContainer(child) || isListWrapContainer(child)) {
+                    const pt = child.children[0].bounds.top - child.bounds.top;
+                    const pb = child.children[0].bounds.bottom - child.bounds.bottom;
+                    if (numEq(pt, pb)) {
+                        child.classList.push(R`py-${pt}`);
+                    } else {
+                        child.classList.push(R`pt-${pt} pb-${pb}`);
+                    }
+                } else if (isListYContainer(child)) {
+                    const pl = child.children[0].bounds.left - child.bounds.left;
+                    const pr = child.children[0].bounds.right - child.bounds.right;
+                    if (numEq(pl, pr)) {
+                        child.classList.push(R`px-${pl}`);
+                    } else {
+                        child.classList.push(R`pl-${pl} pr-${pr}`);
+                    }
+                }
+            } else if (isNodeHasShell(parent) && canChildStretchWithParent(child, parent, alignDimension)) {
                 // 允许auto元素随父节点拉伸
                 child[alignSpec] = SizeSpec.Constrained;
             }

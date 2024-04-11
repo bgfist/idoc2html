@@ -2,10 +2,21 @@ import _ from 'lodash';
 import { VNode2Code } from '../generator/html';
 import { Page } from '../preprocess/page';
 import { postprocess } from '../postprocess';
-import { VNode, isRole } from '../vnode';
+import { VNode, isMultiLineText, isSingleLineText, makeSingleLineTextNoWrap } from '../vnode';
 import { defaultConfig, BuildStage, debug, Config } from './config';
 import { assert } from '../utils';
 import { pickOnlyDialogIfDetected, preprocess } from '../preprocess';
+
+function unwrapAllNodes(vnode: VNode) {
+    const vnodes: VNode[] = [];
+    const collectVNodes = (vnode: VNode) => {
+        vnodes.push(vnode);
+        _.each(vnode.children, collectVNodes);
+        vnode.children = [];
+    };
+    _.each(vnode.children, collectVNodes);
+    return vnodes;
+}
 
 function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
     if (parent) {
@@ -17,9 +28,16 @@ function makeAbsolute(vnode: VNode, parent?: VNode, isAttachNode?: boolean) {
                 ...vnode.attributes
             };
         }
-        vnode.classList.push(
-            `${vnode.tagName === 'span' ? '' : 'absolute'} left-[${left}px] top-[${top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
-        );
+        if (isSingleLineText(vnode)) {
+            makeSingleLineTextNoWrap(vnode);
+        } else if (isMultiLineText(vnode)) {
+            vnode.bounds.width += 1;
+        }
+        if (vnode.tagName !== 'span') {
+            vnode.classList.push(
+                `absolute left-[${left}px] top-[${top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
+            );
+        }
     } else {
         vnode.classList.push(`relative w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`);
     }
@@ -49,20 +67,7 @@ export function iDocJson2Html(page: Page, config?: Config) {
 
     if (debug.buildToStage === BuildStage.Pre) {
         if (!debug.keepOriginalTree) {
-            const vnodes: VNode[] = [];
-            const collectVNodes = (vnode: VNode) => {
-                vnode.classList.push(
-                    `${
-                        isRole(vnode, 'page') ? 'relative'
-                        : vnode.tagName === 'span' ? ''
-                        : 'absolute'
-                    } left-[${vnode.bounds.left}px] top-[${vnode.bounds.top}px] w-[${vnode.bounds.width}px] h-[${vnode.bounds.height}px]`
-                );
-                vnodes.push(vnode);
-                _.each(vnode.children, collectVNodes);
-            };
-            collectVNodes(vnode);
-            vnodes.sort((a, b) => {
+            vnode.children = unwrapAllNodes(vnode).sort((a, b) => {
                 if (a.bounds.top === b.bounds.top) {
                     if (a.bounds.left === b.bounds.left) {
                         return 0;
@@ -73,11 +78,13 @@ export function iDocJson2Html(page: Page, config?: Config) {
                     return a.bounds.top - b.bounds.top;
                 }
             });
-            return vnodes.map(n => VNode2Code(n, 0, false)).join('\n');
-        } else {
-            makeAbsolute(vnode);
-            return VNode2Code(vnode, 0, true);
         }
+        makeAbsolute(vnode);
+        return VNode2Code(vnode, 0);
+    }
+
+    if (!debug.keepOriginalTree) {
+        vnode.children = unwrapAllNodes(vnode);
     }
 
     postprocess(vnode);
@@ -86,5 +93,5 @@ export function iDocJson2Html(page: Page, config?: Config) {
         makeAbsolute(vnode);
     }
 
-    return VNode2Code(vnode, 0, true);
+    return VNode2Code(vnode, 0);
 }

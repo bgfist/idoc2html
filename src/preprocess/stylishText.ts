@@ -65,12 +65,12 @@ export function stylishText(node: Node, vnode: VNode) {
                 console.warn('有文本框宽度多余，调整宽度', vnode.textContent);
                 if (node.text.styles[0].align === 'left') {
                     vnode.bounds.width = contentWidth;
-                    vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+                    vnode.bounds.right = vnode.bounds.left + contentWidth;
                 } else if (node.text.styles[0].align === 'center') {
-                    vnode.bounds.width = contentWidth;
                     vnode.bounds.left =
-                        vnode.bounds.left - Math.floor((vnode.bounds.width - contentWidth) / 2);
-                    vnode.bounds.right = vnode.bounds.left + vnode.bounds.width;
+                        vnode.bounds.left + Math.floor((vnode.bounds.width - contentWidth) / 2);
+                    vnode.bounds.width = contentWidth;
+                    vnode.bounds.right = vnode.bounds.left + contentWidth;
                 } else if (node.text.styles[0].align === 'right') {
                     vnode.bounds.width = contentWidth;
                     vnode.bounds.left = vnode.bounds.right - contentWidth;
@@ -198,14 +198,12 @@ function setTextClampIfDetectedEllipis(textNode: VNode) {
         const textContent = getTextContent(textNode);
         if (isEllpsisContent(textContent)) {
             console.debug('检测到单行文本省略号');
-            textNode.widthSpec = SizeSpec.Fixed;
             makeSingleLineTextEllipsis(textNode);
         }
     } else if (isMultiLineText(textNode)) {
         const textContent = getTextContent(textNode);
         if (isEllpsisContent(textContent)) {
             console.debug('检测到多行文本省略号');
-            textNode.heightSpec = SizeSpec.Fixed;
             makeMultiLineTextClamp(textNode);
         }
     }

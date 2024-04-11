@@ -245,10 +245,9 @@ function measureFlexWrapLayout(parent: VNode) {
 
     const xGap = secondChild.bounds.left - firstChild.bounds.right;
     const yGap = firstWrapChild.bounds.top - firstChild.bounds.bottom;
+    parent.classList.push(R`gap-x-${xGap} gap-y-${yGap}`);
 
     _.each(parent.children, child => {
-        child.classList.push(R`mr-${xGap} mb-${yGap}`);
-
         if (isMultiLineText(child) && !isMultiLineTextBr(child)) {
             child.widthSpec = SizeSpec.Fixed;
         }
