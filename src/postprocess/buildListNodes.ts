@@ -185,7 +185,7 @@ function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side, maxW
         item.bounds.width = maxWidth;
         item.widthSpec = SizeSpec.Fixed;
         if (textAlign === 'center') {
-            item.bounds.left -= Math.round((maxWidth - item.bounds.width) / 2);
+            item.bounds.left -= float2Int((maxWidth - item.bounds.width) / 2);
             item.bounds.right = item.bounds.left + maxWidth;
             maySetTextAlign(item, 'center');
         } else if (textAlign === 'start') {

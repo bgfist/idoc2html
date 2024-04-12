@@ -82,9 +82,9 @@ function measureFlexLayout(parent: VNode) {
 /** 父节点的固定尺寸很可能完全由子节点撑开，则没必要设置父节点的固定尺寸 */
 function needSetFixSize(parent: VNode, spec: DimensionSpec, dimension: Dimension) {
     if (isSingleLineText(parent) && spec === 'heightSpec') {
-        if (numEq(getTextFZLH(parent).lineHeight, parent.bounds.height)) {
-            return false;
-        }
+        // if (numEq(getTextFZLH(parent).lineHeight, parent.bounds.height)) {
+        return false;
+        // }
     }
 
     if (isMultiLineText(parent) && spec === 'heightSpec') {

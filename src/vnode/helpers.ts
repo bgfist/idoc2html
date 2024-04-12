@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { assert, numEq, numGt, numGte, numLt, numLte, pairPrevNext, removeEle } from '../utils';
+import { assert, float2Int, numEq, numGt, numGte, numLt, numLte, pairPrevNext, removeEle } from '../utils';
 import { Dimension, Direction, Role, VNode } from './types';
 import { context } from './context';
 
@@ -179,9 +179,9 @@ export function isIntersectOverHalf(a: VNodeBounds, b: VNodeBounds, direction: D
 
 export function getMiddleLine(vnode: VNodeBounds, direction: Direction) {
     if (direction === Direction.Row) {
-        return vnode.bounds.left + vnode.bounds.width / 2;
+        return float2Int(vnode.bounds.left + vnode.bounds.width / 2);
     } else {
-        return vnode.bounds.top + vnode.bounds.height / 2;
+        return float2Int(vnode.bounds.top + vnode.bounds.height / 2);
     }
 }
 
@@ -435,22 +435,6 @@ export function getBorderWidth(vnode: VNode) {
 }
 
 /** 子盒子大约在父盒子中居中 */
-export function maybeIsCenter(child: VNode, parent: VNode, dimension: Dimension) {
-    // 设定容错值为子盒子宽度的百分比
-    var childTolerancePercentage = 1; // 例如，1%的容错值基于子盒子宽度
-    var childTolerance = child.bounds[dimension] * (childTolerancePercentage / 100);
-
-    // 设定容错值为两边间隙宽度的百分比
-    var gapTolerancePercentage = 8; // 例如，1%的容错值基于两边间隙宽度
-    var gapWidth = parent.bounds[dimension] - child.bounds[dimension];
-    var gapTolerance = gapWidth * (gapTolerancePercentage / 100);
-
-    var parentCenter = getMiddleLine(parent, dimension === 'width' ? Direction.Row : Direction.Column);
-    var childCenter = getMiddleLine(child, dimension === 'width' ? Direction.Row : Direction.Column);
-
-    // 计算偏移值
-    var offset = Math.abs(parentCenter - childCenter);
-
-    // 双重判断
-    return offset <= childTolerance && offset <= gapTolerance;
+export function maybeIsCenter(startGap: number, endGap: number) {
+    return numEq(startGap, endGap) || Math.abs(startGap - endGap) / Math.max(startGap, endGap) < 0.11;
 }

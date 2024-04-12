@@ -26,6 +26,7 @@ import {
     makeSingleLineTextEllipsis,
     mayAddClass,
     maySetTextAlign,
+    maybeIsCenter,
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
@@ -113,17 +114,13 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
     );
 
     // 扩充最有可能扩充的Auto元素为flex1
-    if (parent[justifySpec] === SizeSpec.Constrained && parent.children.length > 2) {
+    if (parent[justifySpec] !== SizeSpec.Auto && parent.children.length > 2) {
         const { startGap, endGap, gaps } = getGapsAndSide(parent);
 
         const autoChildren = _.reduce(
             parent.children,
             (arr, child, i) => {
-                if (
-                    child[justifySpec] === SizeSpec.Auto &&
-                    (autoMaybeClamp(child, justifySpec) ||
-                        (isCrossDirection(child, parent) && !isNodeHasShell(child)))
-                ) {
+                if (child[justifySpec] === SizeSpec.Auto && autoMaybeClamp(child, justifySpec)) {
                     // 只处理这些情况
                 } else {
                     return arr;
@@ -244,6 +241,30 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
         }
     }
 
+    // 处理标题栏居中
+    if (
+        parent[justifySpec] === SizeSpec.Constrained &&
+        parent.children.length === 2 &&
+        justifySpec === 'widthSpec'
+    ) {
+        const { gaps } = getGapsAndSide(parent);
+        const centerTextNode = parent.children.find(
+            child =>
+                isSingleLineText(child) &&
+                maybeIsCenter(
+                    child.bounds.left - parent.bounds.left,
+                    parent.bounds.right - child.bounds.right
+                )
+        );
+        if (centerTextNode) {
+            centerTextNode.bounds.left -= gaps[0];
+            centerTextNode.bounds.right += gaps[0];
+            centerTextNode.bounds.width = centerTextNode.bounds.right - centerTextNode.bounds.left;
+            maySetTextAlign(centerTextNode, 'center');
+            centerTextNode.widthSpec = SizeSpec.Constrained;
+        }
+    }
+
     const hasConstrainedChilds = _.some(
         parent.children,
         child => child[justifySpec] === SizeSpec.Constrained
@@ -317,7 +338,7 @@ function getGapsAndSide(parent: VNode) {
     const endGap = gaps.pop()!;
     const equalMiddleGaps = allNumsEqual(gaps);
     const justifySide: Side =
-        numEq(startGap, endGap) || Math.abs(startGap - endGap) / Math.max(startGap, endGap) < 0.11 ? 'center'
+        maybeIsCenter(startGap, endGap) ? 'center'
         : numLte(startGap, endGap) ? 'start'
         : ('end' as const);
 
@@ -377,7 +398,7 @@ function maybeInsertFlex1Node(
     const eef = parent.direction === Direction.Row ? 'right' : 'bottom';
     const spec1 = parent.direction === Direction.Row ? 'width' : 'height';
     const spec2 = parent.direction === Direction.Row ? 'height' : 'width';
-    const pos = Math.round(parent.bounds[sf] + parent.bounds[ef] / 2);
+    const pos = float2Int(parent.bounds[sf] + parent.bounds[ef] / 2);
     const [eefn, ssfn] = ranges[flex1GapIndex + 1];
 
     const flex1Vnode = newVNode({

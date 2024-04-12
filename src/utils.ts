@@ -43,6 +43,10 @@ export function filterMap<T, U>(arr: T[], iteratee: (item: T) => U | false): U[]
     );
 }
 
+export function maxWith<T>(arr: T[], iteratee: (item: T) => number) {
+    return iteratee(_.maxBy(arr, iteratee)!);
+}
+
 export function second<T>(x: [unknown, T]) {
     return x[1];
 }

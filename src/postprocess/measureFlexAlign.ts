@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { defaultConfig } from '../main/config';
-import { assert, float2Int, numEq, numGt, numLt, unreachable } from '../utils';
+import { assert, float2Int, maxWith, numEq, numGt, numLt, unreachable } from '../utils';
 import {
     Dimension,
     DimensionSpec,
@@ -13,6 +13,7 @@ import {
     getTextFZLH,
     isCrossDirection,
     isGeneratedNode,
+    isImageOrSliceNode,
     isListWrapContainer,
     isListXContainer,
     isListYContainer,
@@ -21,10 +22,12 @@ import {
     isNodeHasShell,
     isRootNode,
     isSingleLineText,
+    isTextNode,
     makeListOverflowAuto,
     makeMultiLineTextClamp,
     makeSingleLineTextEllipsis,
-    maySetTextAlign
+    maySetTextAlign,
+    maybeIsCenter
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
 
@@ -134,7 +137,10 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                     marginSide: 'center'
                 });
             } else if (alignSpec === 'widthSpec' && isMultiLineText(child)) {
-                if (parent[alignSpec] === SizeSpec.Constrained) {
+                if (
+                    parent[alignSpec] === SizeSpec.Constrained &&
+                    canChildStretchWithParent(child, parent, alignDimension)
+                ) {
                     // 允许auto元素随父节点拉伸
                     child[alignSpec] = SizeSpec.Constrained;
                 } else {
@@ -233,11 +239,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                     child.classList.push(R`pt-${margin.marginStart}`);
                     defaultConfig.codeGenOptions.textClamp && makeMultiLineTextClamp(child);
                 }
-            } else if (
-                parent[alignSpec] === SizeSpec.Constrained &&
-                isGeneratedNode(child) &&
-                isNodeHasShell(parent)
-            ) {
+            } else if (parent[alignSpec] === SizeSpec.Constrained && isGeneratedNode(child)) {
                 expandAutoToConstrained({
                     child,
                     alignSpec,
@@ -263,9 +265,27 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                         child.classList.push(R`pl-${pl} pr-${pr}`);
                     }
                 }
-            } else if (isNodeHasShell(parent) && canChildStretchWithParent(child, parent, alignDimension)) {
+            } else if (
+                alignSpec === 'widthSpec' &&
+                isNodeHasShell(child) &&
+                canChildStretchWithParent(child, parent, alignDimension)
+            ) {
                 // 允许auto元素随父节点拉伸
                 child[alignSpec] = SizeSpec.Constrained;
+            } else if (
+                alignSpec === 'heightSpec' &&
+                isNodeHasShell(child) &&
+                canChildStretchWithParent(child, parent, alignDimension)
+            ) {
+                const bottomContentNode = _.maxBy(parent.children, child => {
+                    if (isTextNode(child) || isImageOrSliceNode(child) || !child.children.length) {
+                        return child.bounds.bottom;
+                    }
+                    return maxWith(child.children, son => son.bounds.bottom);
+                })!;
+                if (child !== bottomContentNode) {
+                    child[alignSpec] = SizeSpec.Constrained;
+                }
             }
         } else if (!child[alignSpec]) {
             assert(!child.children.length, '只有裸盒子才没设置尺寸');
@@ -289,13 +309,9 @@ function decideParentAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignDim
         parent[alignSpec] = SizeSpec.Fixed;
     }
 
-    // 这种情况下给个最小尺寸
-    if (parent[alignSpec] === SizeSpec.Auto) {
-        if (isRootNode(parent) && alignDimension === 'height') {
-            // 根节点高度已经有最小尺寸了
-        } else {
-            parent.classList.push(R`min-${alignDimension.substring(0, 1)}-${parent.bounds[alignDimension]}`);
-        }
+    // 这种情况下给个最小尺寸,高度一定可以撑开，不需要设置
+    if (parent[alignSpec] === SizeSpec.Auto && alignSpec === 'widthSpec') {
+        parent.classList.push(R`min-${alignDimension.substring(0, 1)}-${parent.bounds[alignDimension]}`);
     }
 }
 
@@ -389,6 +405,15 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
     function setFixOrAutoAlign(child: VNode, margin: Margin) {
         let selfAlign = getSelfSide(margin);
 
+        // 对于auto需要特殊处理，如果起始边贴合边界，则靠起始边即可，纵向的话也只能靠上边
+        if (parent[alignSpec] === SizeSpec.Auto) {
+            if (selfAlign === 'center' && numEq(margin.marginStart, 0)) {
+                selfAlign = 'start';
+            } else if (alignSpec === 'heightSpec' && selfAlign === 'end') {
+                selfAlign = 'start';
+            }
+        }
+
         if (selfAlign === 'center') {
             child.classList.push(mayNeedAlign('center'));
         } else if (selfAlign === 'start') {
@@ -430,11 +455,7 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
 
 /** 获取自身靠哪边 */
 function getSelfSide(margin: Margin): Side {
-    if (
-        numEq(margin.marginStart, margin.marginEnd) ||
-        Math.abs(margin.marginStart - margin.marginEnd) / Math.max(margin.marginStart, margin.marginEnd) <
-            0.11
-    ) {
+    if (maybeIsCenter(margin.marginStart, margin.marginEnd)) {
         return 'center';
     }
     if (margin.marginStart < margin.marginEnd) {

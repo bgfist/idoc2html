@@ -15,6 +15,8 @@ import {
     isListYContainer,
     isMultiLineText,
     isOverlapping,
+    isOverlappingX,
+    isOverlappingY,
     isSingleLineText,
     newVNode
 } from '../vnode';
@@ -197,24 +199,28 @@ function getDivideIteration2(
     direction: Direction,
     iteratee: (biggestNode: VNode, intersectingNodes: VNode[]) => void | boolean
 ) {
+    const dimensionFields = {
+        [Direction.Row]: {
+            dimension: 'width',
+            isContainedWithinFn: isContainedWithinX,
+            isOverlappingFn: isOverlappingX,
+            sortSide: 'left'
+        },
+        [Direction.Column]: {
+            dimension: 'height',
+            isContainedWithinFn: isContainedWithinY,
+            isOverlappingFn: isOverlappingY,
+            sortSide: 'top'
+        }
+    } as const;
+
     function getDivideRanges(nodes: VNode[], direction: Direction) {
-        const dimensionFields = {
-            [Direction.Row]: {
-                dimension: 'width',
-                isContainedWithinFn: isContainedWithinX
-            },
-            [Direction.Column]: {
-                dimension: 'height',
-                isContainedWithinFn: isContainedWithinY
-            }
-        } as const;
-        const { dimension, isContainedWithinFn } = dimensionFields[direction];
+        const { dimension, isContainedWithinFn, sortSide } = dimensionFields[direction];
         let ranges: Array<{
             biggestNode: VNode;
             intersectingNodes: VNode[];
             bounds: VNodeBounds['bounds'];
         }> = [];
-        const sortSide = direction === Direction.Row ? 'left' : 'top';
 
         while (nodes.length) {
             const biggestNode = _.maxBy(nodes, node => node.bounds[dimension])!;
@@ -240,10 +246,13 @@ function getDivideIteration2(
 
     let ranges = getDivideRanges(nodes, direction);
 
+    const { isOverlappingFn, sortSide } = dimensionFields[direction];
     const overlappingRanges = collectContinualRanges(
         ranges,
         (a, b) => {
-            return isOverlapping(a, b) && (a.intersectingNodes.length > 1 || b.intersectingNodes.length > 1);
+            return (
+                isOverlappingFn(a, b) && (a.intersectingNodes.length > 1 || b.intersectingNodes.length > 1)
+            );
         },
         _.constant(true)
     );
@@ -252,10 +261,12 @@ function getDivideIteration2(
         const intersectingNodes = _.flatten(overlappings.map(range => range.intersectingNodes));
 
         // 换个方向可能也有交叉，就不换了
-        const crossRanges = getDivideRanges(intersectingNodes, getCrossDirection(direction));
+        const crossDirection = getCrossDirection(direction);
+        const { isOverlappingFn } = dimensionFields[crossDirection];
+        const crossRanges = getDivideRanges(intersectingNodes, crossDirection);
         if (
             crossRanges.length <= 1 ||
-            pairPrevNext(crossRanges).some(([prev, next]) => isOverlapping(prev, next))
+            pairPrevNext(crossRanges).some(([prev, next]) => isOverlappingFn(prev, next))
         ) {
             return false;
         }
@@ -265,7 +276,8 @@ function getDivideIteration2(
 
         return {
             biggestNode: overlappings[0].biggestNode, // 这里不重要
-            intersectingNodes
+            intersectingNodes,
+            bounds: getBounds(intersectingNodes)
         };
     });
 

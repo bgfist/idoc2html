@@ -1,5 +1,5 @@
 import { LinearColor, RGBA } from './page';
-import { assert, float2Fixed } from '../utils';
+import { assert, float2Fixed, float2Int } from '../utils';
 import { VNode } from '../vnode';
 
 export const Transparent = 'transparent';
@@ -32,13 +32,13 @@ export function getNormalColor(rgba: RGBA): string {
                 h = (r - g) / (max - min) + 4;
                 break;
         }
-        h = Math.round(h * 60);
+        h = float2Int(h * 60);
         if (h < 0) {
             h += 360;
         }
     }
-    s = Math.round(s * 100);
-    l = Math.round(l * 100);
+    s = float2Int(s * 100);
+    l = float2Int(l * 100);
     return `[hsla(${h},${s}%,${l}%,${a})]`;
 }
 
@@ -47,7 +47,7 @@ export function getLinearColor(vnode: VNode, color: LinearColor) {
 
     assert(colorStops.length >= 2, 'linear-gradient必须包含两个颜色节点');
 
-    let angle = Math.round(Math.atan2(toY - fromY, toX - fromX) * (180 / Math.PI));
+    let angle = float2Int(Math.atan2(toY - fromY, toX - fromX) * (180 / Math.PI));
     angle = 90 - angle;
     if (angle < 0) {
         angle = 360 + angle;
@@ -65,13 +65,13 @@ export function getLinearColor(vnode: VNode, color: LinearColor) {
 
     if (!angleMap[angle]) {
         console.warn('暂不支持任意渐变角度,用近似角度代替', angle);
-        angle = Math.round(angle / 45) * 45;
+        angle = float2Int(angle / 45) * 45;
     }
 
     vnode.classList.push(`bg-gradient-${angleMap[angle]}`);
 
     const getPercent = (position: number) => {
-        const percent = Math.round(position * 100);
+        const percent = float2Int(position * 100);
         if (percent % 5 !== 0) {
             return `[${percent}%]`;
         } else {
