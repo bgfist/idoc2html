@@ -13,6 +13,7 @@ import * as miniApp from './miniApp';
 import * as reactNative from './reactNative';
 import * as swiftUI from './swiftUI';
 import { extractColorPresets } from './tailwind/extractColorPresets';
+import { extractImagePresets } from './tailwind/extractImagePresets';
 
 export enum TargetPlatform {
     html = 'html',
@@ -44,6 +45,7 @@ export function html2Platform(
         extractColorPresets: boolean;
         useRemUnit: boolean;
         remBase: number;
+        imagePrefix: string;
     }
 ): Template[] {
     const generators: Record<string, Generator> = {
@@ -101,15 +103,34 @@ export function html2Platform(
             code = res.code;
 
             if (!_.isEmpty(res.colors)) {
-                const colorLines = JSON.stringify(res.colors, null, 8);
+                const colorLines = JSON.stringify(res.colors, null, 4);
+                const tabs = _.repeat(' ', 8);
+                const tabStart = (str: string) =>
+                    str
+                        .split('\n')
+                        .map(line => tabs + line)
+                        .join('\n');
                 configTemplate.code = configTemplate.code.replace(
-                    'colors: {\n',
-                    'colors: {\n' + colorLines.slice(2, -1)
+                    'colors: {}',
+                    'colors: {\n' + tabStart(colorLines.slice(2))
                 );
             }
         }
         if (targetPlatform === 'miniApp') {
             configTemplate.code = configTemplate.code.replace(`i + 'px'`, `i * 2 + 'rpx'`);
+            configTemplate.code = configTemplate.code.replace(`*.html`, `*.wxml`);
+
+            // 将图片路径改为预设值
+            code = extractImagePresets(code);
+            configTemplate.code = configTemplate.code.replace(
+                'backgroundImage: {}',
+                `backgroundImage: require('fs').readdirSync('这里填你的图片存放路径').reduce((obj, filename) => (obj[require('path').parse(filename).name] = '${params.imagePrefix}' + filename), {})`
+            );
+
+            code = splitTextLineHeight(code);
+
+            code = extractNumDivider(code);
+            configTemplate.code = configTemplate.code.replace('inset: {}', `inset: { half: '50%' }`);
         } else if (targetPlatform === 'html' && params.useRemUnit) {
             configTemplate.code = configTemplate.code.replace(`i + 'px'`, `i / ${params.remBase} + 'rem'`);
         }

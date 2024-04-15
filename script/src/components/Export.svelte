@@ -74,7 +74,8 @@
             useTailwindcss,
             useRemUnit,
             remBase,
-            extractColorPresets
+            extractColorPresets,
+            imagePrefix: prefix
         });
         dispatcher('close', templates);
     }
@@ -139,7 +140,7 @@
                     class="flex-1 rounded-6 py-0 px-8 border text-16/28"
                     placeholder="rem基准值"
                     title="rem基准值"
-                    value={remBase}
+                    bind:value={remBase}
                     disabled={!useRemUnit}
                 />
             </div>

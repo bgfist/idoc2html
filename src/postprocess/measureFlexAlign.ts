@@ -47,16 +47,9 @@ export function measureFlexAlign(parent: VNode) {
 
     // TODO: 如果背景不是图片的话，则单纯看视觉上元素靠哪边
     // 否则，可能还是以前的算法好. 我们这里谨慎使用padding
-    const parentAlign = getParentAlign(parent, alignSpec);
+    const parentAlign = getParentAlign(parent, alignSpec, alignDimension);
     const remainMargins = setCommonPadding(parent, parentAlign, alignSpec);
-    // TODO: 父元素尺寸固定且子元素尺寸也都固定且margin都为0，此时不用align
-    const specialStretch =
-        parent[alignSpec] === SizeSpec.Fixed &&
-        _.every(parent.children, child => child[alignSpec] === SizeSpec.Fixed) &&
-        _.every(remainMargins, margin => margin.marginStart === 0 && margin.marginEnd === 0);
-    if (!specialStretch) {
-        setFlexAlign(parentAlign, parent, alignSpec, remainMargins);
-    }
+    setFlexAlign(parentAlign, parent, alignSpec, remainMargins);
 }
 
 /** 扩充Auto尺寸为Constrained */
@@ -103,7 +96,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
             }
         } else if (child[alignSpec] === SizeSpec.Auto) {
             const margin = margins[i];
-            const marginSide = getSelfSide(margin);
+            const marginSide = getSelfSide(margin, parent, alignSpec);
 
             if (alignSpec === 'widthSpec' && isSingleLineText(child)) {
                 const marginPreserve =
@@ -179,49 +172,53 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                 }
                 defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
             } else if (alignSpec === 'heightSpec' && isListYContainer(child)) {
-                const marginPreserve =
-                    (
-                        defaultConfig.codeGenOptions.listOverflowAuto ||
-                        defaultConfig.codeGenOptions.overflowMargin
-                    ) ?
-                        10
-                    :   0;
-                expandAutoToConstrained({
-                    child,
-                    alignSpec,
-                    margin,
-                    marginSide,
-                    marginPreserve
-                });
-                if (marginSide === 'center') {
-                    child.classList.push('justify-center');
-                } else {
-                    child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                if (parent[alignSpec] !== SizeSpec.Auto) {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.listOverflowAuto ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            10
+                        :   0;
+                    expandAutoToConstrained({
+                        child,
+                        alignSpec,
+                        margin,
+                        marginSide,
+                        marginPreserve
+                    });
+                    if (marginSide === 'center') {
+                        child.classList.push('justify-center');
+                    } else {
+                        child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                    }
+                    defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
                 }
-                defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
             } else if (alignSpec === 'heightSpec' && isListWrapContainer(child)) {
-                const marginPreserve =
-                    (
-                        defaultConfig.codeGenOptions.listOverflowAuto ||
-                        defaultConfig.codeGenOptions.overflowMargin
-                    ) ?
-                        10
-                    :   0;
-                expandAutoToConstrained({
-                    child,
-                    alignSpec,
-                    margin,
-                    marginSide,
-                    marginPreserve
-                });
-                if (marginSide === 'center') {
-                    child.classList.push('content-center');
-                } else {
-                    child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                if (parent[alignSpec] !== SizeSpec.Auto) {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.listOverflowAuto ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            10
+                        :   0;
+                    expandAutoToConstrained({
+                        child,
+                        alignSpec,
+                        margin,
+                        marginSide,
+                        marginPreserve
+                    });
+                    if (marginSide === 'center') {
+                        child.classList.push('content-center');
+                    } else {
+                        child.classList.push(R`pt-${child.children[0].bounds.top - child.bounds.top}`);
+                    }
+                    defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
                 }
-                defaultConfig.codeGenOptions.listOverflowAuto && makeListOverflowAuto(child);
             } else if (alignSpec === 'heightSpec' && isMultiLineText(child)) {
-                if (marginSide !== 'center') {
+                if (parent[alignSpec] !== SizeSpec.Auto && marginSide !== 'center') {
                     const marginPreserve =
                         (
                             defaultConfig.codeGenOptions.textClamp ||
@@ -250,7 +247,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
 
                 if (isListXContainer(child) || isListWrapContainer(child)) {
                     const pt = child.children[0].bounds.top - child.bounds.top;
-                    const pb = child.children[0].bounds.bottom - child.bounds.bottom;
+                    const pb = child.bounds.bottom - child.children[0].bounds.bottom;
                     if (numEq(pt, pb)) {
                         child.classList.push(R`py-${pt}`);
                     } else {
@@ -258,7 +255,7 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                     }
                 } else if (isListYContainer(child)) {
                     const pl = child.children[0].bounds.left - child.bounds.left;
-                    const pr = child.children[0].bounds.right - child.bounds.right;
+                    const pr = child.bounds.right - child.children[0].bounds.right;
                     if (numEq(pl, pr)) {
                         child.classList.push(R`px-${pl}`);
                     } else {
@@ -267,22 +264,32 @@ function decideChildrenAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignD
                 }
             } else if (
                 alignSpec === 'widthSpec' &&
-                isNodeHasShell(child) &&
                 canChildStretchWithParent(child, parent, alignDimension)
             ) {
-                // 允许auto元素随父节点拉伸
-                child[alignSpec] = SizeSpec.Constrained;
+                if (
+                    parent[alignSpec] === SizeSpec.Auto &&
+                    numEq(margin.marginStart, 0) &&
+                    numEq(margin.marginEnd, 0)
+                ) {
+                    // 这种情况此元素是撑开auto的骨架，应该保持Auto
+                } else {
+                    // 允许auto元素随父节点拉伸
+                    child[alignSpec] = SizeSpec.Constrained;
+                }
             } else if (
                 alignSpec === 'heightSpec' &&
                 isNodeHasShell(child) &&
                 canChildStretchWithParent(child, parent, alignDimension)
             ) {
-                const bottomContentNode = _.maxBy(parent.children, child => {
-                    if (isTextNode(child) || isImageOrSliceNode(child) || !child.children.length) {
-                        return child.bounds.bottom;
+                const bottomContentNode = _.maxBy(
+                    parent.children.filter(node => node[alignSpec] === SizeSpec.Auto),
+                    child => {
+                        if (isTextNode(child) || isImageOrSliceNode(child) || !child.children.length) {
+                            return child.bounds.bottom;
+                        }
+                        return maxWith(child.children, son => son.bounds.bottom);
                     }
-                    return maxWith(child.children, son => son.bounds.bottom);
-                })!;
+                )!;
                 if (child !== bottomContentNode) {
                     child[alignSpec] = SizeSpec.Constrained;
                 }
@@ -316,17 +323,30 @@ function decideParentAlignSpec(parent: VNode, alignSpec: DimensionSpec, alignDim
 }
 
 /** 获取共同的align作为父节点的align */
-function getParentAlign(parent: VNode, alignSpec: DimensionSpec) {
+function getParentAlign(parent: VNode, alignSpec: DimensionSpec, alignDimension: Dimension) {
     const [constrainNodes, otherNodes] = _.partition(
         parent.children,
-        child => child[alignSpec] === SizeSpec.Constrained
+        child =>
+            child[alignSpec] === SizeSpec.Constrained ||
+            (parent[alignSpec] === SizeSpec.Fixed &&
+                child.bounds[alignDimension] === parent.bounds[alignDimension])
     );
     // Constrained都是stretch撑开方式
     const commonStretchCount = constrainNodes.length;
-    const margins = getMargins(parent, otherNodes);
-    const commonMarginDiffCount = _.filter(margins, margin => numEq(margin.marginDiff, 0)).length;
-    const commonMarginStartCount = _.filter(margins, margin => numLt(margin.marginDiff, 0)).length;
-    const commonMarginEndCount = _.filter(margins, margin => numGt(margin.marginDiff, 0)).length;
+    let margins = getMargins(parent, otherNodes);
+
+    const commonMarginDiffCount = _.filter(
+        margins,
+        margin => getSelfSide(margin, parent, alignSpec) === 'center'
+    ).length;
+    const commonMarginStartCount = _.filter(
+        margins,
+        margin => getSelfSide(margin, parent, alignSpec) === 'start'
+    ).length;
+    const commonMarginEndCount = _.filter(
+        margins,
+        margin => getSelfSide(margin, parent, alignSpec) === 'end'
+    ).length;
     const maxCommonMarginCount = Math.max(
         commonStretchCount,
         commonMarginStartCount,
@@ -403,22 +423,53 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
     }
 
     function setFixOrAutoAlign(child: VNode, margin: Margin) {
-        let selfAlign = getSelfSide(margin);
-
-        // 对于auto需要特殊处理，如果起始边贴合边界，则靠起始边即可，纵向的话也只能靠上边
-        if (parent[alignSpec] === SizeSpec.Auto) {
-            if (selfAlign === 'center' && numEq(margin.marginStart, 0)) {
-                selfAlign = 'start';
-            } else if (alignSpec === 'heightSpec' && selfAlign === 'end') {
-                selfAlign = 'start';
-            }
-        }
+        let selfAlign = getSelfSide(margin, parent, alignSpec);
 
         if (selfAlign === 'center') {
             child.classList.push(mayNeedAlign('center'));
+
+            if (parent[alignSpec] === SizeSpec.Auto && alignSpec === 'heightSpec') {
+                if (
+                    margin ===
+                    _.minBy(
+                        _.filter(margins, (_, i) => parent.children[i][alignSpec] === SizeSpec.Auto),
+                        m => m.marginEnd
+                    )
+                ) {
+                    // 此元素为理论上撑开父元素的最底元素
+                    child.classList.push(R`my-${margin.marginStart}`);
+                }
+            }
         } else if (selfAlign === 'start') {
             child.classList.push(mayNeedAlign('start'));
-            child.classList.push(R`m${s}-${margin.marginStart}`);
+
+            if (parent[alignSpec] === SizeSpec.Auto && alignSpec === 'heightSpec') {
+                if (
+                    margin ===
+                    _.minBy(
+                        _.filter(margins, (_, i) => parent.children[i][alignSpec] === SizeSpec.Auto),
+                        m => m.marginEnd
+                    )
+                ) {
+                    // 此元素为理论上撑开父元素的最底元素
+                    if (numEq(margin.marginStart, margin.marginEnd)) {
+                        child.classList.push(R`my-${margin.marginEnd}`);
+                    } else {
+                        child.classList.push(R`m${s}-${margin.marginStart}`);
+                        child.classList.push(R`m${e}-${margin.marginEnd}`);
+                    }
+                } else {
+                    const marginEnd = Math.min(margin.marginEnd, margin.marginStart);
+                    if (numEq(margin.marginStart, marginEnd)) {
+                        child.classList.push(R`my-${marginEnd}`);
+                    } else {
+                        child.classList.push(R`m${s}-${margin.marginStart}`);
+                        child.classList.push(R`m${e}-${marginEnd}`);
+                    }
+                }
+            } else {
+                child.classList.push(R`m${s}-${margin.marginStart}`);
+            }
         } else {
             child.classList.push(mayNeedAlign('end'));
             child.classList.push(R`m${e}-${margin.marginEnd}`);
@@ -454,15 +505,27 @@ function setFlexAlign(parentAlign: string, parent: VNode, alignSpec: DimensionSp
 }
 
 /** 获取自身靠哪边 */
-function getSelfSide(margin: Margin): Side {
+function getSelfSide(margin: Margin, parent: VNode, alignSpec: DimensionSpec): Side {
+    let selfAlign: Side;
+
     if (maybeIsCenter(margin.marginStart, margin.marginEnd)) {
-        return 'center';
-    }
-    if (margin.marginStart < margin.marginEnd) {
-        return 'start';
+        selfAlign = 'center';
+    } else if (margin.marginStart < margin.marginEnd) {
+        selfAlign = 'start';
     } else {
-        return 'end';
+        selfAlign = 'end';
     }
+
+    // 对于auto需要特殊处理，如果起始边贴合边界，则靠起始边即可，纵向的话也只能靠上边
+    if (parent[alignSpec] === SizeSpec.Auto) {
+        if (selfAlign === 'center' && numEq(margin.marginStart, 0)) {
+            selfAlign = 'start';
+        } else if (alignSpec === 'heightSpec' && selfAlign === 'end') {
+            selfAlign = 'start';
+        }
+    }
+
+    return selfAlign;
 }
 
 /** 获取所有子节点align方向的边距 */

@@ -139,8 +139,10 @@ export interface LinearColor {
 export interface TextStyle {
     value: string;
     font: {
+        name: string;
         family: string;
-        weight: string;
+        weight: number | string;
+        fontWeight: string;
         size: string;
         color: Color;
     };

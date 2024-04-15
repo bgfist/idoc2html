@@ -215,13 +215,12 @@ export function preprocess(node: Node, level: number): VNode | null {
     }
     // 容器
     else if (
-        true
-        // (node.basic.type === 'group' && node.basic.realType === 'Group') ||
-        // (node.basic.type === 'rect' && node.basic.realType === 'ShapePath') ||
-        // (node.basic.type === 'path' && node.basic.realType === 'ShapePath') ||
-        // (node.basic.type === 'mask' && node.basic.realType === 'ShapePath') ||
-        // (node.basic.type === 'mask' && node.basic.realType === 'Shape') ||
-        // (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance')
+        (node.basic.type === 'group' && node.basic.realType === 'Group') ||
+        (node.basic.type === 'rect' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'path' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'mask' && node.basic.realType === 'ShapePath') ||
+        (node.basic.type === 'mask' && node.basic.realType === 'Shape') ||
+        (node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance')
     ) {
     }
     // 其他不识别的节点全部清掉

@@ -30,7 +30,7 @@ import {
     newVNode
 } from '../vnode';
 import { canChildStretchWithParent } from './measureParentSizeSpec';
-import { defaultConfig } from '../main';
+import { defaultConfig } from '../main/config';
 
 /** 生成justify-content */
 export function measureFlexJustify(parent: VNode) {
@@ -51,7 +51,13 @@ export function measureFlexJustify(parent: VNode) {
         if (!numEq(middleGap, 0) && numGt(middleGap, startGap) && numGt(middleGap, endGap)) {
             const ss = parent.direction === Direction.Row ? 'l' : 't';
             const ee = parent.direction === Direction.Row ? 'r' : 'b';
-            parent.classList.push(R`justify-between p${ss}-${startGap} p${ee}-${endGap}`);
+            const xy = parent.direction === Direction.Row ? 'x' : 'y';
+            parent.classList.push('justify-between');
+            if (numEq(startGap, endGap)) {
+                parent.classList.push(R`p${xy}-${startGap}`);
+            } else {
+                parent.classList.push(R`p${ss}-${startGap} p${ee}-${endGap}`);
+            }
             return true;
         }
     }
@@ -113,8 +119,35 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
         'Constrained children should be decided after justify.'
     );
 
+    let setTitleCenter = false;
+    // 处理标题栏居中
+    // TODO: 需要更严格的判断，有的表单input也被处理成居中title了
+    if (
+        parent[justifySpec] === SizeSpec.Constrained &&
+        parent.children.length === 2 &&
+        justifySpec === 'widthSpec'
+    ) {
+        const { gaps } = getGapsAndSide(parent);
+        const centerTextNode = parent.children.find(
+            child =>
+                isSingleLineText(child) &&
+                maybeIsCenter(
+                    child.bounds.left - parent.bounds.left,
+                    parent.bounds.right - child.bounds.right
+                )
+        );
+        if (centerTextNode) {
+            centerTextNode.bounds.left -= gaps[0];
+            centerTextNode.bounds.right += gaps[0];
+            centerTextNode.bounds.width = centerTextNode.bounds.right - centerTextNode.bounds.left;
+            maySetTextAlign(centerTextNode, 'center');
+            centerTextNode.widthSpec = SizeSpec.Constrained;
+            setTitleCenter = true;
+        }
+    }
+
     // 扩充最有可能扩充的Auto元素为flex1
-    if (parent[justifySpec] !== SizeSpec.Auto && parent.children.length > 2) {
+    if (parent[justifySpec] !== SizeSpec.Auto && parent.children.length > 1 && !setTitleCenter) {
         const { startGap, endGap, gaps } = getGapsAndSide(parent);
 
         const autoChildren = _.reduce(
@@ -128,6 +161,15 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
 
                 const beforeGap = i === 0 ? startGap : gaps[i - 1];
                 const afterGap = i === parent.children.length - 1 ? endGap : gaps[i];
+
+                if (parent.children.length === 2) {
+                    if (i === 0 && beforeGap < afterGap) {
+                        return arr;
+                    } else if (i === 1 && afterGap < beforeGap) {
+                        return arr;
+                    }
+                }
+
                 arr.push({
                     dimension: beforeGap + child.bounds[justifyDimension] + afterGap,
                     beforeGap,
@@ -227,41 +269,7 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
                 autoChild.child.bounds.height = autoChild.child.bounds.bottom - autoChild.child.bounds.top;
 
                 defaultConfig.codeGenOptions.textClamp && makeMultiLineTextClamp(autoChild.child);
-            } else {
-                console.debug('justify扩充无外壳盒子');
-                if (autoChild.beforeGap > autoChild.afterGap) {
-                    autoChild.child.bounds.left -= autoChild.beforeGap;
-                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
-                    maySetTextAlign(autoChild.child, 'right');
-                } else {
-                    autoChild.child.bounds.right += autoChild.afterGap;
-                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
-                }
             }
-        }
-    }
-
-    // 处理标题栏居中
-    if (
-        parent[justifySpec] === SizeSpec.Constrained &&
-        parent.children.length === 2 &&
-        justifySpec === 'widthSpec'
-    ) {
-        const { gaps } = getGapsAndSide(parent);
-        const centerTextNode = parent.children.find(
-            child =>
-                isSingleLineText(child) &&
-                maybeIsCenter(
-                    child.bounds.left - parent.bounds.left,
-                    parent.bounds.right - child.bounds.right
-                )
-        );
-        if (centerTextNode) {
-            centerTextNode.bounds.left -= gaps[0];
-            centerTextNode.bounds.right += gaps[0];
-            centerTextNode.bounds.width = centerTextNode.bounds.right - centerTextNode.bounds.left;
-            maySetTextAlign(centerTextNode, 'center');
-            centerTextNode.widthSpec = SizeSpec.Constrained;
         }
     }
 

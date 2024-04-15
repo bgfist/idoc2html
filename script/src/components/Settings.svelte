@@ -13,7 +13,7 @@
             /** 是否在新窗口中预览 */
             previewInNewWindow: false,
             /** 本地图片文件夹前缀 */
-            localImagePrefix: '../images/',
+            localImagePrefix: './images/',
             /** tinypng api token */
             tinypngApiKey: '',
             debugOptions: debug,

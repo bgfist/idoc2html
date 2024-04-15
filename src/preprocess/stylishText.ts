@@ -111,9 +111,11 @@ function stylishTextSpan(text: TextStyle, vnode: VNode) {
     if (text.space.letterSpacing) {
         textNode.classList.push(R`tracking-${float2Int(text.space.letterSpacing)}`);
     }
+    const fontWeight = String(text.font.weight || text.font.fontWeight);
     const isBoldFont =
         text.font.family.indexOf('AlibabaPuHuiTiM') !== -1 ||
-        (text.font.family.indexOf('PingFangSC') !== -1 && text.font.weight === 'Medium');
+        (text.font.family.indexOf('PingFangSC') !== -1 && fontWeight.indexOf('Medium') !== -1) ||
+        fontWeight.indexOf('Bold') !== -1;
     if (text.fontStyles.bold || isBoldFont) {
         textNode.classList.push('font-bold');
     }

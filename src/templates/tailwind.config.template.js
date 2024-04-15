@@ -33,7 +33,9 @@ module.exports = {
                 8: '8',
                 9: '9'
             },
-            colors: {}
+            colors: {},
+            backgroundImage: {},
+            inset: {}
         },
         fontSize: generateNumUnits(0, 80, 1),
         lineHeight: generateNumUnits(10, 120)

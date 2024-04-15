@@ -1,7 +1,6 @@
 /*
  * 抽取公共颜色
  */
-
 export function extractColorPresets(code: string) {
     const colors: Record<string, string> = {};
 

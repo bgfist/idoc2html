@@ -3,7 +3,11 @@
  */
 
 /** text-16/30  => text-16 leading-30 */
-function splitTextLineHeight() {}
+function splitTextLineHeight(code: string) {
+    return code.replace(/text-(\d+)\/(\d+)/g, 'text-$1 leading-$2');
+}
 
 /** left-1/2 => left-half */
-function extractNumDivider() {}
+function extractNumDivider(code: string) {
+    return code.replace(/-1\/2/, '-half');
+}
