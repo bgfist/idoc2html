@@ -18,7 +18,7 @@ export function processSlice(node: Node, vnode: VNode, level: number) {
         }
         node.children = slices;
 
-        if (!defaultConfig.preOptions.removeSliceSibings) {
+        if (!defaultConfig.treeOptions.removeSliceSibings) {
             leftover = _.filter(leftover, child => !isImageNode(child));
 
             // 去除跟切图有交叠的兄弟节点，但如果兄弟节点包含它，则不视为有交叠

@@ -167,7 +167,7 @@ function processOverBoundsNodes(refNode: Node, nodes: Node[], level: number) {
 /** 预先生成带前景背景样式的盒子 */
 export function preprocess(node: Node, level: number): VNode | null {
     // TODO: 幕客给的json不够详细，有的节点不可见却还是放出来了
-    if (defaultConfig.blackListNodes.includes(node.basic.id)) {
+    if (defaultConfig.treeOptions.blackListNodes.includes(node.basic.id)) {
         return null;
     }
 
@@ -191,7 +191,7 @@ export function preprocess(node: Node, level: number): VNode | null {
 
     // 根节点决定设计尺寸
     if (level === 0) {
-        checkUnknownNode(node);
+        preTraverse(node);
         stylishRoot(node, vnode);
     }
     // 处理顶层的symbol类型的node，一般是标题栏和底部安全区域
@@ -274,23 +274,44 @@ export function pickOnlyDialogIfDetected(vnode: VNode) {
     return null;
 }
 
-function checkUnknownNode(node: Node) {
-    const knownTypes = [
-        ['group', 'Artboard'],
-        ['group', 'Group'],
-        ['path', 'ShapePath'],
-        ['rect', 'ShapePath'],
-        ['text', 'Text'],
-        ['shape', 'Slice'],
-        ['oval', 'ShapePath'],
-        ['image', 'Image'],
-        ['mask', 'ShapePath'],
-        ['shape', 'Shape'],
-        ['mask', 'Shape'],
-        ['symbol', 'SymbolInstance']
-    ];
-    if (!_.find(knownTypes, t => t[0] === node.basic.type && t[1] === node.basic.realType)) {
-        console.warn('未知的节点类型', node.basic.type, node.basic.realType, node.basic.id);
+function preTraverse(root: Node) {
+    function keepWhiteListNodes(root: Node) {
+        if (!defaultConfig.treeOptions.whiteListNodes.length) {
+            return;
+        }
+        const nodes: Node[] = [];
+        const collectWhiteListNodes = (node: Node) => {
+            if (defaultConfig.treeOptions.whiteListNodes.includes(node.basic.id)) {
+                nodes.push(node);
+            } else {
+                _.each(node.children, collectWhiteListNodes);
+            }
+        };
+        _.each(root.children, collectWhiteListNodes);
+        root.children = nodes;
     }
-    _.each(node.children, checkUnknownNode);
+
+    function checkUnknownNode(node: Node) {
+        const knownTypes = [
+            ['group', 'Artboard'],
+            ['group', 'Group'],
+            ['path', 'ShapePath'],
+            ['rect', 'ShapePath'],
+            ['text', 'Text'],
+            ['shape', 'Slice'],
+            ['oval', 'ShapePath'],
+            ['image', 'Image'],
+            ['mask', 'ShapePath'],
+            ['shape', 'Shape'],
+            ['mask', 'Shape'],
+            ['symbol', 'SymbolInstance']
+        ];
+        if (!_.find(knownTypes, t => t[0] === node.basic.type && t[1] === node.basic.realType)) {
+            console.warn('未知的节点类型', node.basic.type, node.basic.realType, node.basic.id);
+        }
+        _.each(node.children, checkUnknownNode);
+    }
+
+    keepWhiteListNodes(root);
+    checkUnknownNode(root);
 }

@@ -92,7 +92,7 @@ export function buildMissingNodes(parent: VNode) {
     nodes = mergeSameSizeBox(nodes);
 
     // 去除无样式空盒子
-    if (defaultConfig.removeGhostNodes) {
+    if (defaultConfig.treeOptions.removeGhostNodes) {
         nodes = removeGhostNodesPre(nodes);
     }
 
@@ -103,7 +103,7 @@ export function buildMissingNodes(parent: VNode) {
     nodes = buildAttachTree(parent, nodes);
 
     // 去除背景与父亲完全融合的中间盒子
-    if (defaultConfig.removeGhostNodes) {
+    if (defaultConfig.treeOptions.removeGhostNodes) {
         nodes = removeGhostNodesPost(parent, nodes);
     }
 
@@ -129,9 +129,7 @@ function buildContainTree(nodes: VNode[]) {
     return nodes.filter(node => {
         const bestParent = findBestParent(node, nodes);
         if (bestParent) {
-            if (defaultConfig.leafNodes.includes(bestParent.id!)) {
-                return true;
-            } else if (isTextNode(bestParent)) {
+            if (isTextNode(bestParent)) {
                 bestParent.attachNodes.push(node);
             } else {
                 bestParent.children.push(node);
@@ -145,6 +143,11 @@ function buildContainTree(nodes: VNode[]) {
 
 function buildAttachTree(parent: VNode, nodes: VNode[]) {
     return nodes.filter(node => {
+        if (defaultConfig.treeOptions.attachNodes.includes(node.id!)) {
+            parent.attachNodes.push(node);
+            return false;
+        }
+
         const bestIntersectNode = findBestIntersectNode(node, nodes);
         if (bestIntersectNode) {
             if (isTextNode(bestIntersectNode) && isTextNode(node)) {

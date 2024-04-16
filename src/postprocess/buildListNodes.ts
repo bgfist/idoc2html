@@ -136,7 +136,8 @@ function checkListInvalid(otherNodes: VNode[], list: VNode, validBounds?: VNodeB
 
 /** 给列表元素设置固定的宽度/高度，可以优化布局方式 */
 function setListItemSizeSpec(vnode: VNode) {
-    let targetSizeSpec = defaultConfig.listItemSizeFixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+    let targetSizeSpec =
+        defaultConfig.codeGenOptions.listItemSizeFixed ? SizeSpec.Fixed : SizeSpec.Constrained;
 
     if (isListXContainer(vnode)) {
         // 有些列表元素已经固定尺寸了，比如图片
@@ -164,7 +165,7 @@ function setListItemSizeSpec(vnode: VNode) {
         }
     } else if (isListWrapContainer(vnode)) {
         _.each(vnode.children, item => {
-            if (defaultConfig.listItemSizeFixed) {
+            if (defaultConfig.codeGenOptions.listItemSizeFixed) {
                 item.heightSpec = SizeSpec.Fixed;
             }
         });

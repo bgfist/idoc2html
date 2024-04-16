@@ -37,21 +37,23 @@ export const defaultConfig = {
         /** 是否为列表加上超出滚动 */
         listOverflowAuto: false,
         /** 是否为内容超出元素预留一点边距 */
-        overflowMargin: false
+        overflowMargin: false,
+        /** 为列表元素指定同样的固定高度/宽度 */
+        listItemSizeFixed: false
     },
     /** 预处理选项 */
-    preOptions: {
+    treeOptions: {
         /** 删除切图的多余节点 */
-        removeSliceSibings: true
-    },
-    /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
-    removeGhostNodes: false,
-    /** 为列表元素指定同样的固定高度/宽度 */
-    listItemSizeFixed: false,
-    /** 黑名单节点id，将删掉这些节点 */
-    blackListNodes: [] as string[],
-    /** 这些节点只能做叶子节点，防止错乱的层级 */
-    leafNodes: [] as string[]
+        removeSliceSibings: true,
+        /** 黑名单节点id，将删掉这些节点 */
+        blackListNodes: [] as string[],
+        /** 白名单节点，将保留这些节点 */
+        whiteListNodes: [] as string[],
+        /** 指定这些节点为绝对定位节点 */
+        attachNodes: [] as string[],
+        /** 是否先删掉幽灵节点，页面比较乱的可以指定为true */
+        removeGhostNodes: true
+    }
 };
 
 type DeepPartial<T> =

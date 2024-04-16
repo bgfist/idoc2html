@@ -7,23 +7,30 @@
 
     const cacheKey = 'iDocJson2HtmlSettings';
     const cacheSettings = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-
-    export const settings = _.merge(
-        {
-            /** 是否在新窗口中预览 */
-            previewInNewWindow: false,
-            /** 本地图片文件夹前缀 */
-            localImagePrefix: './images/',
-            /** tinypng api token */
-            tinypngApiKey: '',
-            debugOptions: debug,
-            configOptions: defaultConfig
-        },
-        cacheSettings
-    );
+    const defaultSettings = {
+        /** 是否在新窗口中预览 */
+        previewInNewWindow: false,
+        /** 本地图片文件夹前缀 */
+        localImagePrefix: './images/',
+        /** tinypng api token */
+        tinypngApiKey: '',
+        debugOptions: debug,
+        configOptions: defaultConfig
+    };
+    export const settings = _.merge(defaultSettings, cacheSettings as typeof defaultSettings);
 
     function onCloseClick() {
-        localStorage.setItem(cacheKey, JSON.stringify(settings));
+        const settings2 = _.cloneDeep(settings) as any;
+        delete settings2.configOptions.treeOptions.blackListNodes;
+        delete settings2.configOptions.treeOptions.whiteListNodes;
+        localStorage.setItem(cacheKey, JSON.stringify(settings2));
+
+        settings.configOptions.treeOptions.blackListNodes =
+            settings.configOptions.treeOptions.blackListNodes.filter(id => _.trim(id));
+        settings.configOptions.treeOptions.whiteListNodes =
+            settings.configOptions.treeOptions.whiteListNodes.filter(id => _.trim(id));
+        settings.configOptions.treeOptions.attachNodes =
+            settings.configOptions.treeOptions.attachNodes.filter(id => _.trim(id));
         dispatcher('close');
     }
 </script>
@@ -75,7 +82,7 @@
                 <input
                     type="checkbox"
                     class="w-15 h-15"
-                    bind:checked={settings.configOptions.removeGhostNodes}
+                    bind:checked={settings.configOptions.treeOptions.removeGhostNodes}
                 />
                 <span class="text-16/30 ml-6">删除幽灵节点</span>
             </label>
@@ -83,7 +90,7 @@
                 <input
                     type="checkbox"
                     class="w-15 h-15"
-                    bind:checked={settings.configOptions.preOptions.removeSliceSibings}
+                    bind:checked={settings.configOptions.treeOptions.removeSliceSibings}
                 />
                 <span class="text-16/30 ml-6">删除切图多余节点</span>
             </label>
@@ -123,7 +130,7 @@
                 <input
                     type="checkbox"
                     class="w-15 h-15"
-                    bind:checked={settings.configOptions.listItemSizeFixed}
+                    bind:checked={settings.configOptions.codeGenOptions.listItemSizeFixed}
                 />
                 <span class="text-16/30 ml-6">固定列表的高度/宽度</span>
             </label>
@@ -131,16 +138,26 @@
         <textarea
             class="my-10 rounded-3 p-8 placeholder:text-[#999] resize-none"
             rows="4"
-            placeholder="黑名单节点id，逗号分隔"
-            value={settings.configOptions.blackListNodes.join(',')}
-            on:input={v => (settings.configOptions.blackListNodes = v.currentTarget.value.split(','))}
+            placeholder="黑名单节点id，一行一个"
+            value={settings.configOptions.treeOptions.blackListNodes.join('\n')}
+            on:input={v =>
+                (settings.configOptions.treeOptions.blackListNodes = v.currentTarget.value.split('\n'))}
+        />
+        <textarea
+            class="my-10 rounded-3 p-8 placeholder:text-[#999] resize-none"
+            rows="4"
+            placeholder="白名单节点id，一行一个"
+            value={settings.configOptions.treeOptions.whiteListNodes.join('\n')}
+            on:input={v =>
+                (settings.configOptions.treeOptions.whiteListNodes = v.currentTarget.value.split('\n'))}
         />
         <textarea
             class="mt-10 rounded-3 p-8 placeholder:text-[#999] resize-none"
             rows="2"
-            placeholder="叶子节点id，逗号分隔"
-            value={settings.configOptions.leafNodes.join(',')}
-            on:input={v => (settings.configOptions.leafNodes = v.currentTarget.value.split(','))}
+            placeholder="绝对定位节点id，一行一个"
+            value={settings.configOptions.treeOptions.attachNodes.join('\n')}
+            on:input={v =>
+                (settings.configOptions.treeOptions.attachNodes = v.currentTarget.value.split('\n'))}
         />
         <div class="mt-20 mb-8 text-21">调试选项</div>
         <div class="flex flex-wrap">
