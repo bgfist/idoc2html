@@ -183,8 +183,6 @@ function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side, maxW
     }
 
     _.each(textNodes, item => {
-        item.bounds.width = maxWidth;
-        item.widthSpec = SizeSpec.Fixed;
         if (textAlign === 'center') {
             item.bounds.left -= float2Int((maxWidth - item.bounds.width) / 2);
             item.bounds.right = item.bounds.left + maxWidth;
@@ -195,6 +193,8 @@ function setListTextItemSameSizeAndGap(textNodes: VNode[], textAlign: Side, maxW
             item.bounds.left = item.bounds.right - maxWidth;
             maySetTextAlign(item, 'right');
         }
+        item.bounds.width = maxWidth;
+        item.widthSpec = SizeSpec.Fixed;
     });
 }
 
@@ -276,12 +276,12 @@ function groupTextListNodes(parent: VNode, nodes: VNode[], direction: Direction)
                 } else {
                     compareContext.push(
                         {
-                            type: 'start',
-                            num: getCompareNum('start', prev, next)
-                        },
-                        {
                             type: 'center',
                             num: getCompareNum('center', prev, next)
+                        },
+                        {
+                            type: 'start',
+                            num: getCompareNum('start', prev, next)
                         },
                         {
                             type: 'end',

@@ -257,13 +257,13 @@ function measureFlexWrapLayout(parent: VNode) {
 function measureFlexListLayout(parent: VNode) {
     if (isListXContainer(parent)) {
         const childHeightSpec = parent.heightSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+        const highestNode = _.maxBy(parent.children, child => child.bounds.bottom)!;
         _.each(parent.children, child => {
-            child.heightSpec = childHeightSpec;
-
             if (!isImageOrSliceNode(child)) {
-                child.bounds.top = parent.bounds.top;
-                child.bounds.bottom = parent.bounds.bottom;
-                child.bounds.height = parent.bounds.height;
+                child.heightSpec = childHeightSpec;
+                child.bounds.top = highestNode.bounds.top;
+                child.bounds.bottom = highestNode.bounds.bottom;
+                child.bounds.height = highestNode.bounds.height;
             }
 
             if (isMultiLineText(child) && !isMultiLineTextBr(child)) {
@@ -279,12 +279,13 @@ function measureFlexListLayout(parent: VNode) {
         }
     } else if (isListYContainer(parent)) {
         const childWidthSpec = parent.widthSpec === SizeSpec.Fixed ? SizeSpec.Fixed : SizeSpec.Constrained;
+        const widestChild = _.maxBy(parent.children, child => child.bounds.width)!;
         _.each(parent.children, child => {
             if (!isImageOrSliceNode(child)) {
                 child.widthSpec = childWidthSpec;
-                child.bounds.left = parent.bounds.left;
-                child.bounds.right = parent.bounds.right;
-                child.bounds.width = parent.bounds.width;
+                child.bounds.left = widestChild.bounds.left;
+                child.bounds.right = widestChild.bounds.right;
+                child.bounds.width = widestChild.bounds.width;
             }
 
             if (!child.heightSpec) {

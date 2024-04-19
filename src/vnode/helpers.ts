@@ -436,5 +436,5 @@ export function getBorderWidth(vnode: VNode) {
 
 /** 子盒子大约在父盒子中居中 */
 export function maybeIsCenter(startGap: number, endGap: number) {
-    return numEq(startGap, endGap) || Math.abs(startGap - endGap) / Math.max(startGap, endGap) < 0.11;
+    return numEq(startGap, endGap) || Math.abs(startGap - endGap) / Math.max(startGap, endGap) < 0.15;
 }

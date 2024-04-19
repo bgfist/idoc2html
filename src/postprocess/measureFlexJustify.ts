@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { allNumsEqual, assert, float2Int, numEq, numGt, numLte } from '../utils';
+import { allNumsEqual, assert, float2Int, numEq, numGt, numLt, numLte } from '../utils';
 import {
     Dimension,
     DimensionSpec,
@@ -162,6 +162,10 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
                 const beforeGap = i === 0 ? startGap : gaps[i - 1];
                 const afterGap = i === parent.children.length - 1 ? endGap : gaps[i];
 
+                if (numEq(startGap, endGap) && (i === 0 || i === parent.children.length - 1)) {
+                    return arr;
+                }
+
                 if (parent.children.length === 2) {
                     if (i === 0 && beforeGap < afterGap) {
                         return arr;
@@ -186,7 +190,20 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
             if (isSingleLineText(autoChild.child)) {
                 autoChild.child.widthSpec = SizeSpec.Constrained;
 
-                if (autoChild.beforeGap > autoChild.afterGap && !hasClass(autoChild.child, 'text-ellipsis')) {
+                if (
+                    numLt(autoChild.beforeGap, autoChild.afterGap) ||
+                    hasClass(autoChild.child, 'text-ellipsis')
+                ) {
+                    const marginPreserve =
+                        (
+                            defaultConfig.codeGenOptions.textClamp ||
+                            defaultConfig.codeGenOptions.overflowMargin
+                        ) ?
+                            Math.min(autoChild.afterGap, float2Int(getTextFZLH(autoChild.child).fontSize / 2))
+                        :   0;
+                    autoChild.child.bounds.right += autoChild.afterGap - marginPreserve;
+                    autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                } else if (numGt(autoChild.beforeGap, autoChild.afterGap)) {
                     const marginPreserve =
                         (
                             defaultConfig.codeGenOptions.textClamp ||
@@ -206,10 +223,15 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
                             defaultConfig.codeGenOptions.textClamp ||
                             defaultConfig.codeGenOptions.overflowMargin
                         ) ?
-                            Math.min(autoChild.afterGap, float2Int(getTextFZLH(autoChild.child).fontSize / 2))
+                            Math.min(
+                                autoChild.beforeGap,
+                                float2Int(getTextFZLH(autoChild.child).fontSize / 2)
+                            )
                         :   0;
+                    autoChild.child.bounds.left -= autoChild.beforeGap - marginPreserve;
                     autoChild.child.bounds.right += autoChild.afterGap - marginPreserve;
                     autoChild.child.bounds.width = autoChild.child.bounds.right - autoChild.child.bounds.left;
+                    maySetTextAlign(autoChild.child, 'center');
                 }
 
                 defaultConfig.codeGenOptions.textClamp && makeSingleLineTextEllipsis(autoChild.child);
@@ -310,6 +332,7 @@ function decideChildrenJustifySpec(parent: VNode, justifySpec: DimensionSpec, ju
             } else if (
                 !hasConstrainedChilds &&
                 parent[justifySpec] === SizeSpec.Constrained &&
+                isNodeHasShell(child) &&
                 checkIsOverHalfChild(child)
             ) {
                 // 允许auto元素随父节点拉伸
