@@ -50,33 +50,33 @@ export function stylishText(node: Node, vnode: VNode) {
             vnode.classList.push(`text-${textAlign}`);
         }
     } else {
-        if (_.isString(vnode.textContent)) {
-            // 有的文本框跟文字本身宽度并不一致，会多出一些空间
-            // 先只考虑单行文本，去除其多余宽度
-            // 先暂时保留其text-align，后面扩充宽度时可能有用
-            const contentWidth =
+        // 有的文本框跟文字本身宽度并不一致，会多出一些空间
+        // 先只考虑单行文本，去除其多余宽度
+        // 先暂时保留其text-align，后面扩充宽度时可能有用
+        const contentWidth = _.sum(
+            node.text.styles.map(style =>
                 isInBrowser() ?
-                    calculateCharacterWidth2(node.text.styles[0].value, node.text.styles[0])
-                :   float2Int(
-                        calculateCharacterWidth(node.text.styles[0].value) * +node.text.styles[0].font.size
-                    );
+                    calculateCharacterWidth2(style.value, style)
+                :   float2Int(calculateCharacterWidth(style.value) * +style.font.size)
+            )
+        );
 
-            if (numLte(contentWidth, node.bounds.width)) {
-                console.warn('有文本框宽度多余，调整宽度', vnode.textContent);
-                if (node.text.styles[0].align === 'left') {
-                    vnode.bounds.width = contentWidth;
-                    vnode.bounds.right = vnode.bounds.left + contentWidth;
-                } else if (node.text.styles[0].align === 'center') {
-                    vnode.bounds.left =
-                        vnode.bounds.left + Math.floor((vnode.bounds.width - contentWidth) / 2);
-                    vnode.bounds.width = contentWidth;
-                    vnode.bounds.right = vnode.bounds.left + contentWidth;
-                } else if (node.text.styles[0].align === 'right') {
-                    vnode.bounds.width = contentWidth;
-                    vnode.bounds.left = vnode.bounds.right - contentWidth;
-                } else if (node.text.styles[0].align === 'justify') {
-                    console.warn('TODO');
-                }
+        if (numLte(contentWidth, node.bounds.width)) {
+            console.warn('有文本框宽度多余，调整宽度', vnode.textContent, contentWidth);
+            if (node.text.styles[0].align === 'left') {
+                vnode.bounds.width = contentWidth;
+                vnode.bounds.right = vnode.bounds.left + contentWidth;
+            } else if (node.text.styles[0].align === 'center') {
+                vnode.bounds.left = vnode.bounds.left + Math.floor((vnode.bounds.width - contentWidth) / 2);
+                vnode.bounds.width = contentWidth;
+                vnode.bounds.right = vnode.bounds.left + contentWidth;
+            } else if (node.text.styles[0].align === 'right') {
+                vnode.bounds.width = contentWidth;
+                vnode.bounds.left = vnode.bounds.right - contentWidth;
+            } else if (node.text.styles[0].align === 'justify') {
+                console.warn('text节点不支持justify对齐，按left对齐');
+                vnode.bounds.width = contentWidth;
+                vnode.bounds.right = vnode.bounds.left + contentWidth;
             }
         }
 

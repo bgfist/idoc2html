@@ -9,7 +9,6 @@ import {
     VNode,
     getBorderWidth,
     getClassList,
-    getTextFZLH,
     isImageOrSliceNode,
     isListWrapContainer,
     isListXContainer,
@@ -22,6 +21,7 @@ import {
     makeMultiLineTextClamp,
     makeSingleLineTextEllipsis,
     makeSingleLineTextNoWrap,
+    maybeIsCenter,
     normalizeClassName
 } from '../vnode';
 import { anyElesIn, numEq } from '../utils';
@@ -211,7 +211,7 @@ function measureAttachPosition(parent: VNode) {
         if (attachNode.widthSpec === SizeSpec.Constrained) {
             attachNode.classList.push(R2`left-${left} right-${right}`);
         } else {
-            if (attachNode.widthSpec === SizeSpec.Fixed && numEq(left, right)) {
+            if (maybeIsCenter(left, right)) {
                 // 绝对定位居中
                 attachNode.classList.push('left-1/2 -translate-x-1/2');
             } else {
@@ -222,7 +222,7 @@ function measureAttachPosition(parent: VNode) {
         if (attachNode.heightSpec === SizeSpec.Constrained) {
             attachNode.classList.push(R2`top-${top} bottom-${bottom}`);
         } else {
-            if (attachNode.heightSpec === SizeSpec.Fixed && numEq(top, bottom)) {
+            if (maybeIsCenter(top, bottom)) {
                 // 绝对定位居中
                 attachNode.classList.push('top-1/2 -translate-y-1/2');
             } else {
