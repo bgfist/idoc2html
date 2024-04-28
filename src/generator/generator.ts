@@ -104,7 +104,7 @@ export function html2Platform(
 
             if (!_.isEmpty(res.colors)) {
                 const colorLines = JSON.stringify(res.colors, null, 4);
-                const tabs = _.repeat(' ', 8);
+                const tabs = _.repeat(' ', 12);
                 const tabStart = (str: string) =>
                     str
                         .split('\n')

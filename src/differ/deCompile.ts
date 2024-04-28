@@ -53,7 +53,7 @@ function dom2VNode(dom: Element): VNode {
     ) {
         textContent = _.map(dom.childNodes, child => {
             if (child.nodeType === Node.TEXT_NODE) {
-                return child.nodeValue!.replace(/ /g, '&nbsp;');
+                return child.nodeValue!.replace(/\s/g, '&nbsp;');
             } else {
                 return '<br/>';
             }

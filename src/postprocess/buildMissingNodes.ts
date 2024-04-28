@@ -4,6 +4,7 @@ import { groupWith } from '../utils';
 import {
     Direction,
     VNode,
+    getBorderWidth,
     getClassName,
     getNodeArea,
     isContainedWithin,
@@ -209,7 +210,18 @@ function removeGhostNodesPost(parent: VNode, nodes: VNode[]) {
         return nodes;
     }
 
+    const parentBorderWidth = getBorderWidth(parent);
     function canBlendInParentBg(node: VNode) {
+        // 节点刚好跟边框重叠
+        if (
+            node.bounds.top < parent.bounds.top + parentBorderWidth ||
+            node.bounds.bottom > parent.bounds.bottom - parentBorderWidth ||
+            node.bounds.left < parent.bounds.left + parentBorderWidth ||
+            node.bounds.right > parent.bounds.right - parentBorderWidth
+        ) {
+            return false;
+        }
+
         if (getBgHSLA(node) === parentBgHSLA) {
             // 再看边框是否能融合
             const borderHSLA = getClassName(node).match(/border-\[hsla\((.+?)\)\]/);

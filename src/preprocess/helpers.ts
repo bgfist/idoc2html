@@ -13,6 +13,10 @@ export function isSymbolNode(node: Node) {
     return node.basic.type === 'symbol' && node.basic.realType === 'SymbolInstance';
 }
 
+export function isSliceNode(node: Node) {
+    return node.slice.bitmapURL && !(node.basic.type === 'rect' && node.basic.realType === 'ShapePath');
+}
+
 type NodeBounds = Pick<Node, 'bounds'>;
 
 export function getIntersectionBox(node: NodeBounds, parent: NodeBounds) {

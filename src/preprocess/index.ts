@@ -11,6 +11,7 @@ import {
     isContainedWithin,
     isEqualBox,
     isImageNode,
+    isSliceNode,
     isSymbolNode,
     isTextNode
 } from './helpers';
@@ -199,7 +200,7 @@ export function preprocess(node: Node, level: number): VNode | null {
         // stylishSymbol(node, vnode);
     }
     // 将切图的children清空，切图只保留本身图片
-    else if (node.slice.bitmapURL) {
+    else if (isSliceNode(node)) {
         stylishSlice(node, vnode);
     }
     // 占位图
@@ -232,7 +233,7 @@ export function preprocess(node: Node, level: number): VNode | null {
     }
 
     // 处理外观样式
-    if (!isTextNode(node)) {
+    if (!isTextNode(node) && !isSliceNode(node) && !isImageNode(node)) {
         stylishBox(node, vnode);
     }
 

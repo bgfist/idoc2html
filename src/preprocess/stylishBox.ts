@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Node } from './page';
 import { float2Int, numEq } from '../utils';
-import { R, VNode, getClassName } from '../vnode';
+import { R, VNode } from '../vnode';
 import { Transparent, getLinearColor, getNormalColor } from './color';
 
 export function stylishBox(node: Node, vnode: VNode) {
@@ -14,11 +14,6 @@ export function stylishBox(node: Node, vnode: VNode) {
 
 function stylishBackground(node: Node, vnode: VNode) {
     if (node.fill && node.fill.colors && node.fill.colors.length) {
-        if (getClassName(vnode).indexOf('bg-[url(') !== -1) {
-            console.warn('节点已有图片背景，不能再指定颜色背景了');
-            return;
-        }
-
         // 只支持一个颜色
         const color = node.fill.colors[0];
         if (color.type === 'normal') {
