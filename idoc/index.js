@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const pageJson = require('./demo.json');
+const pageJson = require('./demo2.json');
 const { iDocJson2Html, debug, BuildStage } = require('../dist/index');
 
 debug.showId = true;
