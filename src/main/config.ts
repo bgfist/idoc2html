@@ -43,6 +43,8 @@ export const defaultConfig = {
     },
     /** 预处理选项 */
     treeOptions: {
+        /** 参考根节点，只处理此节点cover的区域 */
+        refRootNode: '',
         /** 删除切图的多余节点 */
         removeSliceSibings: true,
         /** 黑名单节点id，将删掉这些节点 */

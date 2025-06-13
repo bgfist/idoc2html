@@ -135,6 +135,12 @@
                 <span class="text-16/30 ml-6">固定列表的高度/宽度</span>
             </label>
         </div>
+        <input
+            type="text"
+            class="my-10 rounded-3 p-8 placeholder:text-[#999]"
+            placeholder="参考根节点id"
+            bind:value={settings.configOptions.treeOptions.refRootNode}
+        />
         <textarea
             class="my-10 rounded-3 p-8 placeholder:text-[#999] resize-none"
             rows="4"

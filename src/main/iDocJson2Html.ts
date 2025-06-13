@@ -2,7 +2,14 @@ import _ from 'lodash';
 import { VNode2Code } from '../generator/html';
 import { Page } from '../preprocess/page';
 import { postprocess } from '../postprocess';
-import { VNode, isMultiLineText, isSingleLineText, makeSingleLineTextNoWrap } from '../vnode';
+import {
+    VNode,
+    isContainedWithin,
+    isMultiLineText,
+    isOriginalGhostNode,
+    isSingleLineText,
+    makeSingleLineTextNoWrap
+} from '../vnode';
 import { defaultConfig, BuildStage, debug, Config } from './config';
 import { assert } from '../utils';
 import { pickOnlyDialogIfDetected, preprocess } from '../preprocess';
@@ -67,17 +74,28 @@ export function iDocJson2Html(page: Page, config?: Config) {
 
     if (debug.buildToStage === BuildStage.Pre) {
         if (!debug.keepOriginalTree) {
-            vnode.children = unwrapAllNodes(vnode).sort((a, b) => {
-                if (a.bounds.top === b.bounds.top) {
-                    if (a.bounds.left === b.bounds.left) {
-                        return 0;
+            vnode.children = unwrapAllNodes(vnode)
+                .sort((a, b) => {
+                    if (a.bounds.top === b.bounds.top) {
+                        if (a.bounds.left === b.bounds.left) {
+                            return 0;
+                        } else {
+                            return a.bounds.left - b.bounds.left;
+                        }
                     } else {
-                        return a.bounds.left - b.bounds.left;
+                        return a.bounds.top - b.bounds.top;
                     }
-                } else {
-                    return a.bounds.top - b.bounds.top;
-                }
-            });
+                })
+                .filter(item => !isOriginalGhostNode(item));
+            if (defaultConfig.treeOptions.refRootNode) {
+                const refNode = vnode.children.find(
+                    item => item.id === defaultConfig.treeOptions.refRootNode
+                )!;
+                const children = vnode.children.filter(item => {
+                    return isContainedWithin(item, refNode) && item !== refNode;
+                });
+                Object.assign(vnode, refNode, { children });
+            }
         }
         makeAbsolute(vnode);
         return VNode2Code(vnode, 0);
